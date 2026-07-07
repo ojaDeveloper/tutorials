@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>静态网页部署 · 从 0 到 1（GitHub Pages / Cloudflare Pages · 含全程 AI 发布）</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2d333b;
+    --tx:#e6edf3; --tx2:#9da7b3; --tx3:#6e7681;
+    --acc:#58a6ff; --acc2:#bc8cff; --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+    --teal:#39c5cf; --orange:#f6821f;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--tx);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.85; font-size:16px;}
+  .app{display:flex; align-items:flex-start}
+  .sidebar{position:sticky; top:0; height:100vh; flex:0 0 262px; width:262px;
+    border-right:1px solid var(--line); background:var(--panel);
+    overflow-y:auto; padding:18px 0 40px; scrollbar-width:thin;}
+  .sidebar::-webkit-scrollbar{width:8px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
+  .brand{padding:4px 20px 16px; border-bottom:1px solid var(--line); margin-bottom:8px}
+  .brand .logo{font-size:16px; font-weight:700; letter-spacing:.3px}
+  .brand .logo .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .sb{font-size:12px; color:var(--tx3); margin-top:5px}
+  nav.toc{padding:0 10px}
+  .toc .grp{font-size:11px; letter-spacing:1.5px; color:var(--tx3); padding:16px 12px 6px; font-weight:700}
+  .toc a{display:flex; align-items:center; gap:9px; position:relative;
+    color:var(--tx2); text-decoration:none; font-size:13.5px;
+    padding:7px 10px 7px 14px; border-radius:8px; margin:1px 0 1px 8px;
+    border-left:2px solid var(--line); transition:.12s;}
+  .toc a i{flex:0 0 auto; width:20px; height:20px; border-radius:6px; font-style:normal;
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+    background:var(--panel2); color:var(--tx3); border:1px solid var(--line);}
+  .toc a:hover{color:var(--tx); background:var(--panel2)}
+  .toc a.on{color:var(--acc); background:rgba(88,166,255,.1); border-left-color:var(--acc)}
+  .toc a.on i{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:700}
+  .main{flex:1 1 auto; min-width:0}
+  .wrap{max-width:840px; margin:0 auto; padding:0 30px 140px}
+  header{padding:56px 30px 42px; text-align:center;
+    background:radial-gradient(900px 400px at 50% -120px,rgba(88,166,255,.20),transparent 70%);
+    border-bottom:1px solid var(--line);}
+  header h1{font-size:32px; margin:0 0 14px; letter-spacing:.5px}
+  header h1 .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--tx2); max-width:660px; margin:0 auto; font-size:16px}
+  .tags{margin-top:18px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+  .tag{display:inline-block;padding:5px 14px;border:1px solid var(--line);border-radius:30px;color:var(--tx2);font-size:13px}
+  .menu-btn{display:none; position:fixed; top:14px; left:14px; z-index:120;
+    width:42px; height:42px; border-radius:10px; font-size:18px;
+    background:var(--panel); border:1px solid var(--line); color:var(--tx);}
+  .scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99}
+  @media(max-width:880px){
+    .sidebar{position:fixed; left:0; top:0; z-index:100; transform:translateX(-100%); transition:.25s; box-shadow:6px 0 30px rgba(0,0,0,.5)}
+    .sidebar.open{transform:none}
+    .scrim.open{display:block}
+    .menu-btn{display:flex; align-items:center; justify-content:center}
+    header{padding-top:64px}
+  }
+  section{padding:46px 0 10px; border-bottom:1px solid var(--line)}
+  .yr{font-size:13px; color:var(--acc); letter-spacing:1.5px; font-weight:600}
+  h2{font-size:26px; margin:6px 0 4px}
+  .sub{color:var(--tx3); font-size:14px; margin-bottom:18px}
+  h3{font-size:18px; margin:30px 0 8px; color:var(--tx)}
+  p{margin:12px 0}
+  b,strong{color:#fff}
+  code{background:var(--panel2); padding:2px 6px; border-radius:5px; font-size:14px; color:#ffd9a0; font-family:"Cascadia Code",Consolas,monospace}
+  ul,ol{margin:12px 0; padding-left:22px}
+  li{margin:5px 0}
+  .term{color:var(--acc2); font-weight:600; border-bottom:1px dashed rgba(188,140,255,.5)}
+  .en{color:var(--tx3); font-size:.86em; font-family:"Cascadia Code",Consolas,monospace}
+  .key{background:linear-gradient(transparent 62%,rgba(188,140,255,.35) 0); padding:0 2px}
+  .pain{border-left:3px solid var(--bad); background:rgba(248,81,73,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .pain b{color:var(--bad)}
+  .fix{border-left:3px solid var(--ok); background:rgba(63,185,80,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .fix b{color:var(--ok)}
+  .note{border-left:3px solid var(--acc); background:rgba(88,166,255,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .warnbox{border-left:3px solid var(--warn); background:rgba(210,153,34,.08); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .warnbox b{color:var(--warn)}
+  .verify{border:1px solid rgba(57,197,207,.4); background:linear-gradient(180deg,rgba(57,197,207,.09),rgba(57,197,207,.02));
+    border-radius:10px; padding:14px 16px 12px; margin:18px 0;}
+  .verify .t{font-size:13px; color:var(--teal); font-weight:700; letter-spacing:.5px; margin-bottom:8px; display:flex; align-items:center; gap:6px}
+  .verify .t::before{content:"✅"; font-size:15px}
+  .verify ol{margin:6px 0 2px; padding-left:20px}
+  .verify li{margin:4px 0; font-size:14.5px}
+  .verify .exp{color:var(--ok); font-weight:600}
+  .who{border:1px solid var(--line); background:linear-gradient(180deg,rgba(188,140,255,.06),transparent); border-radius:10px; padding:14px 16px; margin:18px 0}
+  .who .t{font-size:13px; color:var(--acc2); font-weight:600; letter-spacing:.5px; margin-bottom:8px; display:flex; align-items:center; gap:6px}
+  .who dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 14px}
+  .who dt{color:var(--tx3); font-size:13px; white-space:nowrap}
+  .who dd{margin:0; font-size:14.5px}
+  table.gloss{width:100%; border-collapse:collapse; margin:16px 0; font-size:14px}
+  table.gloss th,table.gloss td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+  table.gloss th{background:var(--panel2); color:var(--tx2); font-size:13px}
+  table.gloss td:first-child{white-space:nowrap; color:var(--acc2); font-weight:600}
+  .demo{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; margin:22px 0}
+  .demo .hd{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--tx2); margin-bottom:14px}
+  .demo .hd::before{content:"▶"; color:var(--acc); font-size:10px}
+  .ctrl{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 0 4px}
+  button{background:var(--panel2); color:var(--tx); border:1px solid var(--line);
+    padding:8px 16px; border-radius:8px; cursor:pointer; font-size:14px; transition:.15s;}
+  button:hover{border-color:var(--acc); color:var(--acc)}
+  button.primary{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:600}
+  .hint{color:var(--tx3); font-size:13px; margin-top:8px}
+  /* 代码块 */
+  pre{background:#0b0f14; border:1px solid var(--line); border-radius:10px; padding:14px 16px; overflow-x:auto; margin:14px 0;
+    font-family:"Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.7; color:#cfe3ff;}
+  pre .cm{color:var(--tx3)}
+  pre .cmd{color:#7ee787}
+  pre .var{color:#ffd9a0}
+  .steps{counter-reset:st; margin:16px 0}
+  .stp{position:relative; padding:2px 0 2px 40px; margin:14px 0}
+  .stp::before{counter-increment:st; content:counter(st); position:absolute; left:0; top:0;
+    width:26px; height:26px; border-radius:50%; background:var(--acc); color:#0d1117; font-weight:700;
+    display:flex; align-items:center; justify-content:center; font-size:14px}
+  .flow{font-family:"Cascadia Code",Consolas,monospace; font-size:13px; line-height:1.75; color:var(--tx2);
+    background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:16px 0; overflow-x:auto}
+  .pill{display:inline-block; padding:1px 8px; border-radius:20px; font-size:12px; font-weight:600}
+  .pill.gh{background:rgba(88,166,255,.15); color:#79b8ff; border:1px solid rgba(88,166,255,.4)}
+  .pill.cf{background:rgba(246,130,31,.15); color:var(--orange); border:1px solid rgba(246,130,31,.4)}
+  .foot{text-align:center; color:var(--tx3); font-size:13px; padding:40px 0}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">静态部署 <span class="g">从 0 到 1</span></div>
+    <div class="sb">大厂免费托管 · 含全程 AI 发布</div>
+  </div>
+  <nav class="toc" id="nav">
+    <div class="grp">先搞懂原理</div>
+    <a href="#c0"><i>0</i>什么是静态页部署</a>
+    <a href="#c1"><i>1</i>为什么能免费</a>
+    <a href="#c2"><i>2</i>两个平台怎么选</a>
+
+    <div class="grp">动手前的准备</div>
+    <a href="#c3"><i>3</i>账号与工具</a>
+
+    <div class="grp">GitHub Pages</div>
+    <a href="#c4"><i>4</i>网页点点点发布</a>
+    <a href="#c5"><i>5</i>自定义域名+HTTPS</a>
+
+    <div class="grp">Cloudflare Pages</div>
+    <a href="#c6"><i>6</i>连 Git 自动发布</a>
+
+    <div class="grp">能力边界</div>
+    <a href="#c7"><i>7</i>支持/不支持什么</a>
+
+    <div class="grp">★ 重点</div>
+    <a href="#c8"><i>8</i>全程靠 AI 发布</a>
+
+    <div class="grp">收尾</div>
+    <a href="#c9"><i>9</i>常见问题排错</a>
+    <a href="#cA"><i>A</i>命令+对比速查</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<header>
+  <h1>静态网页部署，<span class="g">从 0 到 1</span></h1>
+  <p>把一个 <code>index.html</code> 变成<b>全世界都能访问的网址</b>，而且<b>完全免费、大厂托管、稳定可靠</b>。只讲两个值得信赖的平台：<span class="pill gh">GitHub Pages</span> 和 <span class="pill cf">Cloudflare Pages</span>。最后专门一章教你<b class="key">全程让 AI 一口气发布</b>——账号、命令、授权，全给齐。</p>
+  <div class="tags">
+    <span class="tag">🆓 永久免费额度</span>
+    <span class="tag">🏢 微软 / Cloudflare 背书</span>
+    <span class="tag">🔒 自动 HTTPS</span>
+    <span class="tag">🤖 可全程 AI 操作</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="note" style="margin-top:26px">
+  <b>本教程覆盖的"全方位"是指：</b>概念原理 → 平台选型 → 账号准备 → 两个平台各自从 0 到 1 的完整发布 → 自定义域名 → 静态能力边界（能做什么/不能做什么/怎么补） → <b>全程 AI 自动发布的完整命令清单</b> → 排错。跟着做，你手上这个 <code>tutorials</code> 站点就是活教材。
+</div>
+
+<!-- ============ 第0章 ============ -->
+<section id="c0">
+  <div class="yr">起点 · 先分清"静态"和"动态"</div>
+  <h2>第 0 章：什么是"静态页部署"？</h2>
+  <div class="sub">搞懂这个词，你才知道为什么它能免费、又有什么做不了</div>
+
+  <p>"部署"就是<span class="key">把你电脑里的网页文件，放到一台 24 小时开机的服务器上，让全世界通过一个网址访问</span>。而"静态"是关键定语：</p>
+
+  <div class="who">
+    <div class="t">🔀 静态 vs 动态（一句话区分）</div>
+    <dl>
+      <dt style="color:var(--acc)">静态网站</dt><dd>服务器上放的就是<b>写好的成品文件</b>（HTML/CSS/JS/图片）。谁来访问，服务器都把<b>同一份文件</b>原样发出去，不在服务器上"现算"。你做的教程、博客、作品集、落地页，基本都是静态。</dd>
+      <dt style="color:var(--acc2)">动态网站</dt><dd>每次访问，服务器要<b>现场运行程序、查数据库</b>再生成页面（如淘宝的"我的订单"、每人看到的内容不同）。需要后端、数据库，<b>要花钱养服务器</b>。</dd>
+    </dl>
+  </div>
+
+  <p>你现在这套教程合集（<code>index.html</code> + 几个子文件夹），就是<b>纯静态</b>——里面的动画是浏览器里跑的 JS，服务器只需老老实实把文件递出去。<span class="key">正因为服务器"不用干活、只发文件"，成本极低，大厂才愿意免费送。</span></p>
+
+  <div class="verify">
+    <div class="t">验证方法 · 判断你的项目是不是静态</div>
+    <ol>
+      <li>看你的项目文件：如果<b>双击 <code>index.html</code> 就能在浏览器直接打开、功能正常</b>，它就是静态的——因为它不依赖任何后端服务器。</li>
+      <li>反例自查：如果页面需要"登录后显示我的数据""提交表单存进数据库""调用你自己写的后端接口"，那部分就是<b class="exp">动态</b>，纯静态托管做不了（第 7 章讲怎么补）。</li>
+    </ol>
+    <span class="hint">验证到了什么：能离线双击打开即用 = 静态 = 可免费托管。</span>
+  </div>
+</section>
+
+<!-- ============ 第1章 ============ -->
+<section id="c1">
+  <div class="yr">原理 · 免费背后的逻辑</div>
+  <h2>第 1 章：为什么大厂敢让你永久免费用？</h2>
+  <div class="sub">理解这点，你就不会担心"免费的哪天跑路"</div>
+
+  <p>三个原因，让"静态托管免费"变得对大厂来说无所谓：</p>
+  <ul>
+    <li><b>成本极低</b>：静态文件放在 <span class="term">CDN<span class="en">内容分发网络</span></span> 上，全球缓存、按需分发，单个小站点几乎不消耗资源。</li>
+    <li><b>战略引流</b>：GitHub Pages 让你更离不开 GitHub 生态；Cloudflare 用免费 Pages 把你引进它的 CDN/安全体系，将来买它别的服务顺理成章。</li>
+    <li><b>口碑与开发者黏性</b>：免费额度是获取开发者信任的最好广告。</li>
+  </ul>
+
+  <div class="fix">
+    <b>所以"免费"不是慈善，是双赢，因此长期稳定：</b>GitHub Pages 由<b>微软旗下 GitHub</b> 运营、Cloudflare Pages 由<b>纳斯达克上市公司 Cloudflare</b> 运营。它们的免费静态托管跑了很多年、服务了海量项目。<span class="key">这正是本教程只推荐这两家的原因——大厂、免费、稳定，三者都占。</span>
+  </div>
+
+  <div class="warnbox">
+    <b>诚实提醒：</b>"免费"都有<b>额度上限</b>（流量、构建次数、文件大小等），个人教程/博客体量远远用不完。具体数字各平台会随时间调整，<b>以官网当下的说明为准</b>，我不写死过时的数字。第 2 章给你"够不够用"的量级感受。
+  </div>
+</section>
+
+<!-- ============ 第2章 ============ -->
+<section id="c2">
+  <div class="yr">选型 · 两个平台怎么挑</div>
+  <h2>第 2 章：GitHub Pages 还是 Cloudflare Pages？</h2>
+  <div class="sub">先给结论，再看细节</div>
+
+  <div class="fix">
+    <b>一句话结论：</b><br>
+    ・你的代码<b>已经在 GitHub</b> 上、只想最省事发个网页 → 选 <span class="pill gh">GitHub Pages</span>（你现在这个站就是它）。<br>
+    ・你想要<b>更快的全球访问速度、更强的构建/函数能力</b>，或需要<b>国内相对更稳的访问</b> → 选 <span class="pill cf">Cloudflare Pages</span>。<br>
+    <span class="hint" style="display:block;margin-top:4px">两个都免费、都能绑自定义域名、都自动 HTTPS。新手从 GitHub Pages 起步最简单；进阶或追求速度用 Cloudflare。</span>
+  </div>
+
+  <table class="gloss">
+    <tr><th>维度</th><th><span class="pill gh">GitHub Pages</span></th><th><span class="pill cf">Cloudflare Pages</span></th></tr>
+    <tr><td>背后公司</td><td>GitHub（微软）</td><td>Cloudflare（上市公司）</td></tr>
+    <tr><td>费用</td><td>免费（公开仓库）</td><td>免费额度，个人用绰绰有余</td></tr>
+    <tr><td>发布方式</td><td>连 GitHub 仓库，push 即更新</td><td>连 Git 仓库自动构建，或直接上传文件夹</td></tr>
+    <tr><td>免费域名</td><td><code>用户名.github.io/仓库名/</code></td><td><code>项目名.pages.dev</code></td></tr>
+    <tr><td>自定义域名</td><td>支持，免费 HTTPS</td><td>支持，免费 HTTPS</td></tr>
+    <tr><td>全球 CDN 速度</td><td>好</td><td>很好（Cloudflare 本行）</td></tr>
+    <tr><td>国内访问</td><td>有时不稳（github.io 偶被干扰）</td><td>通常更稳（但也非绝对）</td></tr>
+    <tr><td>动态能力补充</td><td>无（纯静态）</td><td>有 <b>Pages Functions</b>（serverless 函数）</td></tr>
+    <tr><td>上手难度</td><td>最低</td><td>低（多一步连账号）</td></tr>
+  </table>
+
+  <div class="note">
+    <b>其它平台呢？</b> Vercel、Netlify 也免费好用，但你明确要"大厂、稳定优先"。GitHub Pages 和 Cloudflare Pages 在"背景实力 + 长期稳定 + 免费"三条上最稳妥，所以本教程<b>只深讲这两个</b>，不铺开介绍其它，避免你选择困难。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 用一句话给自己定方案</div>
+    <ol>
+      <li>问自己：代码在不在 GitHub？在 → 先用 GitHub Pages 跑通（第 4 章），10 分钟见网址。</li>
+      <li>跑通后如果嫌慢或想要函数能力，再把<b>同一个仓库</b>接到 Cloudflare Pages（第 6 章），两个可以<b class="exp">同时存在、指向同一份代码</b>。</li>
+    </ol>
+    <span class="hint">验证到了什么：两个平台不冲突，可先易后难、甚至并存。</span>
+  </div>
+</section>
+
+<!-- ============ 第3章 ============ -->
+<section id="c3">
+  <div class="yr">准备 · 一次性搞定的账号和工具</div>
+  <h2>第 3 章：动手前，准备好账号与工具</h2>
+  <div class="sub">这些装一次，以后所有发布都用得上</div>
+
+  <div class="who">
+    <div class="t">🧰 清单（按需，不是全都要）</div>
+    <dl>
+      <dt>GitHub 账号</dt><dd><b>必备。</b>去 github.com 免费注册。两个平台都能用它。</dd>
+      <dt>Git</dt><dd><b>必备。</b>版本控制工具，把代码传到 GitHub 靠它。官网 git-scm.com 下载安装。</dd>
+      <dt>GitHub CLI（<code>gh</code>）</dt><dd><b>强烈推荐（AI 发布必备）。</b>官方命令行工具，一条命令建仓库、开 Pages。cli.github.com 下载。</dd>
+      <dt>Cloudflare 账号</dt><dd>只有用 Cloudflare Pages 才需要。dash.cloudflare.com 免费注册。</dd>
+      <dt>Node.js（可选）</dt><dd>只有用 Cloudflare 的命令行工具 <code>wrangler</code> 才需要。nodejs.org 下载。</dd>
+      <dt>自定义域名（可选）</dt><dd>想要 <code>你的名字.com</code> 才买，一年几十块。不买就用平台送的免费二级域名。</dd>
+    </dl>
+  </div>
+
+  <div class="warnbox">
+    <b>🔐 安全铁律（尤其让 AI 操作时）：</b>登录授权一律用官方工具的<b>浏览器授权</b>（<code>gh auth login</code> / <code>wrangler login</code>）——它们把令牌安全存在本地，<b class="key">AI 全程不接触明文密码/令牌</b>。<b>绝不要</b>把密码、Personal Access Token（PAT）、API Key 明文写进任何代码文件、提交进 Git、或粘贴给 AI 存档。需要 token 时用<b>环境变量</b>临时传入。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 确认工具装好了</div>
+    <ol>
+      <li>打开终端（Windows 用 Git Bash / PowerShell），逐个敲：<code>git --version</code>、<code>gh --version</code>。<b class="exp">各自打印出版本号 = 装好了</b>。</li>
+      <li>敲 <code>gh auth status</code>：如果显示 <code>Logged in to github.com</code>，说明已授权；否则运行 <code>gh auth login</code> 按提示用浏览器登录一次。</li>
+    </ol>
+    <span class="hint">验证到了什么：命令能打印版本 + gh 已登录，后面的自动发布才能跑。</span>
+  </div>
+</section>
+
+<!-- ============ 第4章 ============ -->
+<section id="c4">
+  <div class="yr">GitHub Pages · 最简路径</div>
+  <h2>第 4 章：GitHub Pages —— 网页点点点发布</h2>
+  <div class="sub">不碰命令行也能发。先走通"纯网页操作"版</div>
+
+  <p>原理：GitHub Pages 会<b>盯着你某个仓库的某个分支</b>，把里面的 <code>index.html</code> 直接当网站发出去。流程：</p>
+
+  <div class="steps">
+    <div class="stp"><b>创建仓库</b>：登录 GitHub → 右上角 <code>+</code> → New repository → 填名字（如 <code>my-site</code>）→ 选 <b>Public（公开）</b> → Create。</div>
+    <div class="stp"><b>上传文件</b>：进仓库 → <code>Add file</code> → <code>Upload files</code> → 把你的 <code>index.html</code>（及其它文件/文件夹）拖进去 → <code>Commit changes</code>。</div>
+    <div class="stp"><b>开启 Pages</b>：仓库 → <code>Settings</code>（设置）→ 左侧 <code>Pages</code> → 在 "Build and deployment" 的 Source 选 <b>Deploy from a branch</b> → Branch 选 <code>main</code>、目录选 <code>/ (root)</code> → <code>Save</code>。</div>
+    <div class="stp"><b>等 1 分钟拿网址</b>：刷新 Pages 页面，顶部会出现绿色的 <code>Your site is live at https://用户名.github.io/my-site/</code>。点它就是你的网站。</div>
+  </div>
+
+  <div class="fix">
+    <b>两种发布来源，二选一：</b><br>
+    ・<b>Deploy from a branch</b>（上面这种）：直接把分支里的文件当网站，<b>最适合纯 HTML 的静态站</b>（比如你这个教程合集）。<br>
+    ・<b>GitHub Actions</b>：需要"构建"的项目（用了 React/Vue/Hugo 等，得先编译成静态文件）走这条，用一个工作流自动构建后再发布。<b>纯 HTML 用不到，别被它吓到。</b>
+  </div>
+
+  <div class="note">
+    <b>关于网址形态（容易踩坑）：</b><br>
+    ・<b>项目站</b>：仓库随便命名 → 网址是 <code>用户名.github.io/仓库名/</code>（带子路径）。<br>
+    ・<b>用户站</b>：仓库<b>必须命名成</b> <code>用户名.github.io</code> → 网址就是干净的 <code>用户名.github.io</code>（无子路径）。<br>
+    子路径会影响资源引用，见第 9 章"样式全丢"的排错。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 确认真的发布成功</div>
+    <ol>
+      <li>用<b>手机流量</b>（不连自家 WiFi）打开那个 <code>github.io</code> 网址——能打开就证明是<b class="exp">公网可访问</b>，不是只有你本机能看。</li>
+      <li>随便改一下 <code>index.html</code> 里一个字 → 重新 upload/commit → 等 1 分钟刷新网页，<b class="exp">看到改动生效</b> = 自动更新链路通了。</li>
+      <li>浏览器地址栏看到 <b>🔒 锁图标</b>（https）= HTTPS 已自动开启。</li>
+    </ol>
+    <span class="hint">验证到了什么：网址公网可访问 + 改动能自动上线 + 自带 HTTPS。</span>
+  </div>
+</section>
+
+<!-- ============ 第5章 ============ -->
+<section id="c5">
+  <div class="yr">GitHub Pages · 进阶</div>
+  <h2>第 5 章：绑自定义域名 + 免费 HTTPS</h2>
+  <div class="sub">想要 www.你的名字.com 而不是 github.io，看这章</div>
+
+  <p>免费的 <code>github.io</code> 网址够用；但想更专业，可以绑自己买的域名。原理是在<b>域名的 DNS 里加一条记录，指向 GitHub</b>：</p>
+
+  <div class="steps">
+    <div class="stp"><b>买域名</b>：任意域名商（如 Cloudflare Registrar、阿里云、Namecheap）买一个，比如 <code>example.com</code>。</div>
+    <div class="stp"><b>在仓库设置域名</b>：仓库 → Settings → Pages → "Custom domain" 填 <code>www.example.com</code> → Save。这会在仓库里自动生成一个 <code>CNAME</code> 文件。</div>
+    <div class="stp"><b>在域名商配 DNS</b>：加一条 <code>CNAME</code> 记录，把 <code>www</code> 指向 <code>用户名.github.io</code>。（根域名 <code>example.com</code> 则加 GitHub 提供的几个 <code>A</code> 记录 IP。）</div>
+    <div class="stp"><b>勾选强制 HTTPS</b>：DNS 生效后（几分钟到几小时），回 Pages 页面勾上 <code>Enforce HTTPS</code>，GitHub 自动签发免费证书。</div>
+  </div>
+
+  <div class="warnbox">
+    <b>常见卡点：</b>DNS 修改<b>不是立刻生效</b>（有缓存，可能等几十分钟）。Pages 页面若提示证书还在签发，<b>耐心等</b>，别反复删改。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 确认域名和证书都好了</div>
+    <ol>
+      <li>浏览器访问 <code>https://www.example.com</code>，能打开你的站 + 有 🔒 = 域名和 HTTPS 都成了。</li>
+      <li>终端敲 <code>nslookup www.example.com</code>（或用在线 DNS 查询工具），<b class="exp">看到解析指向 github.io</b> = DNS 配置正确。</li>
+    </ol>
+    <span class="hint">验证到了什么：自定义域名可访问、证书有效、DNS 解析正确。</span>
+  </div>
+</section>
+
+<!-- ============ 第6章 ============ -->
+<section id="c6">
+  <div class="yr">Cloudflare Pages · 从 0 到 1</div>
+  <h2>第 6 章：Cloudflare Pages —— 连 Git 自动发布</h2>
+  <div class="sub">速度更快、能配函数。多花一步连账号，其余全自动</div>
+
+  <p>Cloudflare Pages 有两种发布方式，新手推荐<b>连 Git 仓库</b>（以后 push 就自动重新部署）：</p>
+
+  <h3>方式 A · 连 Git 仓库（推荐）</h3>
+  <div class="steps">
+    <div class="stp"><b>登录 Cloudflare</b>：dash.cloudflare.com 注册/登录。</div>
+    <div class="stp"><b>新建 Pages 项目</b>：左侧 <code>Workers & Pages</code> → <code>Create</code> → 选 <code>Pages</code> 标签 → <code>Connect to Git</code>。</div>
+    <div class="stp"><b>授权并选仓库</b>：授权 Cloudflare 访问你的 GitHub → 选中你的仓库（如 <code>my-site</code>）。</div>
+    <div class="stp"><b>配置构建</b>：纯 HTML 站点 → <b>Framework preset 选 None</b>、<b>Build command 留空</b>、<b>Build output directory 填 <code>/</code></b>（或你放 index.html 的目录）→ <code>Save and Deploy</code>。</div>
+    <div class="stp"><b>拿网址</b>：几十秒构建完，给你一个 <code>项目名.pages.dev</code> 网址，公网可访问。</div>
+  </div>
+
+  <h3>方式 B · 直接上传文件夹（不想连 Git 时）</h3>
+  <p>创建项目时选 <code>Direct Upload</code>，把整个文件夹拖上去即可。适合快速一次性发布。</p>
+
+  <div class="fix">
+    <b>Cloudflare 的加分项 · Pages Functions：</b>在项目里放一个 <code>functions/</code> 目录写 JS，就能有<b>轻量后端接口</b>（serverless 函数）——纯静态搞不定的"处理表单、调 API 藏密钥"等，它能补上。这是它相对 GitHub Pages 的最大优势（第 7 章展开）。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 确认 Cloudflare 发布成功且会自动更新</div>
+    <ol>
+      <li>手机流量打开 <code>项目名.pages.dev</code>，能访问 = 成功。</li>
+      <li>（方式 A）改一行代码 <code>git push</code> → 回 Cloudflare 项目页看 <b>Deployments</b> 列表，<b class="exp">自动出现一次新构建</b>，完成后网页更新。</li>
+      <li>对比：同一份代码在 github.io 和 pages.dev 两个地址都能开——<b class="exp">证明两平台并存不冲突</b>。</li>
+    </ol>
+    <span class="hint">验证到了什么：Cloudflare 发布成功、push 自动触发重新部署、可与 GitHub Pages 并存。</span>
+  </div>
+</section>
+
+<!-- ============ 第7章 ============ -->
+<section id="c7">
+  <div class="yr">边界 · 静态到底能做到哪</div>
+  <h2>第 7 章：静态托管支持什么、不支持什么</h2>
+  <div class="sub">别拿静态托管去干动态的活——但很多"看起来动态"的其实能做</div>
+
+  <div class="who">
+    <div class="t">✅ 完全支持（放心用）</div>
+    <dl>
+      <dt>纯 HTML/CSS/JS</dt><dd>你这种手写页、带 canvas 动画的，完美支持。</dd>
+      <dt>前端框架构建产物</dt><dd>React/Vue/Svelte 等 <code>build</code> 出来的静态文件，支持（GitHub 用 Actions 构建，Cloudflare 自动构建）。</dd>
+      <dt>静态站生成器</dt><dd>Hugo、Jekyll、VitePress、Astro 等生成的博客/文档站，支持。</dd>
+      <dt>调用第三方公开 API</dt><dd>前端 JS 直接 fetch 别人的公开接口（天气、汇率等），支持。</dd>
+      <dt>SPA 单页应用</dt><dd>支持，但要配好"找不到路由回退到 index.html"（第 9 章）。</dd>
+    </dl>
+  </div>
+
+  <div class="who" style="background:linear-gradient(180deg,rgba(248,81,73,.06),transparent)">
+    <div class="t" style="color:var(--bad)">❌ 不支持（纯静态做不了）</div>
+    <dl>
+      <dt>自己的后端/数据库</dt><dd>没有服务器帮你跑 PHP/Java/Python、连 MySQL。要存数据得靠外部服务。</dd>
+      <dt>服务端渲染 SSR</dt><dd>每次请求在服务器现算 HTML 的模式，纯静态托管不行。</dd>
+      <dt>藏密钥的操作</dt><dd>前端代码是公开的，<b>不能把 API 密钥写在 JS 里</b>（谁都能看到）。</dd>
+    </dl>
+  </div>
+
+  <div class="fix">
+    <b>那"动态需求"怎么补？（不用自己养服务器）</b><br>
+    ・<b>Cloudflare Pages Functions</b> / <b>Workers</b>：写轻量 serverless 函数，处理表单、代理请求、藏密钥。免费额度够个人用。<br>
+    ・<b>第三方 BaaS</b>：数据库/登录用 Supabase、Firebase 这类"后端即服务"，前端直接调。<br>
+    ・<b>表单类</b>：Formspree 等专门收表单的服务。<br>
+    <span class="key">思路：静态站负责"展示"，把"动态那一小块"外包给 serverless 或 BaaS——既省钱又不用运维服务器。</span>
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 判断你的需求要不要"补动态"</div>
+    <ol>
+      <li>列出你页面上每个功能，逐条问："这需要<b>在服务器上保存数据 / 保密 / 现算</b>吗？"</li>
+      <li>全部"否" → <b class="exp">纯静态托管够了，零成本</b>。有"是" → 那几个功能用 Cloudflare Functions 或 Supabase 补，主体仍然免费静态托管。</li>
+    </ol>
+    <span class="hint">验证到了什么：分清哪些能纯静态、哪些要外包，避免为一个小功能去租整台服务器。</span>
+  </div>
+</section>
+
+<!-- ============ 第8章 ============ -->
+<section id="c8">
+  <div class="yr">★ 本教程重点 · 让 AI 一口气发布</div>
+  <h2>第 8 章：全程靠 AI 发布（完整账号 + 命令清单）</h2>
+  <div class="sub">你现在就是这么发的。这一章把整条链路拆成"人做一次"+"AI 反复做"</div>
+
+  <p>核心分工：<b class="key">凡是涉及"登录授权"的一次性动作，由人在浏览器完成（AI 不碰密码）；之后所有建仓库、推代码、开 Pages 的重复动作，AI 用命令行一条龙搞定。</b></p>
+
+  <div class="warnbox">
+    <b>人类只需一次性做这三件事（之后可完全交给 AI）：</b><br>
+    ① 注册 GitHub 账号；② 装好 <code>git</code> 和 <code>gh</code>（第 3 章）；③ 跑一次 <code>gh auth login</code> 用浏览器授权。<br>
+    完成后，令牌安全存在本机，<b>AI 直接调用 <code>gh</code> 即可，全程不接触明文凭据</b>——这也是最安全的姿势。
+  </div>
+
+  <h3>🅰 路线一：GitHub Pages 全自动（推荐给 AI）</h3>
+  <p>把下面这段当作给 AI 的"标准作业"。假设你的网站文件在当前文件夹，含 <code>index.html</code>：</p>
+  <pre><span class="cm"># 0) 前提：人已完成 gh auth login。先确认身份 & 拿到用户名</span>
+<span class="cmd">gh</span> auth status
+OWNER=$(<span class="cmd">gh</span> api user --jq .login)   <span class="cm"># 自动取你的 GitHub 用户名</span>
+
+<span class="cm"># 1) 初始化本地 git 仓库并提交</span>
+<span class="cmd">git</span> init
+<span class="cmd">git</span> add -A
+<span class="cmd">git</span> commit -m "init: my static site"
+
+<span class="cm"># 2) 一条命令：在 GitHub 建公开仓库 + 关联 + 推送</span>
+<span class="cmd">gh</span> repo create my-site --public --source=. --remote=origin --push
+
+<span class="cm"># 3) 开启 GitHub Pages（从 main 分支根目录发布）</span>
+<span class="cmd">gh</span> api -X POST repos/$OWNER/my-site/pages \
+   -f "source[branch]=main" -f "source[path]=/"
+
+<span class="cm"># 4) 拿到最终网址</span>
+<span class="cmd">gh</span> api repos/$OWNER/my-site/pages --jq .html_url</pre>
+
+  <div class="note">
+    <b>逐条在干嘛：</b><br>
+    ・<code>gh repo create ... --source=. --push</code>：一步完成"建远程仓库 + 设为 origin + 推送本地代码"。<br>
+    ・<code>gh api -X POST .../pages</code>：调 GitHub 接口<b>打开 Pages 开关</b>并指定发布分支/目录（等于第 4 章第 3 步的网页操作，只是命令化）。<br>
+    ・最后一条打印 <code>html_url</code>，就是 <code>https://用户名.github.io/my-site/</code>。<br>
+    <b>以后更新网站</b>：只要 <code>git add -A && git commit -m "..." && git push</code>，Pages 自动重新发布，无需再动开关。
+  </div>
+
+  <div class="warnbox">
+    <b>可能的坑（让 AI 有 fallback）：</b><br>
+    ・第 3 步若报 Pages 已存在/权限问题，AI 可改用网页操作（第 4 章第 3 步）兜底，或改 <code>-X PUT</code> 更新已存在的配置。<br>
+    ・仓库若<b>私有</b>，免费版 Pages 可能受限，<b>建议用 <code>--public</code> 公开仓库</b>最省心。<br>
+    ・首次发布后 Pages 构建需 ~1 分钟，网址可能短暂 404，<b>等一会儿再验证</b>。
+  </div>
+
+  <h3>🅱 路线二：Cloudflare Pages 全自动（用 wrangler 直传）</h3>
+  <p>如果要 AI 发到 Cloudflare（更快的 CDN），用官方 <code>wrangler</code> 命令行"直接上传"，不必连 Git：</p>
+  <pre><span class="cm"># 0) 人先跑一次浏览器授权（AI 不碰密钥）</span>
+<span class="cmd">npx</span> wrangler login
+
+<span class="cm"># 1) 创建 Pages 项目（生产分支设为 main）</span>
+<span class="cmd">npx</span> wrangler pages project create my-site --production-branch=main
+
+<span class="cm"># 2) 把当前文件夹作为静态资源直接部署</span>
+<span class="cmd">npx</span> wrangler pages deploy . --project-name=my-site
+
+<span class="cm"># 部署完终端会打印 https://my-site.pages.dev 之类的网址</span></pre>
+
+  <div class="fix">
+    <b>给 AI 的完整心法（可直接贴进 prompt）：</b>
+    <ol>
+      <li>先 <code>gh auth status</code> / <code>wrangler whoami</code> 确认已授权；没授权就<b>停下来提示人类去授权</b>，不要试图代填密码。</li>
+      <li>用 <code>gh api user --jq .login</code> 动态获取用户名，<b>不要硬编码</b>。</li>
+      <li>按路线一或二执行；<b>每一步跑完检查返回值/退出码</b>，失败就走对应 fallback。</li>
+      <li>最后<b>打印出最终网址并自我验证</b>（<code>curl -I 网址</code> 看是否 200，见下方验证）。</li>
+      <li><b>永不</b>把 token/密码写进文件或提交进 Git。</li>
+    </ol>
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · AI 自己确认"真的发布成功了"</div>
+    <ol>
+      <li>命令行验证：<code>curl -I https://用户名.github.io/my-site/</code>，<b class="exp">看到 <code>HTTP/2 200</code></b>（首次可能 404，等 1 分钟重试）。</li>
+      <li>内容验证：<code>curl -s 网址 | grep "&lt;title&gt;"</code>，<b class="exp">打印出你页面的标题</b> = 内容正确上线。</li>
+      <li>人工复核：手机流量打开网址，肉眼确认页面和本地一致。</li>
+    </ol>
+    <span class="hint">验证到了什么：AI 不用"我以为发好了"，而是用 HTTP 状态码 + 页面内容客观确认发布成功。</span>
+  </div>
+</section>
+
+<!-- ============ 第9章 ============ -->
+<section id="c9">
+  <div class="yr">收尾 · 踩坑急救</div>
+  <h2>第 9 章：常见问题排错</h2>
+  <div class="sub">发布后最容易撞的几个坑，对症下药</div>
+
+  <table class="gloss">
+    <tr><th>症状</th><th>原因 & 解法</th></tr>
+    <tr><td>网址 404 打不开</td><td>① 刚开启 Pages，还在构建，<b>等 1–2 分钟</b>；② 分支/目录选错（要选有 index.html 的那个）；③ 仓库私有且免费版受限 → 改公开。</td></tr>
+    <tr><td>页面打开了但<b>样式/图片全丢</b></td><td>多半是<b>路径问题</b>。项目站网址带子路径（<code>/仓库名/</code>），而代码里用了 <code>/style.css</code> 这种<b>绝对路径</b>会找错。改成<b>相对路径</b> <code>./style.css</code>，或用户站（仓库名=用户名.github.io）避免子路径。</td></tr>
+    <tr><td>改了代码但网页没变</td><td>① 还在构建，等一下；② <b>浏览器缓存</b>，强制刷新（Ctrl+F5）或无痕窗口；③ 确认真的 push 上去了（<code>git log</code> 看提交）。</td></tr>
+    <tr><td>SPA 刷新子页面 404</td><td>单页应用要配"回退到 index.html"：GitHub Pages 加一个 <code>404.html</code> 兜底；Cloudflare 用 <code>_redirects</code> 文件把所有路径指向 <code>/index.html</code>。</td></tr>
+    <tr><td>HTTPS 证书没生效</td><td>自定义域名的 DNS 刚改，<b>等生效</b>；Pages 里勾上 Enforce HTTPS 后再等证书签发。</td></tr>
+    <tr><td>中文文件夹名网址乱码</td><td>URL 里中文会被编码成 <code>%xx</code>。想网址干净，<b>子文件夹用英文名</b>（本合集就是这么做的：<code>stock-basics</code> 而非中文）。</td></tr>
+  </table>
+
+  <div class="verify">
+    <div class="t">验证方法 · 排错后确认修好了</div>
+    <ol>
+      <li>改完 → push → <b>无痕窗口</b>打开网址（避开缓存）→ 逐项确认样式/图片/路由都正常。</li>
+      <li>用 <code>curl -I 网址</code> 复查状态码从 404 变成 <b class="exp">200</b>。</li>
+    </ol>
+    <span class="hint">验证到了什么：用无痕窗口 + curl 客观确认问题真的解决，而不是被缓存骗了。</span>
+  </div>
+</section>
+
+<!-- ============ 附录 A ============ -->
+<section id="cA">
+  <div class="yr">附录 · 一页速查</div>
+  <h2>附录 A：命令速查 + 平台对比</h2>
+  <div class="sub">忘了就回这里抄</div>
+
+  <h3>GitHub Pages 全自动（复制即用）</h3>
+  <pre><span class="cmd">gh</span> auth status
+OWNER=$(<span class="cmd">gh</span> api user --jq .login)
+<span class="cmd">git</span> init &amp;&amp; <span class="cmd">git</span> add -A &amp;&amp; <span class="cmd">git</span> commit -m "init"
+<span class="cmd">gh</span> repo create my-site --public --source=. --remote=origin --push
+<span class="cmd">gh</span> api -X POST repos/$OWNER/my-site/pages -f "source[branch]=main" -f "source[path]=/"
+<span class="cmd">gh</span> api repos/$OWNER/my-site/pages --jq .html_url
+<span class="cm"># 之后更新：git add -A &amp;&amp; git commit -m "..." &amp;&amp; git push</span></pre>
+
+  <h3>Cloudflare Pages 全自动（直传）</h3>
+  <pre><span class="cmd">npx</span> wrangler login
+<span class="cmd">npx</span> wrangler pages project create my-site --production-branch=main
+<span class="cmd">npx</span> wrangler pages deploy . --project-name=my-site</pre>
+
+  <h3>验证发布是否成功</h3>
+  <pre><span class="cmd">curl</span> -I https://用户名.github.io/my-site/      <span class="cm"># 看 200</span>
+<span class="cmd">curl</span> -s https://用户名.github.io/my-site/ | grep title</pre>
+
+  <table class="gloss">
+    <tr><th></th><th><span class="pill gh">GitHub Pages</span></th><th><span class="pill cf">Cloudflare Pages</span></th></tr>
+    <tr><td>免费域名</td><td>用户名.github.io/仓库名/</td><td>项目名.pages.dev</td></tr>
+    <tr><td>命令行工具</td><td><code>gh</code>（GitHub CLI）</td><td><code>wrangler</code>（需 Node）</td></tr>
+    <tr><td>更新方式</td><td>git push 自动重发</td><td>git push 自动重发 / wrangler 直传</td></tr>
+    <tr><td>动态补充</td><td>无（配 BaaS）</td><td>Pages Functions / Workers</td></tr>
+    <tr><td>最适合</td><td>已在 GitHub 的静态站，最省事</td><td>追求速度 / 要函数能力</td></tr>
+  </table>
+
+  <div class="note">
+    <b>AI 发布 checklist（贴给 AI 的最终版）：</b>
+    ① 确认 <code>gh auth status</code> 已登录，否则停下让人授权 →
+    ② <code>OWNER=$(gh api user --jq .login)</code> 取用户名 →
+    ③ <code>git init/add/commit</code> →
+    ④ <code>gh repo create --public --source=. --push</code> →
+    ⑤ <code>gh api -X POST .../pages</code> 开 Pages →
+    ⑥ 打印 <code>html_url</code> →
+    ⑦ <code>curl -I</code> 验证 200 →
+    ⑧ 全程不写明文 token。
+  </div>
+
+  <p style="text-align:center;color:var(--acc2);font-size:18px;margin:30px 0 10px"><b>🎉 你已经把"从一个 index.html 到全世界可访问的网址"完整走通，还学会了让 AI 全自动发布。</b></p>
+  <p style="text-align:center;color:var(--tx3);font-size:14px">现在你手上这个 tutorials 合集，就是靠这套流程发布的活样板。</p>
+</section>
+
+</div><!-- /wrap -->
+
+<div class="foot">
+  静态网页部署 · 从 0 到 1 · GitHub Pages / Cloudflare Pages / 全程 AI 发布<br>
+  <span style="color:var(--tx3)">只推荐大厂免费稳定平台 · 授权用官方工具浏览器登录 · 永不明文存储凭据</span>
+</div>
+
+</main>
+</div><!-- /app -->
+
+<script>
+const $ = s => document.querySelector(s);
+const navLinks=[...document.querySelectorAll('#nav a')];
+const secs=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+function syncNav(){
+  let i=secs.findIndex((s,k)=>{
+    const r=s.getBoundingClientRect();
+    return r.top<=140 && (k===secs.length-1 || secs[k+1].getBoundingClientRect().top>140);
+  });
+  if(i<0)i=0;
+  navLinks.forEach((a,k)=>a.classList.toggle('on',k===i));
+}
+addEventListener('scroll',syncNav,{passive:true}); syncNav();
+const sidebar=$('#sidebar'), scrim=$('#scrim');
+function closeMenu(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+$('#menuBtn').onclick=()=>{ sidebar.classList.toggle('open'); scrim.classList.toggle('open'); };
+scrim.onclick=closeMenu;
+navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMenu(); }));
+</script>
+</body>
+</html>

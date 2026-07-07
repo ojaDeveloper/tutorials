@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transformer 的前世今生 · 从0到如今</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2d333b;
+    --tx:#e6edf3; --tx2:#9da7b3; --tx3:#6e7681;
+    --acc:#58a6ff; --acc2:#bc8cff; --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+    --q:#58a6ff; --k:#3fb950; --v:#bc8cff;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--tx);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.85; font-size:16px;
+  }
+  /* ---------- 整体布局：左目录树 + 右正文 ---------- */
+  .app{display:flex; align-items:flex-start}
+  .sidebar{
+    position:sticky; top:0; height:100vh; flex:0 0 256px; width:256px;
+    border-right:1px solid var(--line); background:var(--panel);
+    overflow-y:auto; padding:18px 0 40px; scrollbar-width:thin;
+  }
+  .sidebar::-webkit-scrollbar{width:8px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
+  .brand{padding:4px 20px 16px; border-bottom:1px solid var(--line); margin-bottom:8px}
+  .brand .logo{font-size:16px; font-weight:700; letter-spacing:.3px}
+  .brand .logo .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .sb{font-size:12px; color:var(--tx3); margin-top:5px}
+
+  nav.toc{padding:0 10px}
+  .toc .grp{font-size:11px; letter-spacing:1.5px; color:var(--tx3); padding:16px 12px 6px; font-weight:700}
+  .toc a{
+    display:flex; align-items:center; gap:9px; position:relative;
+    color:var(--tx2); text-decoration:none; font-size:13.5px;
+    padding:7px 10px 7px 14px; border-radius:8px; margin:1px 0 1px 8px;
+    border-left:2px solid var(--line); transition:.12s;
+  }
+  .toc a i{
+    flex:0 0 auto; width:20px; height:20px; border-radius:6px; font-style:normal;
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+    background:var(--panel2); color:var(--tx3); border:1px solid var(--line);
+  }
+  .toc a:hover{color:var(--tx); background:var(--panel2)}
+  .toc a.on{color:var(--acc); background:rgba(88,166,255,.1); border-left-color:var(--acc)}
+  .toc a.on i{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:700}
+
+  /* ---------- 右侧正文 ---------- */
+  .main{flex:1 1 auto; min-width:0}
+  .wrap{max-width:820px; margin:0 auto; padding:0 30px 140px}
+
+  /* ---------- 顶部 ---------- */
+  header{
+    padding:56px 30px 42px; text-align:center;
+    background:radial-gradient(900px 400px at 50% -120px,rgba(88,166,255,.20),transparent 70%);
+    border-bottom:1px solid var(--line);
+  }
+  header h1{font-size:32px; margin:0 0 14px; letter-spacing:.5px}
+  header h1 .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--tx2); max-width:640px; margin:0 auto; font-size:16px}
+  .tag{display:inline-block;margin-top:18px;padding:5px 14px;border:1px solid var(--line);border-radius:30px;color:var(--tx2);font-size:13px}
+
+  /* ---------- 移动端抽屉 ---------- */
+  .menu-btn{
+    display:none; position:fixed; top:14px; left:14px; z-index:120;
+    width:42px; height:42px; border-radius:10px; font-size:18px;
+    background:var(--panel); border:1px solid var(--line); color:var(--tx);
+  }
+  .scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99}
+  @media(max-width:880px){
+    .sidebar{position:fixed; left:0; top:0; z-index:100; transform:translateX(-100%); transition:.25s; box-shadow:6px 0 30px rgba(0,0,0,.5)}
+    .sidebar.open{transform:none}
+    .scrim.open{display:block}
+    .menu-btn{display:flex; align-items:center; justify-content:center}
+    header{padding-top:64px}
+  }
+
+  /* ---------- 章节 ---------- */
+  section{padding:46px 0 10px; border-bottom:1px solid var(--line)}
+  .yr{font-size:13px; color:var(--acc); letter-spacing:2px; font-weight:600}
+  h2{font-size:26px; margin:6px 0 4px}
+  .sub{color:var(--tx3); font-size:14px; margin-bottom:18px}
+  h3{font-size:18px; margin:30px 0 8px; color:var(--tx)}
+  p{margin:12px 0}
+  b,strong{color:#fff}
+  code{background:var(--panel2); padding:2px 6px; border-radius:5px; font-size:14px; color:#ffd9a0; font-family:"Cascadia Code",Consolas,monospace}
+
+  .pain{border-left:3px solid var(--bad); background:rgba(248,81,73,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .pain b{color:var(--bad)}
+  .fix{border-left:3px solid var(--ok); background:rgba(63,185,80,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .fix b{color:var(--ok)}
+  .who{border:1px solid var(--line); background:linear-gradient(180deg,rgba(188,140,255,.06),transparent); border-radius:10px; padding:14px 16px; margin:18px 0}
+  .who .t{font-size:13px; color:var(--acc2); font-weight:600; letter-spacing:.5px; margin-bottom:8px; display:flex; align-items:center; gap:6px}
+  .who .t::before{content:"🏛"}
+  .who dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 14px}
+  .who dt{color:var(--tx3); font-size:13px; white-space:nowrap}
+  .who dd{margin:0; font-size:14.5px}
+  .who .real{color:var(--ok)}
+  .note{border-left:3px solid var(--acc); background:rgba(88,166,255,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .key{background:linear-gradient(transparent 62%,rgba(188,140,255,.35) 0); padding:0 2px}
+
+  /* ---------- 演示盒 ---------- */
+  .demo{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; margin:22px 0}
+  .demo .hd{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--tx2); margin-bottom:14px}
+  .demo .hd::before{content:"▶"; color:var(--acc); font-size:10px}
+  .ctrl{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 0 4px}
+  button{
+    background:var(--panel2); color:var(--tx); border:1px solid var(--line);
+    padding:8px 16px; border-radius:8px; cursor:pointer; font-size:14px; transition:.15s;
+  }
+  button:hover{border-color:var(--acc); color:var(--acc)}
+  button.primary{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:600}
+  button.primary:hover{filter:brightness(1.1); color:#0d1117}
+  button:disabled{opacity:.4; cursor:not-allowed}
+  .hint{color:var(--tx3); font-size:13px; margin-top:8px}
+  canvas{display:block; max-width:100%; border-radius:10px}
+
+  /* ---------- 第6章 Q/K/V 计算器 ---------- */
+  .qkv-words{display:flex; gap:12px; flex-wrap:wrap; margin:8px 0 6px}
+  .wcard{flex:1 1 150px; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--panel2); cursor:pointer; transition:.15s}
+  .wcard:hover{border-color:var(--acc)}
+  .wcard.asking{border-color:var(--acc2); box-shadow:0 0 0 1px var(--acc2); background:rgba(188,140,255,.08)}
+  .wcard .wt{font-size:18px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between}
+  .wcard .wt .ask{font-size:11px; color:var(--acc2); border:1px solid var(--acc2); border-radius:20px; padding:1px 8px}
+  .vec{font-family:"Cascadia Code",Consolas,monospace; font-size:13px; margin:3px 0; display:flex; gap:8px; align-items:center}
+  .vec .lbl{width:54px; color:var(--tx3)}
+  .vec.q .num{color:var(--q)} .vec.k .num{color:var(--k)} .vec.v .num{color:var(--v)}
+  .vec .num{color:var(--tx)}
+  .step{border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:10px 0; background:var(--panel2); opacity:.35; transition:.25s}
+  .step.on{opacity:1; border-color:var(--acc)}
+  .step h4{margin:0 0 8px; font-size:14px; color:var(--acc)}
+  .calc{font-family:"Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:2}
+  .calc .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .calc .w{display:inline-block; min-width:40px; color:var(--tx3)}
+  .bar{height:16px; background:var(--acc); border-radius:4px; display:inline-block; vertical-align:middle; transition:width .4s}
+  .out{font-size:15px; color:var(--ok); font-family:"Cascadia Code",Consolas,monospace}
+
+  .foot{text-align:center; color:var(--tx3); font-size:13px; padding:40px 0}
+  .kbd{font-family:monospace; background:var(--panel2); border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 7px; font-size:12px}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">Transformer <span class="g">前世今生</span></div>
+    <div class="sb">从 0 到如今 · 演化时间线</div>
+  </div>
+  <nav class="toc" id="nav">
+    <div class="grp">起点</div>
+    <a href="#c0"><i>0</i>电脑不懂"字"</a>
+
+    <div class="grp">词与序列时代</div>
+    <a href="#c1"><i>1</i>词 → 向量</a>
+    <a href="#c2"><i>2</i>RNN 读句子</a>
+    <a href="#c3"><i>3</i>翻译瓶颈</a>
+
+    <div class="grp">注意力革命</div>
+    <a href="#c4"><i>4</i>注意力诞生</a>
+    <a href="#c5"><i>5</i>扔掉 RNN</a>
+    <a href="#c6"><i>6</i>Q/K/V 核心</a>
+
+    <div class="grp">Transformer 成型</div>
+    <a href="#c7"><i>7</i>几块补丁</a>
+    <a href="#c8"><i>8</i>堆起来 → GPT</a>
+
+    <div class="grp">附录</div>
+    <a href="#cA"><i>A</i>原理 vs 工程</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<header>
+  <h1>Transformer 的<span class="g">前世今生</span></h1>
+  <p>不从"它现在长什么样"讲起，而是顺着时间线，看人们当年<b>被什么卡住</b>、<b>想了什么招</b>、<b>又冒出什么新麻烦</b> —— 一个补丁一个补丁，最后拼出了今天的样子。</p>
+  <div class="tag">建议从上到下读，每章都有可以动手玩的动画 🎛</div>
+</header>
+
+<div class="wrap">
+
+<!-- ============ 第0章 ============ -->
+<section id="c0">
+  <div class="yr">起点 · 大约 1950s 至今的根问题</div>
+  <h2>第 0 章：电脑根本不懂"字"</h2>
+  <div class="sub">在聊任何模型之前，先想清楚最底层那个麻烦</div>
+
+  <p>电脑这台机器，骨子里只会做一件事：<b>算数字</b>。加减乘除、比大小，仅此而已。它不认识"猫"这个字，也不知道"开心"是什么感觉。</p>
+
+  <p>可我们想让它做的事 —— 翻译、聊天、写文章 —— 全是<b>语言</b>。于是从一开始，所有人面对的就是同一道墙：</p>
+
+  <div class="pain">
+    <b>核心难题：</b>怎么把"文字"变成"数字"，而且这串数字还得<b>保留住意思</b>？<br>
+    要让电脑算一算就能知道"猫"和"狗"是近亲，"猫"和"桌子"八竿子打不着。
+  </div>
+
+  <p>接下来你会看到的每一个发明 —— 词向量、RNN、注意力、Transformer —— <b>本质上都是在更好地回答这一个问题</b>。把这条主线记住，后面就不会迷路。</p>
+
+  <p>我们顺着这条线往下走，第一站：怎么把一个词变成数字。</p>
+</section>
+
+<!-- ============ 第1章 ============ -->
+<section id="c1">
+  <div class="yr">2013 · Word2Vec（Mikolov 等）</div>
+  <h2>第 1 章：把"词"变成一串数字（词向量）</h2>
+  <div class="sub">让意思相近的词，在空间里离得近</div>
+
+  <h3>最笨的第一版：编号 / One-hot</h3>
+  <p>最直觉的做法：给每个词发一个编号。猫=1，狗=2，桌子=3…… 或者写成"独热"形式：猫=<code>[1,0,0]</code>，狗=<code>[0,1,0]</code>，桌子=<code>[0,0,1]</code>。</p>
+
+  <div class="pain">
+    <b>新麻烦：</b>这些编号<b>互相之间毫无关系</b>。猫和狗的向量，跟猫和桌子的向量，"距离"完全一样。意思全丢了。而且词典有几万个词，每个向量就有几万维，全是 0，又笨又浪费。
+  </div>
+
+  <h3>关键一跳：用"稠密向量"表示词</h3>
+  <p>新想法：别用几万维的稀疏编号，改用一串<b>几百个小数</b>来表示一个词，比如猫 = <code>[0.7, -0.2, 0.9, …]</code>。每一维你可以模糊理解成某种"隐藏属性"（是不是动物？是不是宠物？大不大？）。</p>
+
+  <div class="fix">
+    <b>怎么得到这串数字？（这就是"再现"的关键）</b><br>
+    核心思想一句话：<span class="key">看一个词的"邻居"就懂它的意思</span>（"你认识一个人，看他跟谁混在一起"）。<br>
+    做法：拿海量句子，遮住一个词，让模型用周围的词去<b>猜</b>它（或反过来）。猜错就微调那串数字，猜对就保留。重复几亿次，意思相近的词（因为总出现在相似的上下文里）自然就被推到了相近的位置。
+  </div>
+
+  <p>训练完会出现一个让当年所有人震惊的现象 —— 向量居然能做<b>加减法运算</b>，而且结果有意义：</p>
+  <p style="text-align:center;font-size:18px;color:var(--acc2)"><b>「国王」− 「男人」+ 「女人」≈ 「王后」</b></p>
+
+  <div class="demo">
+    <div class="hd">动画 1 · 词向量空间（拖动滑块，看"国王−男+女"怎么落到王后）</div>
+    <canvas id="cv-w2v" width="800" height="420"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="w2v-play">▶ 播放向量运算</button>
+      <button id="w2v-reset">重置</button>
+      <span class="hint">观察：相近的词聚在一起；性别这条"方向"是平行的。</span>
+    </div>
+  </div>
+
+  <div class="who">
+    <div class="t">谁做的 · 当时真拿它干嘛（不是为了通向 Transformer）</div>
+    <dl>
+      <dt>谁</dt><dd><b>Tomáš Mikolov</b> 等人，当时在 <b>Google</b>（2013 年发表 Word2Vec）。再往前，"用向量表示词"的思想可追到更早的统计语言模型，比如 Bengio 等人 2003 年的神经语言模型。</dd>
+      <dt>当时解决的真问题</dt><dd class="real">这不是中间产物，是<b>立刻上线赚钱的东西</b>：搜索引擎理解"近义词"（搜"笔记本"也能命中"laptop"）、广告/商品<b>推荐</b>、文本分类、垃圾邮件过滤。词向量后来成了几乎所有 NLP 系统的<b>标准第一层</b>，沿用至今。</dd>
+      <dt>我不确定的</dt><dd>具体哪个 Google 产品线最早接入、内部时间表，我没有可靠来源，<b>不编</b>。</dd>
+    </dl>
+  </div>
+
+  <div class="note">
+    <b>这一步解决了什么 / 留下了什么：</b><br>
+    ✅ 解决了"单个词怎么变数字、还保留意思"。<br>
+    ❌ 但词向量是<b>死的</b> —— "苹果"在"我吃苹果"和"苹果公司"里是同一串数字。<b>它不懂上下文</b>。<br>
+    而且我们还没解决：一整<b>句话</b>怎么处理？词和词的<b>顺序</b>怎么办？这正是第 2 章要面对的。
+  </div>
+</section>
+
+<!-- ============ 第2章 ============ -->
+<section id="c2">
+  <div class="yr">1986 提出 · 1997 LSTM · 2014 前后大流行</div>
+  <h2>第 2 章：一个词一个词地读（RNN）</h2>
+  <div class="sub">有了词向量，下一步：怎么把它们串成"一句话"来理解</div>
+
+  <p>现在每个词都是一串数字了。但"我 爱 你"和"你 爱 我"用的词一模一样，意思却相反 —— 所以<b>顺序</b>很重要，我们需要一个能<b>按顺序读</b>的东西。</p>
+
+  <h3>最自然的想法：像人读书一样，从左往右扫</h3>
+  <p>RNN（循环神经网络）的点子特别朴素：<span class="key">准备一个"记忆"，从左到右一个词一个词读，每读一个就更新一次记忆</span>。读完最后一个词，那个"记忆"就浓缩了整句话的意思。</p>
+
+  <div class="fix">
+    <b>它内部就一条公式（再现它你只需要这个）：</b><br>
+    <code>新记忆 = f( 旧记忆 , 当前这个词 )</code><br>
+    每一步都把"上一刻的记忆"和"眼前的词"揉在一起，产出"新记忆"，然后这个新记忆又喂给下一步。同一个 <code>f</code>（同一组参数）反复用 —— "循环"二字就是这么来的。
+  </div>
+
+  <div class="demo">
+    <div class="hd">动画 2 · RNN 逐字阅读「我 今天 很 开心」（看记忆怎么一步步传递、前面的词怎么慢慢褪色）</div>
+    <canvas id="cv-rnn" width="800" height="300"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="rnn-step">▶ 读下一个词</button>
+      <button id="rnn-auto">⏩ 自动播放</button>
+      <button id="rnn-reset">重置</button>
+      <span class="hint">注意右边那条"记忆"亮度：越早读的词，到最后颜色越淡 —— 这就是"健忘"。</span>
+    </div>
+  </div>
+
+  <h3>改良版：LSTM / GRU（给记忆装上"闸门"）</h3>
+  <p>朴素 RNN 健忘得厉害。于是有了 LSTM，思路是给记忆加几道<b>闸门</b>：哪些该<b>忘掉</b>、哪些该<b>记牢</b>、哪些该<b>输出</b>，让重要信息能"长途"流下去。它确实好用了很多，统治了 2014–2017 年的 NLP。</p>
+
+  <div class="pain">
+    <b>但两个根上的麻烦，LSTM 也没能真正解决：</b><br>
+    <b>① 还是会忘 / 长距离依赖难。</b>句子一长，开头的信息挤过几十步，到结尾还是模糊。"它"指代的是 30 个词前的"那只猫"，模型容易跟丢。<br>
+    <b>② 天生不能并行（最致命）。</b>第 5 步必须等第 4 步算完才能开始 —— 因为它要用第 4 步的记忆。这是<b>死锁式的串行</b>。GPU 有几千个核能同时算，却只能干等着，一个一个排队。句子越长越慢，训练巨大模型时这是无法接受的。
+  </div>
+
+  <div class="who">
+    <div class="t">谁做的 · 当时真拿它干嘛</div>
+    <dl>
+      <dt>谁</dt><dd>RNN 思想很老（1980 年代，<b>"反向传播"</b>的普及常归于 <b>Rumelhart、Hinton、Williams</b> 1986 年的工作）。LSTM 由 <b>Sepp Hochreiter 与 Jürgen Schmidhuber</b> 在 <b>1997 年</b>提出。GRU 由 <b>Kyunghyun Cho</b> 等人 2014 年提出。</dd>
+      <dt>当时解决的真问题</dt><dd class="real">2014–2017 年，LSTM 是<b>工业界主力</b>，大规模上线：手机输入法的<b>下一个词预测</b>、<b>语音识别</b>（Siri、Google 语音）、机器翻译、邮件智能回复（Gmail Smart Reply）。它不是过渡品，是真真切切服务了几十亿人好几年的当家技术。</dd>
+      <dt>我不确定的</dt><dd>各家产品具体用 LSTM 还是 GRU、确切上线时间，细节我没把握，<b>不编</b>。</dd>
+    </dl>
+  </div>
+
+  <div class="note">
+    <b>这一步解决了什么 / 留下了什么：</b><br>
+    ✅ 能按顺序处理整句话了，能建模词之间的先后关系。<br>
+    ❌ 串行 = 慢，喂不动大数据；长依赖还是会跟丢。<br>
+    人们开始想：<b>能不能不要这种"一步等一步"的结构？</b>但在彻底推翻它之前，研究者先在 RNN 上打了一个意义重大的补丁 —— 它叫<b>注意力</b>，也正是它最后反客为主、干掉了 RNN。我们先看它是怎么在"翻译"这个任务上被逼出来的（第 3 章）。
+  </div>
+</section>
+
+<!-- ============ 第3章 ============ -->
+<section id="c3">
+  <div class="yr">2014 · Seq2Seq（Sutskever 等 / Cho 等）</div>
+  <h2>第 3 章：机器翻译，和那个要命的"瓶颈"</h2>
+  <div class="sub">注意力不是凭空想出来的，是被一个具体任务逼出来的</div>
+
+  <p>RNN 能读一句话了。但<b>翻译</b>有个新难点：输入是中文「我爱你」，输出是英文「I love you」—— 两边<b>长度不一样、语序也不一样</b>。怎么办？</p>
+
+  <h3>当时的方案：编码器 + 解码器（Seq2Seq）</h3>
+  <p>办法很聪明，叫"序列到序列"：用<b>两个 RNN</b>。</p>
+  <p>① <b>编码器</b>把整句中文从头读到尾，读完得到一个"记忆向量"（业内叫 <b>context vector</b>）。<br>② <b>解码器</b>拿着这个向量，一个词一个词把英文吐出来。</p>
+
+  <div class="who">
+    <div class="t">谁做的 · 当时真拿它干嘛</div>
+    <dl>
+      <dt>谁</dt><dd><b>Ilya Sutskever、Oriol Vinyals、Quoc Le</b>（Google，2014「Sequence to Sequence Learning」）；几乎同时 <b>Kyunghyun Cho、Yoshua Bengio</b> 等人（蒙特利尔大学）提出编码器–解码器框架。</dd>
+      <dt>当时解决的真问题</dt><dd class="real"><b>机器翻译</b>，而且是大事件：<b>Google 翻译在 2016 年</b>把后台从老式统计翻译换成了这套神经网络（GNMT），翻译质量肉眼可见地暴涨，服务全球用户。这是 Seq2Seq 真金白银的落地，不是论文里的玩具。</dd>
+      <dt>我不确定的</dt><dd>GNMT 内部具体的层数/工程细节，我不逐一保证，<b>不编</b>。</dd>
+    </dl>
+  </div>
+
+  <div class="pain">
+    <b>新麻烦（瓶颈问题 bottleneck）：</b>不管原句是 5 个词还是 50 个词，编码器最后都只交给解码器<b>一个固定大小的向量</b>。整段话的全部信息，被硬塞进这一个"小盒子"。句子一长，盒子就装不下，开头的细节被挤丢 —— 翻译长句时质量明显下滑。
+  </div>
+
+  <div class="demo">
+    <div class="hd">动画 3 · 瓶颈：整句话被挤进一个小盒子（拉动滑块加长句子，看盒子怎么"溢出"）</div>
+    <canvas id="cv-btl" width="800" height="300"></canvas>
+    <div class="ctrl">
+      <label style="color:var(--tx2);font-size:14px">句子长度：</label>
+      <input type="range" id="btl-len" min="3" max="14" value="4" style="width:220px">
+      <span id="btl-num" class="hint">4 个词</span>
+    </div>
+    <div class="hint">短句时盒子够用；词一多，红色"溢出"部分就是被挤丢的信息 —— 解码器再也看不到了。</div>
+  </div>
+
+  <div class="note">
+    <b>这一步解决了什么 / 留下了什么：</b><br>
+    ✅ 实现了"变长输入 → 变长输出"，让端到端神经翻译成为现实。<br>
+    ❌ "一个向量装整句"是硬伤，长句必丢信息。<br>
+    研究者的关键一问：<span class="key">凭什么解码器在生成每个英文词时，都只能看那一个被压扁的向量？能不能让它每生成一个词，就回头去看原句、自己挑该看哪几个中文词？</span><br>
+    这一问，就问出了<b>注意力机制</b> —— 第 4 章。
+  </div>
+</section>
+
+<!-- ============ 第4章 ============ -->
+<section id="c4">
+  <div class="yr">2014 · Attention（Bahdanau 等）</div>
+  <h2>第 4 章：注意力诞生 —— 解码时回头看原句</h2>
+  <div class="sub">这是整条故事线的转折点，请慢慢看</div>
+
+  <p>瓶颈的根源是：解码器只拿到<b>一个</b>被压扁的向量。那就别压了 —— <span class="key">把编码器读每个词时的记忆<b>全都留着</b>，解码器生成每个英文词时，自己回头去看这一排记忆，决定"这次该重点看哪几个中文词"。</span></p>
+
+  <h3>"关注度"是怎么算出来的（再现它的核心三步）</h3>
+  <p>假设要生成英文的第一个词，解码器心里有个"我现在想找什么"的状态。它就拿这个状态去和原句每个词比一比：</p>
+  <p>① <b>打分</b>：跟每个中文词算一个"匹配分数"（越相关分越高）。<br>
+     ② <b>归一化</b>：把这排分数过一个 <code>softmax</code>，变成加起来=1 的<b>权重</b>（比如 我:0.1 爱:0.7 你:0.2）。<br>
+     ③ <b>加权求和</b>：按这个权重，把各个中文词的记忆<b>混</b>成一个向量，喂给解码器。</p>
+  <p>下一个英文词，重新算一遍权重。所以<b>每生成一个词，关注的重点都在变</b> —— 这非常像人翻译时眼睛在原文上来回扫。</p>
+
+  <div class="demo">
+    <div class="hd">动画 4 · 翻译「我 爱 你」→「I love you」（连线越粗=关注度越高；逐词生成）</div>
+    <canvas id="cv-attn" width="800" height="340"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="attn-step">▶ 生成下一个英文词</button>
+      <button id="attn-reset">重置</button>
+      <span class="hint">观察：生成 love 时，最粗的线连向"爱"；生成 I 时连向"我"。模型自己学会了对齐。</span>
+    </div>
+  </div>
+
+  <div class="who">
+    <div class="t">谁做的 · 当时真拿它干嘛</div>
+    <dl>
+      <dt>谁</dt><dd><b>Dzmitry Bahdanau、Kyunghyun Cho、Yoshua Bengio</b>（蒙特利尔大学，2014「Neural Machine Translation by Jointly Learning to Align and Translate」）首次把注意力用进翻译。次年 <b>Minh-Thang Luong</b> 等人（斯坦福，2015）提出了更简洁的几种打分方式。</dd>
+      <dt>当时解决的真问题</dt><dd class="real">还是<b>机器翻译</b>，尤其是<b>长句翻译质量</b>。加上注意力后，长句不再因为瓶颈而崩，翻译水平再上一个台阶。它当时是作为 <b>RNN 的增强插件</b>存在的 —— 注意，此刻 RNN 还在，注意力只是个"外挂"。</dd>
+      <dt>额外好处</dt><dd>注意力权重可以<b>画出来</b>（就像上面的连线），第一次让人能"看见"模型在翻译时把哪个词对到了哪个词，可解释性大增。</dd>
+    </dl>
+  </div>
+
+  <div class="note">
+    <b>这一步解决了什么 / 留下了什么：</b><br>
+    ✅ 干掉了瓶颈，解码时能动态、有重点地访问整句原文。<br>
+    ✅ 顺手带来了可解释性（能画出对齐关系）。<br>
+    ❌ 但<b>骨架还是 RNN</b> —— 第 2 章那两个老毛病（串行慢、长依赖）<b>一个都没走</b>。注意力只是挂在 RNN 身上的补丁。<br>
+    于是 2017 年有人提出一个大胆到近乎挑衅的想法：<span class="key">既然真正好用的是注意力，那我们干脆把 RNN 整个删掉，<b>只留注意力</b>，行不行？</span>—— 这就是第 5 章，Transformer 登场。
+  </div>
+</section>
+
+<!-- ============ 第5章 ============ -->
+<section id="c5">
+  <div class="yr">2017 · Attention is All You Need（Vaswani 等 · Google）</div>
+  <h2>第 5 章：把 RNN 整个扔掉</h2>
+  <div class="sub">论文标题就是宣言："注意力就够了，不需要别的"</div>
+
+  <p>回顾一下第 4 章注意力为什么好：它能让一个词<b>直接</b>去看另一个词，不管隔多远，<b>一步到位</b>。而 RNN 的毛病恰恰是信息得<b>一步一步爬</b>过去。那么问题来了 —— 既然注意力能一步连上任意两个词，<b>我们还要 RNN 那条慢吞吞的链子干嘛？</b></p>
+
+  <div class="fix">
+    <b>核心转变：从"跨句子注意" → "句子内自注意"（self-attention）</b><br>
+    第 4 章是解码器回头看<b>原文</b>。现在改成：<span class="key">同一句话里，<b>每个词都去看这句话里所有的词</b>（包括它自己），算出该关注谁，再把信息汇总进自己。</span><br>
+    "猫"会去看"它""累"，"它"也会回看"猫" —— 一句话内部的关系，靠词与词互相注意来建立，<b>完全不需要按顺序爬</b>。
+  </div>
+
+  <h3>为什么这一下解决了 RNN 的两个老毛病</h3>
+  <p><b>① 不再健忘 / 长依赖。</b>任意两个词之间是<b>直接连线</b>，距离永远是"1 步"。隔 50 个词也好、隔 1 个词也好，注意力一视同仁，再也不会"爬到一半忘了"。<br>
+  <b>② 能并行了（最大的胜利）。</b>所有词的注意力可以<b>同时</b>算 —— 不存在"第 5 个词要等第 4 个"。整句话一次性塞进 GPU，几千个核同时开工。<b>训练速度暴涨</b>，这才让后来动辄上千亿参数的大模型成为可能。</p>
+
+  <div class="demo">
+    <div class="hd">动画 5 · 自注意力：一句话里人人互看（对比 RNN 的串行排队）</div>
+    <canvas id="cv-self" width="800" height="360"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="self-play">▶ 自注意力（全员同时）</button>
+      <button id="self-rnn">⟲ 对比 RNN（一个个来）</button>
+      <button id="self-reset">重置</button>
+      <span class="hint">点任意词看它"关注"谁。注意「它」最关注「猫」—— 自注意力替它找到了指代对象。</span>
+    </div>
+  </div>
+
+  <div class="who">
+    <div class="t">谁做的 · 当时真拿它干嘛</div>
+    <dl>
+      <dt>谁</dt><dd><b>Ashish Vaswani、Noam Shazeer、Niki Parmar、Jakob Uszkoreit、Llion Jones、Aidan Gomez、Łukasz Kaiser、Illia Polosukhin</b>（<b>Google</b>，2017）。论文名就叫《Attention Is All You Need》，这是"Transformer"这个名字第一次出现。</dd>
+      <dt>当时解决的真问题</dt><dd class="real">论文里做的还是<b>机器翻译</b>，目标很实在：在翻译质量持平甚至更好的前提下，<b>训练速度大幅提升</b>（因为能并行）。当时没人料到这套架构后来会通吃文本、图像、语音、代码、蛋白质……</dd>
+      <dt>我不确定的</dt><dd>八位作者的具体分工，网上有些流传说法，我不逐一保证，<b>不编</b>。</dd>
+    </dl>
+  </div>
+
+  <div class="pain">
+    <b>它也带来了新代价（后面要打补丁）：</b><br>
+    ① <b>没有顺序概念了。</b>"全员互看"是个无序的操作，"我爱你"和"你爱我"在它眼里居然一样！顺序信息被丢了 —— 第 7 章用<b>位置编码</b>补回来。<br>
+    ② <b>计算量是 O(n²)。</b>每个词都要和每个词比一次，100 个词就是 1 万次，长文本会很贵 —— 这是至今仍在被优化的问题。
+  </div>
+
+  <div class="note" style="border-left-color:var(--warn);background:rgba(210,153,34,.08)">
+    <b>插一句你问的好问题：「核心代码这么少，为什么下载的依赖包那么大？」</b><br>
+    一点没错 —— Transformer 的<b>核心逻辑</b>用 PyTorch 写出来也就<b>一两百行</b>（自注意力 + 前馈 + 几个残差，下面几章你会看到它全部）。但你 <code>pip install</code> 下来好几个 G，原因是<b>真正干重活的不是这点代码，是它脚下的整座工厂</b>：<br>
+    ・<b>PyTorch / TensorFlow</b>：把你那几行高级公式，翻译成 GPU 能跑的底层指令；<br>
+    ・<b>CUDA / cuDNN</b>：英伟达的 GPU 计算库，几百 MB 起步，矩阵乘法的真正发动机；<br>
+    ・<b>预编译的算子内核</b>：为各种 GPU 型号预先编译好的二进制，体积巨大；<br>
+    ・还有 numpy、tokenizer、各种依赖的依赖……<br>
+    <span class="key">一句话：你写的是"配方"（很短），下载的是"整个厨房"（很重）。</span>配方决定它<b>算什么</b>，厨房决定它<b>能不能在 GPU 上飞快地算出来</b>。这也是"<b>再现原理</b>"和"<b>工程落地</b>"的差别 —— 你理解了配方，就理解了 Transformer；而那几个 G 是为了让配方真能跑起来。<br>
+    <a href="#cA" style="color:var(--warn);font-weight:600;text-decoration:none">→ 这个问题在「附录 A · 原理 vs 工程」里展开讲（点此跳转）</a>
+  </div>
+
+  <div class="note">
+    <b>这一步解决了什么 / 留下了什么：</b><br>
+    ✅ 一举解决 RNN 的串行慢 + 长依赖，开启大模型时代。<br>
+    ❌ 丢了顺序（待补位置编码）、O(n²) 偏贵。<br>
+    但我们还没拆开"自注意力"内部到底怎么算的。它有个三件套叫 <b>Query / Key / Value</b> —— 这是整个 Transformer 最核心的机关，第 6 章我们一步步把它算给你看。
+  </div>
+</section>
+
+<!-- ============ 第6章 ============ -->
+<section id="c6">
+  <div class="yr">核心机关 · 拆开自注意力</div>
+  <h2>第 6 章：Q / K / V —— 把自注意力算给你看</h2>
+  <div class="sub">这章是整个 Transformer 的心脏。慢点读，动手点动画，你就真懂了</div>
+
+  <p>第 5 章说"每个词去看所有词"，但具体怎么"看"、怎么"汇总"？答案是给每个词配三个向量 —— <b>Query、Key、Value</b>。用一个图书馆的比喻一下就懂：</p>
+
+  <div class="who" style="background:none">
+    <div class="t" style="color:var(--acc)">📚 图书馆比喻（记住这个，机制就忘不了）</div>
+    <dl>
+      <dt style="color:var(--q)"><b>Query 查询</b></dt><dd>我<b>想找什么</b>。就像你拿着一张需求纸条走进图书馆：「我想要讲猫的书」。</dd>
+      <dt style="color:var(--k)"><b>Key 钥匙/标签</b></dt><dd>每本书<b>贴的标签</b>。你拿纸条(Query)去和每本书的标签(Key)比，看哪本最配。</dd>
+      <dt style="color:var(--v)"><b>Value 内容</b></dt><dd>书里<b>真正的内容</b>。匹配度高的书，你就多抄一点它的内容；匹配低的少抄。最后把抄来的内容<b>按匹配度混在一起</b>，就是这次查询的结果。</dd>
+    </dl>
+  </div>
+
+  <h3>这三个向量从哪来？（再现它的第一步）</h3>
+  <p>每个词本来只有一个向量 <code>x</code>（第 1 章的词向量）。模型准备了<b>三个权重矩阵</b> <code>Wq、Wk、Wv</code>，分别乘上去：</p>
+  <p style="text-align:center;font-family:monospace;color:var(--tx2)">
+    <span style="color:var(--q)">Q = x · Wq</span>　　<span style="color:var(--k)">K = x · Wk</span>　　<span style="color:var(--v)">V = x · Wv</span>
+  </p>
+  <p>这三个矩阵就是<b>训练时要学的东西</b>。训练 = 不停微调 Wq/Wk/Wv，让"该关注的词"算出来的匹配分确实更高。下面动画里我直接给好算完的 Q/K/V，带你走<b>之后</b>那几步核心计算。</p>
+
+  <div class="demo">
+    <div class="hd">动画 6 · 自注意力计算器（点"下一步"逐步算；点上方词卡换"谁在提问"）</div>
+
+    <div style="color:var(--tx2);font-size:13px;margin-bottom:6px">① 三个词，每个都已算好 Q/K/V（点一张卡，让它当"提问者"）：</div>
+    <div class="qkv-words" id="qkvWords"></div>
+
+    <div id="qkvSteps">
+      <div class="step" data-s="1">
+        <h4>第 1 步 · 打分：用提问者的 Q，去和每个词的 K 做点积</h4>
+        <div class="calc" id="st1"></div>
+        <div class="hint">点积 = 两个向量逐位相乘再相加。越"同向"分越高 = 越匹配。</div>
+      </div>
+      <div class="step" data-s="2">
+        <h4>第 2 步 · 缩放：每个分数都除以 √(维度)</h4>
+        <div class="calc" id="st2"></div>
+        <div class="hint">维度大时点积会很大，softmax 会变得极端。除以 √d 让它平稳 —— 这就是论文里 "Scaled" 的来历。</div>
+      </div>
+      <div class="step" data-s="3">
+        <h4>第 3 步 · softmax：把分数变成加起来 = 1 的"关注权重"</h4>
+        <div class="calc" id="st3"></div>
+        <div class="hint">softmax 把任意一排数压成"占比"，分高的占比大。这就是最终的注意力权重。</div>
+      </div>
+      <div class="step" data-s="4">
+        <h4>第 4 步 · 加权求和：按权重，把每个词的 V 混起来 = 输出</h4>
+        <div class="calc" id="st4"></div>
+        <div class="hint">这个输出向量，就是"提问者"这个词经过一层自注意力后的新表示 —— 它已经把该关注的词的内容揉进来了。</div>
+      </div>
+    </div>
+
+    <div class="ctrl">
+      <button class="primary" id="qkvNext">▶ 下一步</button>
+      <button id="qkvPrev">上一步</button>
+      <button id="qkvReset">重置</button>
+      <span class="hint" id="qkvTip"></span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>把四步连起来背一遍（这就是自注意力的全部）：</b><br>
+    <span style="color:var(--q)">Q</span> 去和所有 <span style="color:var(--k)">K</span> <b>点积打分</b> → <b>除以 √d 缩放</b> → <b>softmax 成权重</b> → 按权重<b>加权求和所有 <span style="color:var(--v)">V</span></b>。<br>
+    写成一行就是论文里那个著名公式：<code>Attention(Q,K,V) = softmax(QKᵀ / √d) · V</code>。<b>现在你应该能看懂它每个符号了。</b>
+  </div>
+
+  <div class="note">
+    <b>这一步解决了什么 / 留下了什么：</b><br>
+    ✅ 你已掌握 Transformer 最核心的机关，公式不再是天书。<br>
+    ❌ 但还有几个"为什么要这样"的零件没讲：为什么要搞<b>很多组</b> Q/K/V（多头）？丢掉的<b>顺序</b>怎么补？怎么让网络更稳更深？—— 这些"补丁"凑齐，一个完整的 Transformer 块才算成型。第 7 章一次讲清。
+  </div>
+</section>
+
+<!-- ============ 第7章 ============ -->
+<section id="c7">
+  <div class="yr">2017 同篇论文 · 让自注意力真能用的几块补丁</div>
+  <h2>第 7 章：四块补丁，拼出完整的 Transformer 块</h2>
+  <div class="sub">第 6 章那个核心，要加这几样才真正好用、能堆深</div>
+
+  <h3>补丁 1 · 多头注意力（Multi-Head）：多请几组"视角"</h3>
+  <p>只用一组 Q/K/V，等于全句只用<b>一个角度</b>看关系。可语言里关系有很多种：谁是谁的<b>主语</b>、哪个词<b>修饰</b>哪个、代词<b>指代</b>谁……</p>
+  <div class="fix">
+    <b>做法：</b>把 Q/K/V 拆成 <b>多组</b>（比如 8 组，叫 8 个"头"），<span class="key">每组独立做一遍第 6 章那套计算</span>，各自学会关注一种关系。最后把 8 个头的输出<b>拼接</b>起来，再过一个线性层融合。<b>多头 = 多个第 6 章并排跑，再合并。</b>
+  </div>
+
+  <div class="demo">
+    <div class="hd">动画 7 · 多头注意力（切换"头"，看同一句话被不同视角关注）</div>
+    <canvas id="cv-head" width="800" height="300"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="head-1">头 1 · 指代</button>
+      <button id="head-2">头 2 · 相邻</button>
+      <button id="head-3">头 3 · 主谓</button>
+      <button id="head-all">全部叠加</button>
+      <span class="hint">每个头学到的"关注模式"不一样，合起来才看得全。</span>
+    </div>
+  </div>
+
+  <h3>补丁 2 · 位置编码（Positional Encoding）：把顺序还回来</h3>
+  <p>第 5 章说过自注意力<b>丢了顺序</b>（"我爱你"和"你爱我"一样）。补法很妙：<span class="key">给每个位置造一个独有的"位置向量"，加到该位置的词向量上</span>，词就带上了"我排第几"的信息。</p>
+  <p>原论文用不同频率的 <code>sin / cos</code> 波来生成位置向量 —— 不同位置的波形组合<b>各不相同</b>，相当于给每个座位发了一张独一无二的"身份条形码"。</p>
+
+  <div class="demo">
+    <div class="hd">动画 8 · 位置编码（拖滑块换位置，看它独有的"波形指纹"）</div>
+    <canvas id="cv-pos" width="800" height="280"></canvas>
+    <div class="ctrl">
+      <label style="color:var(--tx2);font-size:14px">位置：</label>
+      <input type="range" id="pos-i" min="0" max="31" value="0" style="width:240px">
+      <span id="pos-n" class="hint">第 0 个位置</span>
+    </div>
+    <div class="hint">每条曲线是一个维度的 sin/cos 波，频率从快到慢。任意两个位置的整列取值都不同 → 位置可区分。</div>
+  </div>
+
+  <h3>补丁 3 · 残差连接 + 层归一化：让它能堆很深</h3>
+  <p>要堆几十层，信息容易在传递中走样、梯度容易消失。两个工程补丁解决：<br>
+  ・<b>残差连接</b>：每个子层算完，把<b>输入原样加回输出</b>（<code>输出 = 子层(x) + x</code>）。等于给信息留了条"高速公路"，再深也不怕丢。<br>
+  ・<b>层归一化(LayerNorm)</b>：把每层数值拉回稳定范围，训练更顺。</p>
+
+  <h3>补丁 4 · 前馈网络（FFN）：每个词单独"想一想"</h3>
+  <p>注意力负责"<b>词之间</b>交换信息"，但还需要一步"<b>消化</b>"。FFN 就是对<b>每个词各自</b>过一个小的两层神经网络（先放大再压缩），做一次非线性加工。注意力管"看别人"，FFN 管"自己琢磨"。</p>
+
+  <div class="who" style="background:none">
+    <div class="t" style="color:var(--acc)">🧱 一个完整 Transformer 块（Encoder 版）长这样</div>
+    <div style="font-family:monospace;font-size:13px;line-height:1.7;color:var(--tx2);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px">
+      输入词向量 <span style="color:var(--v)">+ 位置编码</span><br>
+      &nbsp;&nbsp;↓<br>
+      ┌─ <span style="color:var(--q)">多头自注意力</span> ──┐<br>
+      └──── + 残差 ←──────┘ → LayerNorm<br>
+      &nbsp;&nbsp;↓<br>
+      ┌─ <span style="color:var(--k)">前馈网络 FFN</span> ──┐<br>
+      └──── + 残差 ←──────┘ → LayerNorm<br>
+      &nbsp;&nbsp;↓<br>
+      输出（喂给下一个一模一样的块）
+    </div>
+  </div>
+
+  <div class="note">
+    <b>这一步解决了什么 / 留下了什么：</b><br>
+    ✅ 多头(多视角) + 位置编码(找回顺序) + 残差/归一化(能堆深) + FFN(逐词消化)，<b>一个完整的 Transformer 块正式成型</b>。<br>
+    现在只剩最后一步：把这个块<b>叠很多层</b>、喂海量数据，会发生什么？以及它怎么分化成今天的 <b>GPT</b> 和 <b>BERT</b>？—— 第 8 章收尾。
+  </div>
+</section>
+
+<!-- ============ 第8章 ============ -->
+<section id="c8">
+  <div class="yr">2018 → 今 · GPT / BERT 与大模型时代</div>
+  <h2>第 8 章：堆起来 → GPT，以及怎么"利用"它</h2>
+  <div class="sub">从"再现原理"过渡到"实际使用"，给你一个完整闭环</div>
+
+  <h3>第一步：把块叠很多层 + 喂海量数据</h3>
+  <p>第 7 章那个 Transformer 块，<b>原样复制几十上百份叠起来</b>，就是一个大模型的主体。底层的块学到字词、语法这种浅关系，越往上越能组合出语义、逻辑这种深关系。<b>层数 + 数据量 + 参数量</b>一起放大，能力会出现"越大越强"的现象 —— 这就是"大模型"为何要"大"。</p>
+
+  <h3>第二步：同一个架构，剪两种用法 → GPT 和 BERT</h3>
+  <p>原始 Transformer 有编码器 + 解码器两半。2018 年两个团队各取一半，分出两条主线：</p>
+
+  <div class="who" style="background:none">
+    <div class="t" style="color:var(--acc)">🔀 两条路线（架构同源，目标不同）</div>
+    <dl>
+      <dt style="color:var(--q)"><b>GPT</b></dt><dd><b>只用解码器</b>。训练目标极简：<b>预测下一个词</b>。给它"今天天气很"，让它猜"好"。每个词只能看<b>左边</b>已出现的词（叫"因果掩码"）。这种"接龙"练法天生擅长<b>生成</b> —— 写文章、聊天、写代码。<br><span style="color:var(--tx3)">谁：OpenAI，Alec Radford 等，2018（GPT-1）。</span></dd>
+      <dt style="color:var(--k)"><b>BERT</b></dt><dd><b>只用编码器</b>。训练目标：<b>完形填空</b> —— 随机遮住句中一些词让它猜（能同时看左右两边）。这种练法天生擅长<b>理解</b> —— 分类、检索、问答里的阅读理解。<br><span style="color:var(--tx3)">谁：Google，Jacob Devlin 等，2018。</span></dd>
+    </dl>
+  </div>
+
+  <div class="demo">
+    <div class="hd">动画 9 · GPT 怎么"接龙"生成（看它一个词一个词预测，每步都重新算概率）</div>
+    <canvas id="cv-gpt" width="800" height="300"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="gpt-step">▶ 生成下一个词</button>
+      <button id="gpt-auto">⏩ 自动</button>
+      <button id="gpt-reset">重置</button>
+      <span class="hint">每步：根据已有的词算出候选概率(蓝条) → 选最高的 → 接到末尾 → 再来一遍。</span>
+    </div>
+  </div>
+
+  <h3>第三步：怎么"利用"它（你最关心的实战闭环）</h3>
+  <div class="fix">
+    <b>预训练 → 微调 / 提示，三段式：</b><br>
+    ① <b>预训练（贵，大公司干）</b>：拿海量文本，用上面"预测下一个词/完形填空"练出一个<b>通才</b>基座模型。这步烧的就是你问过的那些 GPU 和电费。<br>
+    ② <b>微调（便宜，你也能干）</b>：拿基座，用你自己的少量数据再练几轮，让它专精某个任务（比如你公司的客服话术）。<br>
+    ③ <b>提示词 / In-context（最便宜，人人可做）</b>：连练都不练，直接在输入里把要求和例子写清楚，模型当场照做。今天大部分人"用 AI"，用的就是这一层。
+  </div>
+
+  <div class="note">
+    <b>从"再现"到"利用"，整条线收口：</b><br>
+    词向量(第1章) 让字变成<span style="color:var(--v)">带意思的数字</span> → 注意力(4-6章) 让词能<span style="color:var(--q)">互相看、按需取信息</span> → 补丁(第7章)让它<span style="color:var(--k)">能堆深、有顺序</span> → 叠起来 + 海量预训练(第8章)成为基座 → 你用<b>微调或提示词</b>把它用起来。<br>
+    <span class="key">你现在手里有了完整的"配方"：每一步在解决什么、上一步留下什么坑、下一步怎么补。这正是你要的 —— 不是对着结果背，而是知道它怎么一步步长成的。</span>
+  </div>
+
+  <div class="who">
+    <div class="t">想真正动手"再现"，下一步看什么（诚实建议）</div>
+    <dl>
+      <dt>读代码</dt><dd>Andrej Karpathy 的 <b>nanoGPT / minGPT</b>（GitHub）：用几百行 PyTorch 完整实现一个能训练的 GPT，把本教程每个概念对到真实代码。强烈推荐。</dd>
+      <dt>读讲解</dt><dd>"The Illustrated Transformer"（Jay Alammar 的图解博客）—— 和本教程互补的经典图解。</dd>
+      <dt>动手跑</dt><dd>Hugging Face <code>transformers</code> 库：几行代码就能加载预训练模型做推理 / 微调，体会第三步的"利用"。</dd>
+      <dt>我不确定的</dt><dd>上面是广为人知的优质入门资源；但具体链接是否变动、版本细节，请你自己核对，我<b>不编</b>具体网址。</dd>
+    </dl>
+  </div>
+
+  <p style="text-align:center;color:var(--acc2);font-size:18px;margin:30px 0 10px"><b>🎉 八章走完。从"电脑不懂字"到"GPT 接龙写文章"，你已经把这条路完整走了一遍。</b></p>
+</section>
+
+<!-- ============ 附录 A ============ -->
+<section id="cA">
+  <div class="yr">附录 · 常见疑问</div>
+  <h2>附录 A：核心才两百行，那其余代码都在干嘛？</h2>
+  <div class="sub">理解"原理 vs 工程"的分界线 —— 也是"再现"和"落地"的差别</div>
+
+  <p>常听到一句话：「Transformer 的核心用 PyTorch 写出来也就一两百行」。这是真的。但同一个项目 <code>pip install</code> 下来好几个 G、训练代码动辄上万行。这两件事不矛盾 —— 关键是分清：<b>那两百行只回答"算什么"，其余全在回答"怎么真的把它跑起来、教得会、还不崩"。</b></p>
+
+  <h3>那"两百行"到底是什么 —— 只回答「算什么」</h3>
+  <p>它就是你在第 6、7 章看到的全部数学，翻译成代码：</p>
+  <div style="font-family:'Cascadia Code',Consolas,monospace;font-size:13px;line-height:1.9;color:var(--tx2);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px 16px">
+    一个 <span style="color:var(--q)">Attention</span> 类　(Q/K/V 投影 + softmax(QKᵀ/√d)·V)　<span style="color:var(--tx3)">~40 行</span><br>
+    一个 <span style="color:var(--k)">FeedForward</span> 类　(两层全连接 + 激活)　　　<span style="color:var(--tx3)">~15 行</span><br>
+    一个 <span style="color:var(--acc)">Block</span> 类　(注意力 + FFN + 残差 + LayerNorm)　<span style="color:var(--tx3)">~25 行</span><br>
+    位置编码 + 词嵌入　　　　　　　　　　　　　　<span style="color:var(--tx3)">~20 行</span><br>
+    把 Block 叠 N 层 + 输出层　　　　　　　　　　<span style="color:var(--tx3)">~40 行</span>
+  </div>
+  <p>加起来确实两三百行（参考 Karpathy 的 <b>nanoGPT</b> 的 <code>model.py</code>）。<span class="key">因为它只描述"一个词进来、怎么变成下一个词的概率"这一条计算路径。</span>配方就这么短。但"有配方"和"端一桌菜给十亿人吃"之间，隔着下面四层。</p>
+
+  <h3>其余部分 —— 全在回答「怎么真的跑起来」</h3>
+
+  <div class="fix">
+    <b>① 训练脚手架 ·「怎么把它教会」（几百~几千行）</b><br>
+    核心模型只会"前向算一遍"，不会自己变聪明。要教会它还得写：<br>
+    ・<b>数据管道</b>：几 TB 文本怎么读、切词(tokenizer)、分批、打乱、补齐<br>
+    ・<b>训练循环</b>：算损失 → 反向传播 → 优化器(Adam)更新 → 学习率调度 → 梯度裁剪<br>
+    ・<b>存档/恢复</b>：训练几个月，断电要能从断点续上(checkpoint)<br>
+    <span class="hint" style="display:block;margin-top:6px">这部分常常就比核心本身还长。核心是"大脑结构"，这层是"上学的过程"。</span>
+  </div>
+
+  <div class="fix">
+    <b>② 规模化工程 ·「在几千张 GPU 上不崩、还快」（真正的大头，上万行）</b><br>
+    单卡装不下千亿参数，于是有一整套分布式技术：<br>
+    ・<b>并行</b>：数据并行 / 模型切片（一个模型拆到多张卡）/ 流水线并行<br>
+    ・<b>通信</b>：几千张卡之间同步梯度(NCCL)，慢一点整个训练就拖垮<br>
+    ・<b>省显存</b>：混合精度、梯度累积、激活重计算、ZeRO/FSDP 分片<br>
+    ・<b>容错</b>：几千张卡跑几个月总有卡会坏，要能自动剔除、重启<br>
+    <span class="hint" style="display:block;margin-top:6px">Megatron-LM、DeepSpeed 这类专干此事的框架本身就几万行 —— 几乎与"Transformer 是什么"无关，纯粹是"如何在超大硬件上高效跑任何大模型"。</span>
+  </div>
+
+  <div class="fix">
+    <b>③ 推理 / 部署 ·「上线服务用户」</b><br>
+    ・<b>KV cache</b>：生成时缓存已算过的 K/V，否则每出一个字都要重算整句（慢几十倍）<br>
+    ・<b>采样策略</b>：贪心 / temperature / top-k / top-p，决定输出死板还是有创意<br>
+    ・<b>并发 / 批处理 / 量化</b>：同时服务上万人、把模型压小塞进显卡
+  </div>
+
+  <div class="fix">
+    <b>④ 脚下的框架和底层 · 就是那"几个 G 的依赖包"</b><br>
+    ・<b>PyTorch / TensorFlow</b>：把你那两百行公式自动求导、翻译成 GPU 指令（本身几百万行）<br>
+    ・<b>CUDA / cuDNN</b>：英伟达底层计算库，矩阵乘法的真正发动机（闭源，几百 MB 起）
+  </div>
+
+  <div class="who" style="background:none">
+    <div class="t" style="color:var(--acc)">🍳 一张表收口（沿用第 5 章"配方 vs 厨房"的比喻）</div>
+    <div style="font-family:'Cascadia Code',Consolas,monospace;font-size:13px;line-height:1.95;color:var(--tx2);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px 16px">
+      你写的两百行　= <span style="color:var(--ok)">配方（算什么）</span>　　　　← 理解它 = 理解 Transformer<br>
+      训练脚手架　　= 怎么照配方把厨师教出来<br>
+      规模化工程　　= 怎么开一家能同时炒一万份的中央厨房　<span style="color:var(--warn)">← 工程量大头</span><br>
+      推理部署　　　= 怎么把菜稳定端到一万张餐桌上<br>
+      框架 / CUDA　 = 灶台、燃气、锅（那几个 G 的依赖）
+    </div>
+  </div>
+
+  <div class="note">
+    <b>结论：</b>"两百行"一点不夸张 —— 它是精华，是你要"<b>再现原理</b>"时唯一必须吃透的部分。其余 99% 的代码和那几个 G，<b>都不是在让模型更聪明</b>，而是在解决"<span class="key">如何把这个聪明的小核心，在真实硬件上、用真实数据、给真实用户，高效可靠地跑起来</span>"。<br>
+    这就是为什么：<b>读懂 nanoGPT，你就懂了 Transformer；但要训出一个 GPT-4，需要一整个工程团队。</b>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<div class="foot">
+  全 8 章完 · Transformer 的前世今生 · 从「电脑不懂字」到「GPT 接龙」<br>
+  <span style="color:var(--tx3)">每章逻辑：当时被什么卡住 → 想了什么招 → 又留下什么坑 → 下一章怎么补</span>
+</div>
+
+</main>
+</div><!-- /app -->
+
+<script>
+/* ============ 通用 ============ */
+const $ = s => document.querySelector(s);
+const lerp = (a,b,t)=>a+(b-a)*t;
+const easeIO = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+
+/* ============ 目录树高亮 + 移动端抽屉 ============ */
+const navLinks=[...document.querySelectorAll('#nav a')];
+const secs=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+function syncNav(){
+  let i=secs.findIndex((s,k)=>{
+    const r=s.getBoundingClientRect();
+    return r.top<=140 && (k===secs.length-1 || secs[k+1].getBoundingClientRect().top>140);
+  });
+  if(i<0) i=0;
+  navLinks.forEach((a,k)=>a.classList.toggle('on',k===i));
+}
+addEventListener('scroll',syncNav,{passive:true}); syncNav();
+
+const sidebar=$('#sidebar'), scrim=$('#scrim');
+function closeMenu(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+$('#menuBtn').onclick=()=>{ sidebar.classList.toggle('open'); scrim.classList.toggle('open'); };
+scrim.onclick=closeMenu;
+navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMenu(); }));
+
+/* ============ 动画1：词向量空间 ============ */
+(function(){
+  const cv=$('#cv-w2v'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  // 逻辑坐标 (0..1) → 画布
+  const pts={
+    '国王':   {x:.30,y:.30,c:'#58a6ff'},
+    '王后':   {x:.62,y:.26,c:'#bc8cff'},
+    '男人':   {x:.28,y:.62,c:'#58a6ff'},
+    '女人':   {x:.60,y:.58,c:'#bc8cff'},
+    '猫':     {x:.78,y:.78,c:'#3fb950'},
+    '狗':     {x:.86,y:.72,c:'#3fb950'},
+    '桌子':   {x:.16,y:.85,c:'#6e7681'},
+  };
+  const P=(p)=>({x:40+p.x*(W-80), y:30+p.y*(H-70)});
+  let t=0, playing=false;
+
+  function arrow(a,b,col,w=2){
+    const A=P(a),B=P(b);
+    ctx.strokeStyle=col; ctx.lineWidth=w; ctx.beginPath();
+    ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.stroke();
+    const ang=Math.atan2(B.y-A.y,B.x-A.x);
+    ctx.beginPath();
+    ctx.moveTo(B.x,B.y);
+    ctx.lineTo(B.x-12*Math.cos(ang-.4),B.y-12*Math.sin(ang-.4));
+    ctx.lineTo(B.x-12*Math.cos(ang+.4),B.y-12*Math.sin(ang+.4));
+    ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+  }
+  function dot(name,p,ghost){
+    const c=P(p);
+    ctx.beginPath(); ctx.arc(c.x,c.y,7,0,7);
+    ctx.fillStyle=ghost?'rgba(255,255,255,.15)':p.c; ctx.fill();
+    ctx.fillStyle=ghost?'rgba(230,237,243,.4)':'#e6edf3';
+    ctx.font='15px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(name,c.x,c.y-13);
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // 网格
+    ctx.strokeStyle='rgba(255,255,255,.04)'; ctx.lineWidth=1;
+    for(let i=0;i<=10;i++){
+      ctx.beginPath();ctx.moveTo(40+i*(W-80)/10,30);ctx.lineTo(40+i*(W-80)/10,H-40);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(40,30+i*(H-70)/10);ctx.lineTo(W-40,30+i*(H-70)/10);ctx.stroke();
+    }
+    // 普通词
+    for(const n in pts) dot(n,pts[n]);
+
+    if(t>0){
+      const e=easeIO(Math.min(t,1));
+      // 平行的"性别方向"提示
+      arrow(pts['男人'],pts['女人'],'rgba(212,153,34,.5)',1.5);
+      // 国王 - 男人 + 女人 的计算：从国王出发，沿"男人→女人"方向平移
+      const k=pts['国王'];
+      const dx=pts['女人'].x-pts['男人'].x, dy=pts['女人'].y-pts['男人'].y;
+      const cur={x:k.x+dx*e, y:k.y+dy*e, c:'#d29922'};
+      arrow(k,cur,'#d29922',2.5);
+      dot('计算结果',cur,false);
+      if(t>=1){
+        // 命中王后
+        const q=P(pts['王后']);
+        ctx.beginPath();ctx.arc(q.x,q.y,16,0,7);
+        ctx.strokeStyle='#3fb950';ctx.lineWidth=2.5;ctx.stroke();
+        ctx.fillStyle='#3fb950';ctx.font='13px sans-serif';ctx.textAlign='center';
+        ctx.fillText('≈ 命中王后！',q.x,q.y+34);
+      }
+    }
+  }
+  function loop(){
+    if(playing){ t=Math.min(t+0.012,1); if(t>=1) playing=false; }
+    draw(); requestAnimationFrame(loop);
+  }
+  $('#w2v-play').onclick=()=>{ if(t>=1)t=0; playing=true; };
+  $('#w2v-reset').onclick=()=>{ t=0; playing=false; draw(); };
+  draw(); loop();
+})();
+
+/* ============ 动画2：RNN 逐字阅读 ============ */
+(function(){
+  const cv=$('#cv-rnn'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const words=['我','今天','很','开心'];
+  let step=0;          // 已读到第几个词 (0..words.length)
+  let anim=0, animing=false, autoT=null;
+
+  const boxW=120, boxH=64, gap=46;
+  const totalW=words.length*boxW+(words.length-1)*gap;
+  const startX=(W-totalW)/2 - 60;
+  const wy=60;                 // 词盒 y
+  const memX=W-150, memY=180;  // 记忆盒位置
+
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    // 词盒
+    words.forEach((w,i)=>{
+      const x=startX+i*(boxW+gap);
+      const read = i<step;
+      const active = i===step-1;
+      ctx.globalAlpha = read? 1 : .3;
+      roundRect(x,wy,boxW,boxH,12);
+      ctx.fillStyle = active? 'rgba(88,166,255,.25)' : 'var(--panel2)';
+      ctx.fillStyle = active? 'rgba(88,166,255,.25)' : '#1c2230';
+      ctx.fill();
+      ctx.strokeStyle = active? '#58a6ff' : (read?'#3fb950':'#2d333b');
+      ctx.lineWidth=2; ctx.stroke();
+      ctx.globalAlpha=1;
+      ctx.fillStyle = read? '#e6edf3':'#6e7681';
+      ctx.font='22px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(w, x+boxW/2, wy+boxH/2);
+      // 序号
+      ctx.fillStyle='#6e7681'; ctx.font='12px sans-serif';
+      ctx.fillText('词'+(i+1), x+boxW/2, wy-14);
+    });
+
+    // 记忆盒
+    roundRect(memX,memY,200,72,12);
+    ctx.fillStyle='#161b22'; ctx.fill();
+    ctx.strokeStyle='#bc8cff'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#bc8cff'; ctx.font='13px sans-serif'; ctx.textBaseline='middle';
+    ctx.textAlign='center';
+    ctx.fillText('记忆 (hidden state)', memX+100, memY-14);
+
+    // 记忆里"装着"已读的词，越早越淡
+    const inside = words.slice(0,step);
+    inside.forEach((w,i)=>{
+      const total=inside.length;
+      // 越早读 (i 小) 越淡：模拟健忘
+      const fade = 0.25 + 0.75*( (i+1)/total ); // 0.25..1
+      const cx=memX+30+i*44;
+      ctx.globalAlpha=fade;
+      ctx.fillStyle='#bc8cff'; ctx.font='18px sans-serif';
+      ctx.fillText(w, cx, memY+38);
+      ctx.globalAlpha=1;
+    });
+    if(step===0){
+      ctx.globalAlpha=.4; ctx.fillStyle='#6e7681'; ctx.font='14px sans-serif';
+      ctx.fillText('（空）', memX+100, memY+38); ctx.globalAlpha=1;
+    }
+
+    // 当前读取的箭头：词 -> 记忆
+    if(step>0){
+      const i=step-1;
+      const x=startX+i*(boxW+gap)+boxW/2;
+      ctx.strokeStyle='rgba(88,166,255,'+(0.4+0.6*anim)+')';
+      ctx.lineWidth=2; ctx.setLineDash([6,5]);
+      ctx.beginPath();
+      ctx.moveTo(x, wy+boxH);
+      ctx.bezierCurveTo(x, wy+boxH+80, memX+100, memY-60, memX+100, memY);
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    // 状态文字
+    ctx.fillStyle='#9da7b3'; ctx.font='14px sans-serif'; ctx.textAlign='left';
+    let msg;
+    if(step===0) msg='点"读下一个词"开始。RNN 会从左到右扫。';
+    else if(step<words.length) msg='第 '+step+' 步：把【'+words[step-1]+'】揉进记忆。必须等这步算完，才能读下一个。';
+    else msg='读完！记忆里浓缩了整句。但看：最早的【我】颜色最淡 —— 已经快忘了。';
+    ctx.fillText(msg, 30, H-22);
+  }
+
+  function tick(){
+    if(animing){ anim=Math.min(anim+0.06,1); if(anim>=1) animing=false; }
+    draw(); requestAnimationFrame(tick);
+  }
+  function next(){
+    if(step<words.length){ step++; anim=0; animing=true; }
+  }
+  $('#rnn-step').onclick=next;
+  $('#rnn-reset').onclick=()=>{ step=0; anim=0; animing=false; if(autoT){clearInterval(autoT);autoT=null;} };
+  $('#rnn-auto').onclick=()=>{
+    if(autoT){clearInterval(autoT);autoT=null;return;}
+    step=0; autoT=setInterval(()=>{ if(step>=words.length){clearInterval(autoT);autoT=null;return;} next(); }, 900);
+  };
+  draw(); tick();
+})();
+
+/* ============ 动画3：瓶颈 ============ */
+(function(){
+  const cv=$('#cv-btl'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const vocab=['我','今天','在','学校','门口','看见','一只','很','可爱','的','小','花','猫','咪'];
+  let n=4;
+  const boxCap=6; // 盒子"容量"=6个词的信息
+
+  function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // 左：编码器读入的词
+    ctx.fillStyle='#9da7b3';ctx.font='13px sans-serif';ctx.textAlign='left';ctx.textBaseline='alphabetic';
+    ctx.fillText('编码器读入的句子：', 24, 34);
+    const cols=7;
+    for(let i=0;i<n;i++){
+      const r=Math.floor(i/cols), c=i%cols;
+      const x=24+c*52, y=46+r*40;
+      rr(x,y,46,30,7); ctx.fillStyle='#1c2230'; ctx.fill();
+      ctx.strokeStyle='#3fb950';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='#e6edf3';ctx.font='15px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(vocab[i%vocab.length], x+23, y+15);
+    }
+
+    // 中：箭头汇聚
+    const bx=W/2+70, by=140, bw=90, bh=70;
+    ctx.strokeStyle='rgba(63,185,80,.5)';ctx.lineWidth=1.5;
+    for(let i=0;i<n;i++){
+      const r=Math.floor(i/cols), c=i%cols;
+      const sx=24+c*52+46, sy=46+r*40+15;
+      ctx.beginPath();ctx.moveTo(sx,sy);
+      ctx.bezierCurveTo(sx+80,sy, bx-80,by+bh/2, bx,by+bh/2);ctx.stroke();
+    }
+
+    // 盒子（固定大小）
+    rr(bx,by,bw,bh,10);
+    ctx.fillStyle='#161b22';ctx.fill();
+    ctx.strokeStyle='#58a6ff';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.fillStyle='#58a6ff';ctx.font='12px sans-serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+    ctx.fillText('context', bx+bw/2, by-22);
+    ctx.fillText('（固定大小）', bx+bw/2, by-8);
+
+    // 盒子里的"信息条"：装得下的绿色，溢出的红色堆在外面
+    const fit=Math.min(n,boxCap);
+    for(let i=0;i<fit;i++){
+      const barW=(bw-16)/boxCap;
+      ctx.fillStyle='#3fb950';
+      ctx.fillRect(bx+8+i*barW, by+bh-12-(i%2?6:0)-14, barW-3, 22);
+    }
+    // 溢出
+    const over=Math.max(0,n-boxCap);
+    if(over>0){
+      ctx.fillStyle='#f85149';
+      for(let i=0;i<over;i++){
+        const barW=10;
+        ctx.fillRect(bx+bw+8+i*(barW+3), by+bh-30, barW, 26);
+      }
+      ctx.fillStyle='#f85149';ctx.font='13px sans-serif';ctx.textAlign='left';
+      ctx.fillText('← 溢出！这'+over+'个词的信息被挤丢了', bx+bw+8, by+bh+22);
+    }
+
+    // 右：解码器
+    ctx.strokeStyle='rgba(88,166,255,.5)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(bx+bw,by+bh/2);ctx.lineTo(W-150,by+bh/2);ctx.stroke();
+    rr(W-140,by+10,116,bh-20,10);ctx.fillStyle='#1c2230';ctx.fill();
+    ctx.strokeStyle='#58a6ff';ctx.stroke();
+    ctx.fillStyle='#9da7b3';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('解码器', W-82, by+bh/2-8);
+    ctx.fillStyle=over>0?'#f85149':'#3fb950';ctx.font='12px sans-serif';
+    ctx.fillText(over>0?'信息已不全':'信息完整', W-82, by+bh/2+12);
+
+    // 底部说明
+    ctx.fillStyle='#6e7681';ctx.font='13px sans-serif';ctx.textAlign='center';
+    ctx.fillText('无论句子多长，中间只能交出一个同样大小的盒子。', W/2, H-16);
+  }
+  $('#btl-len').oninput=e=>{ n=+e.target.value; $('#btl-num').textContent=n+' 个词'; draw(); };
+  draw();
+})();
+
+/* ============ 动画4：注意力对齐 ============ */
+(function(){
+  const cv=$('#cv-attn'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const src=['我','爱','你'];
+  const tgt=['I','love','you'];
+  // 每生成一个目标词，对源词的关注权重（演示用，模拟学到的对齐）
+  const W_ATT=[
+    [0.80,0.12,0.08],  // I   -> 我
+    [0.15,0.70,0.15],  // love-> 爱
+    [0.10,0.15,0.75],  // you -> 你
+  ];
+  let gen=0;            // 已生成几个目标词
+  let anim=0, animing=false;
+
+  const sy=70, ty=250;
+  const sx=i=>150+i*160;     // 源词 x
+  const tx=i=>150+i*160;     // 目标词 x
+
+  function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function chip(x,y,txt,col,on){
+    rr(x-32,y-20,64,40,10);
+    ctx.fillStyle=on?col+'33':'#1c2230'; ctx.fill();
+    ctx.strokeStyle=on?col:'#2d333b'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=on?'#fff':'#9da7b3'; ctx.font='19px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt,x,y);
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#6e7681'; ctx.font='13px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.fillText('原文（中文）', 24, sy-34);
+    ctx.fillText('译文（英文，逐词生成）', 24, ty+44);
+
+    // 当前正在生成的目标词索引
+    const cur=gen-1;
+    // 连线（只画当前生成词的关注）
+    if(cur>=0){
+      const a=easeIO(Math.min(anim,1));
+      for(let s=0;s<src.length;s++){
+        const w=W_ATT[cur][s];
+        ctx.strokeStyle='rgba(88,166,255,'+(0.15+0.85*w*a)+')';
+        ctx.lineWidth=1+ w*14*a;
+        ctx.beginPath();
+        ctx.moveTo(tx(cur),ty-20);
+        ctx.bezierCurveTo(tx(cur),ty-90, sx(s),sy+90, sx(s),sy+20);
+        ctx.stroke();
+        // 权重数字
+        if(a>0.6){
+          ctx.fillStyle='rgba(230,237,243,'+(w>0.4?0.95:0.5)+')';
+          ctx.font=(w>0.4?'bold ':'')+'12px sans-serif'; ctx.textAlign='center';
+          ctx.fillText(w.toFixed(2),(sx(s)+tx(cur))/2,(sy+ty)/2+(s-1)*12);
+        }
+      }
+    }
+
+    // 源词
+    src.forEach((w,i)=>{
+      const on = cur>=0 && W_ATT[cur][i]===Math.max(...W_ATT[cur]);
+      chip(sx(i),sy,w,'#3fb950',on);
+    });
+    // 目标词
+    tgt.forEach((w,i)=>{
+      if(i<gen) chip(tx(i),ty,w,'#58a6ff', i===cur);
+      else { // 未生成：虚位
+        rr(tx(i)-32,ty-20,64,40,10);
+        ctx.setLineDash([4,4]); ctx.strokeStyle='#2d333b'; ctx.lineWidth=1.5; ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle='#3a4252'; ctx.font='19px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('?',tx(i),ty);
+      }
+    });
+
+    // 说明
+    ctx.fillStyle='#9da7b3'; ctx.font='14px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+    let msg;
+    if(gen===0) msg='点按钮开始。每生成一个英文词，都会重新决定"该重点看哪个中文词"。';
+    else if(cur>=0){
+      const best=src[W_ATT[cur].indexOf(Math.max(...W_ATT[cur]))];
+      msg='生成【'+tgt[cur]+'】：最粗的线连向【'+best+'】，说明它主要在"看"这个词。';
+    }
+    ctx.fillText(msg, W/2, H-16);
+  }
+  function tick(){ if(animing){anim=Math.min(anim+0.05,1); if(anim>=1)animing=false;} draw(); requestAnimationFrame(tick); }
+  $('#attn-step').onclick=()=>{ if(gen<tgt.length){ gen++; anim=0; animing=true; } };
+  $('#attn-reset').onclick=()=>{ gen=0; anim=0; animing=false; };
+  draw(); tick();
+})();
+
+/* ============ 动画5：自注意力 vs RNN ============ */
+(function(){
+  const cv=$('#cv-self'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const words=['那只','猫','没','过','马路','因为','它','累','了'];
+  // 每个词对其它词的关注（演示用；重点：它->猫 高）
+  const ATT={
+    6:[0.05,0.55,0.02,0.02,0.05,0.03,0.10,0.13,0.05], // 它 -> 猫
+    1:[0.30,0.20,0.05,0.05,0.05,0.05,0.20,0.05,0.05], // 猫 -> 那只/它
+    7:[0.02,0.10,0.03,0.03,0.05,0.05,0.45,0.20,0.07], // 累 -> 它
+  };
+  const n=words.length;
+  const y=120, R=24;
+  const xx=i=>70+i*((W-140)/(n-1));
+  let mode='idle';      // idle | self | rnn
+  let t=0, sel=6;       // 默认选「它」
+  let rnnStep=0, rnnTimer=null;
+
+  function chip(i,on,dim){
+    const x=xx(i);
+    ctx.globalAlpha = dim?0.25:1;
+    ctx.beginPath(); ctx.arc(x,y,R,0,7);
+    ctx.fillStyle = on?'rgba(188,140,255,.25)':'#1c2230'; ctx.fill();
+    ctx.strokeStyle = on?'#bc8cff':'#2d333b'; ctx.lineWidth=on?2.5:1.5; ctx.stroke();
+    ctx.fillStyle = on?'#fff':'#cdd5df'; ctx.font='14px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(words[i],x,y);
+    ctx.globalAlpha=1;
+  }
+  function curve(i,j,w,col){
+    const x1=xx(i),x2=xx(j), mid=(x1+x2)/2, lift=Math.min(90, 30+Math.abs(i-j)*16);
+    ctx.strokeStyle=col; ctx.lineWidth=1+w*12;
+    ctx.beginPath(); ctx.moveTo(x1,y-R);
+    ctx.quadraticCurveTo(mid, y-R-lift, x2, y-R);
+    ctx.stroke();
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    if(mode==='self'){
+      // 选中词对所有词的注意力连线
+      const att = ATT[sel] || words.map((_,k)=>k===sel?0:0.12);
+      const a=easeIO(Math.min(t,1));
+      for(let j=0;j<n;j++){ if(j===sel) continue;
+        const w=att[j]*a;
+        curve(sel,j,w,'rgba(188,140,255,'+(0.12+0.85*att[j]*a)+')');
+      }
+      words.forEach((_,i)=> chip(i, i===sel, false));
+      // 高亮被最关注的词
+      const best=att.indexOf(Math.max(...att));
+      if(a>0.5){ ctx.beginPath();ctx.arc(xx(best),y,R+6,0,7);ctx.strokeStyle='#3fb950';ctx.lineWidth=2;ctx.stroke(); }
+      ctx.fillStyle='#9da7b3';ctx.font='14px sans-serif';ctx.textAlign='center';
+      ctx.fillText('【'+words[sel]+'】同时看向所有词，最关注【'+words[best]+'】。所有词的这套计算是【同时】发生的。', W/2, H-50);
+      ctx.fillStyle='#6e7681';ctx.font='13px sans-serif';
+      ctx.fillText('点其它词试试 · 距离再远也是直接一条线（1 步）', W/2, H-26);
+    }
+    else if(mode==='rnn'){
+      // 串行：一个个点亮，箭头依次
+      for(let i=0;i<n-1;i++){
+        const done=i<rnnStep;
+        ctx.strokeStyle=done?'#d29922':'#2d333b'; ctx.lineWidth=done?2.5:1.2;
+        ctx.beginPath();ctx.moveTo(xx(i)+R,y);ctx.lineTo(xx(i+1)-R,y);ctx.stroke();
+        if(done){ // 箭头
+          const ax=xx(i+1)-R;
+          ctx.fillStyle='#d29922';ctx.beginPath();
+          ctx.moveTo(ax,y);ctx.lineTo(ax-9,y-5);ctx.lineTo(ax-9,y+5);ctx.fill();
+        }
+      }
+      words.forEach((_,i)=> chip(i, i===rnnStep, i>rnnStep));
+      ctx.fillStyle='#9da7b3';ctx.font='14px sans-serif';ctx.textAlign='center';
+      ctx.fillText('RNN：信息必须一格一格往右爬，第 '+(rnnStep+1)+' 个词要等前面算完。', W/2, H-50);
+      ctx.fillStyle='#f85149';ctx.font='13px sans-serif';
+      ctx.fillText('「它」要够到「猫」，得爬过 5 格 —— 爬越远越容易忘。', W/2, H-26);
+    }
+    else{
+      words.forEach((_,i)=> chip(i, false, false));
+      ctx.fillStyle='#6e7681';ctx.font='14px sans-serif';ctx.textAlign='center';
+      ctx.fillText('点上面的按钮：看「自注意力（全员同时）」还是「RNN（一个个排队）」。', W/2, H-30);
+    }
+  }
+  function tick(){ if(mode==='self'&&t<1){t=Math.min(t+0.05,1);} draw(); requestAnimationFrame(tick); }
+
+  $('#self-play').onclick=()=>{ mode='self'; t=0; if(rnnTimer){clearInterval(rnnTimer);rnnTimer=null;} };
+  $('#self-rnn').onclick=()=>{
+    mode='rnn'; rnnStep=0;
+    if(rnnTimer)clearInterval(rnnTimer);
+    rnnTimer=setInterval(()=>{ if(rnnStep>=n-1){clearInterval(rnnTimer);rnnTimer=null;return;} rnnStep++; }, 600);
+  };
+  $('#self-reset').onclick=()=>{ mode='idle'; if(rnnTimer){clearInterval(rnnTimer);rnnTimer=null;} };
+  cv.addEventListener('click',e=>{
+    if(mode!=='self') return;
+    const r=cv.getBoundingClientRect(), mx=(e.clientX-r.left)*(W/r.width);
+    let best=0,bd=1e9; for(let i=0;i<n;i++){const d=Math.abs(xx(i)-mx); if(d<bd){bd=d;best=i;}}
+    if(bd<40){ sel=best; t=0; }
+  });
+  draw(); tick();
+})();
+
+/* ============ 动画6：Q/K/V 计算器 ============ */
+(function(){
+  const words=['我','爱','你'];
+  const Q=[[1.0,0.2],[0.2,1.8],[1.5,1.5]];
+  const K=[[1.0,0.0],[0.0,1.0],[1.0,1.0]];
+  const V=[[2.0,0.0],[0.0,2.0],[1.0,1.0]];
+  const d=2, sq=Math.sqrt(d);
+  let asker=1, step=0;          // 默认「爱」提问
+
+  const fmt=(a)=> '['+a.map(x=>x.toFixed(2)).join(', ')+']';
+  const dot=(a,b)=> a.reduce((s,x,i)=>s+x*b[i],0);
+
+  // 渲染词卡
+  function renderWords(){
+    const box=$('#qkvWords'); box.innerHTML='';
+    words.forEach((w,i)=>{
+      const el=document.createElement('div');
+      el.className='wcard'+(i===asker?' asking':'');
+      el.innerHTML=`<div class="wt">${w}${i===asker?'<span class="ask">提问者 Q</span>':''}</div>
+        <div class="vec q"><span class="lbl">Q</span><span class="num">${fmt(Q[i])}</span></div>
+        <div class="vec k"><span class="lbl">K</span><span class="num">${fmt(K[i])}</span></div>
+        <div class="vec v"><span class="lbl">V</span><span class="num">${fmt(V[i])}</span></div>`;
+      el.onclick=()=>{ asker=i; step=0; render(); };
+      box.appendChild(el);
+    });
+  }
+
+  function compute(){
+    const q=Q[asker];
+    const raw=K.map(k=>dot(q,k));
+    const scaled=raw.map(s=>s/sq);
+    const ex=scaled.map(Math.exp); const sum=ex.reduce((a,b)=>a+b,0);
+    const w=ex.map(e=>e/sum);
+    const out=[0,0]; w.forEach((wi,i)=>{ out[0]+=wi*V[i][0]; out[1]+=wi*V[i][1]; });
+    return {q,raw,scaled,w,out};
+  }
+
+  function render(){
+    renderWords();
+    const c=compute();
+    // 各步开关
+    document.querySelectorAll('#qkvSteps .step').forEach(el=>{
+      el.classList.toggle('on', (+el.dataset.s)<=step);
+    });
+    // step1 打分
+    $('#st1').innerHTML = step<1 ? '<span style="color:var(--tx3)">点「下一步」开始…</span>' :
+      words.map((w,i)=>`<div class="row"><span class="w">·和【${w}】</span>
+        Q<span style="color:var(--q)">${fmt(c.q)}</span> · K<span style="color:var(--k)">${fmt(K[i])}</span>
+        = ${c.q[0].toFixed(1)}×${K[i][0].toFixed(0)} + ${c.q[1].toFixed(1)}×${K[i][1].toFixed(0)}
+        = <b style="color:#ffd9a0">${c.raw[i].toFixed(2)}</b></div>`).join('');
+    // step2 缩放
+    $('#st2').innerHTML = step<2 ? '' :
+      words.map((w,i)=>`<div class="row"><span class="w">【${w}】</span>
+        ${c.raw[i].toFixed(2)} ÷ √${d}(=${sq.toFixed(2)}) = <b style="color:#ffd9a0">${c.scaled[i].toFixed(2)}</b></div>`).join('');
+    // step3 softmax
+    $('#st3').innerHTML = step<3 ? '' :
+      words.map((w,i)=>`<div class="row"><span class="w">【${w}】</span>
+        <span class="bar" style="width:${(c.w[i]*220).toFixed(0)}px"></span>
+        <b style="color:#fff">${(c.w[i]*100).toFixed(0)}%</b></div>`).join('')
+        + `<div class="row" style="color:var(--tx3)">三者相加 = 100%。最关注【${words[c.w.indexOf(Math.max(...c.w))]}】</div>`;
+    // step4 输出
+    $('#st4').innerHTML = step<4 ? '' :
+      words.map((w,i)=>`<div class="row"><span class="w">${(c.w[i]*100).toFixed(0)}%</span>
+        × V<span style="color:var(--v)">${fmt(V[i])}</span></div>`).join('')
+        + `<div class="row" style="margin-top:6px">＝ <span class="out">输出 ${fmt(c.out)}</span></div>`;
+
+    const tips=['点「下一步」：先给每个词打匹配分',
+      '已打分 → 再缩放','已缩放 → 过 softmax 变权重',
+      '已成权重 → 加权求和 V','✅ 完成！这就是【'+words[asker]+'】过完一层自注意力的输出'];
+    $('#qkvTip').textContent=tips[step]||'';
+    $('#qkvNext').disabled = step>=4;
+    $('#qkvPrev').disabled = step<=0;
+  }
+  $('#qkvNext').onclick=()=>{ if(step<4){step++; render();} };
+  $('#qkvPrev').onclick=()=>{ if(step>0){step--; render();} };
+  $('#qkvReset').onclick=()=>{ step=0; render(); };
+  render();
+})();
+
+/* ============ 动画7：多头注意力 ============ */
+(function(){
+  const cv=$('#cv-head'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const words=['那只','猫','没','过','马路','因为','它','累','了'];
+  const n=words.length, y=130, R=23;
+  const xx=i=>60+i*((W-120)/(n-1));
+  // 三个头各自的关注边 [from,to,weight]
+  const heads={
+    1:{name:'头1 · 指代（它↔猫）',col:'#bc8cff',edges:[[6,1,.9],[1,6,.5]]},
+    2:{name:'头2 · 相邻词',col:'#58a6ff',edges:[[1,0,.7],[3,4,.7],[7,6,.7],[8,7,.6]]},
+    3:{name:'头3 · 主谓（猫→过/累）',col:'#3fb950',edges:[[1,3,.6],[1,7,.7]]},
+  };
+  let cur=1;
+  function chip(i,col){
+    const x=xx(i);
+    ctx.beginPath();ctx.arc(x,y,R,0,7);
+    ctx.fillStyle='#1c2230';ctx.fill();
+    ctx.strokeStyle='#2d333b';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#cdd5df';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(words[i],x,y);
+  }
+  function arc(i,j,w,col,up){
+    const x1=xx(i),x2=xx(j),mid=(x1+x2)/2;
+    const lift=(30+Math.abs(i-j)*14)*(up?-1:1);
+    ctx.strokeStyle=col; ctx.lineWidth=1+w*10; ctx.globalAlpha=.8;
+    ctx.beginPath(); ctx.moveTo(x1, y+(up?-R:R));
+    ctx.quadraticCurveTo(mid, y+(up?-R:R)+lift*2.2, x2, y+(up?-R:R));
+    ctx.stroke(); ctx.globalAlpha=1;
+    // 箭头
+    ctx.fillStyle=col;ctx.beginPath();
+    const ang=up?-1.3:1.3;
+    ctx.arc(x2,y+(up?-R:R),3,0,7);ctx.fill();
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const list = cur==='all' ? [1,2,3] : [cur];
+    list.forEach((h,idx)=>{
+      heads[h].edges.forEach(e=>arc(e[0],e[1],e[2],heads[h].col, idx%2===0));
+    });
+    words.forEach((_,i)=>chip(i));
+    // 标题
+    ctx.textAlign='center';
+    if(cur==='all'){
+      ctx.fillStyle='#9da7b3';ctx.font='14px sans-serif';
+      ctx.fillText('三个头叠加：指代(紫) + 相邻(蓝) + 主谓(绿) 同时存在，合起来信息才全。', W/2, 40);
+    }else{
+      ctx.fillStyle=heads[cur].col;ctx.font='15px sans-serif';
+      ctx.fillText(heads[cur].name, W/2, 40);
+      ctx.fillStyle='#6e7681';ctx.font='13px sans-serif';
+      ctx.fillText('这个头只盯一种关系。换个头，关注模式完全不同。', W/2, H-24);
+    }
+  }
+  $('#head-1').onclick=()=>{cur=1;draw();};
+  $('#head-2').onclick=()=>{cur=2;draw();};
+  $('#head-3').onclick=()=>{cur=3;draw();};
+  $('#head-all').onclick=()=>{cur='all';draw();};
+  draw();
+})();
+
+/* ============ 动画8：位置编码 ============ */
+(function(){
+  const cv=$('#cv-pos'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const DIM=8;                 // 展示 8 个维度
+  let pos=0, maxPos=32;
+  // 标准正弦位置编码
+  function pe(p,i){
+    const denom=Math.pow(10000, (2*Math.floor(i/2))/DIM);
+    return i%2===0 ? Math.sin(p/denom) : Math.cos(p/denom);
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const left=70, right=W-180, top=30, rowH=(H-90)/DIM;
+    // 画每个维度的波形
+    for(let i=0;i<DIM;i++){
+      const cy=top+i*rowH+rowH/2;
+      ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(left,cy);ctx.lineTo(right,cy);ctx.stroke();
+      // 波
+      ctx.strokeStyle='rgba(88,166,255,.5)';ctx.lineWidth=1.5;ctx.beginPath();
+      for(let p=0;p<=maxPos;p++){
+        const x=left+(p/maxPos)*(right-left);
+        const v=pe(p,i);
+        const yv=cy - v*(rowH/2-3);
+        p===0?ctx.moveTo(x,yv):ctx.lineTo(x,yv);
+      }
+      ctx.stroke();
+      // 维度标签
+      ctx.fillStyle='#6e7681';ctx.font='11px monospace';ctx.textAlign='right';ctx.textBaseline='middle';
+      ctx.fillText('dim'+i,left-8,cy);
+    }
+    // 当前位置竖线
+    const px=left+(pos/maxPos)*(right-left);
+    ctx.strokeStyle='#d29922';ctx.lineWidth=2;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(px,top);ctx.lineTo(px,top+DIM*rowH);ctx.stroke();ctx.setLineDash([]);
+
+    // 右侧：该位置的"向量指纹"（8 个色块）
+    const bx=right+30, bw=110;
+    ctx.fillStyle='#9da7b3';ctx.font='12px sans-serif';ctx.textAlign='left';ctx.textBaseline='alphabetic';
+    ctx.fillText('位置'+pos+'的向量：',bx,top+4);
+    for(let i=0;i<DIM;i++){
+      const v=pe(pos,i);                 // -1..1
+      const cy=top+18+i*((DIM*rowH-18)/DIM);
+      const t=(v+1)/2;                   // 0..1
+      const r=Math.round(40+t*60), g=Math.round(60+t*40), b=Math.round(120+t*135);
+      ctx.fillStyle=`rgb(${Math.round(80+t*100)},${Math.round(100+t*60)},${Math.round(180+t*40)})`;
+      // 用蓝->橙双色映射
+      ctx.fillStyle = v>=0 ? `rgba(88,166,255,${0.3+0.7*t})` : `rgba(210,153,34,${0.3+0.7*(1-t)})`;
+      ctx.fillRect(bx,cy,bw,((DIM*rowH-18)/DIM)-4);
+      ctx.fillStyle='#0d1117';ctx.font='11px monospace';
+      ctx.fillText(v.toFixed(2),bx+6,cy+12);
+    }
+    ctx.fillStyle='#6e7681';ctx.font='11px sans-serif';
+    ctx.fillText('（加到词向量上）',bx,top+DIM*rowH+2);
+  }
+  $('#pos-i').oninput=e=>{ pos=+e.target.value; $('#pos-n').textContent='第 '+pos+' 个位置'; draw(); };
+  draw();
+})();
+
+/* ============ 动画9：GPT 逐词生成 ============ */
+(function(){
+  const cv=$('#cv-gpt'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const seed=['今天','天气','很'];
+  // 每一步的候选词及概率（演示用，贪心选最高）
+  const chain=[
+    [['好',.62],['热',.24],['冷',.14]],
+    [['，',.55],['！',.30],['呢',.15]],
+    [['我们',.50],['真',.30],['不',.20]],
+    [['出去',.60],['在家',.25],['睡觉',.15]],
+    [['走走',.70],['玩',.20],['吧',.10]],
+    [['吧',.80],['。',.20]],
+  ];
+  let gen=[], step=0, anim=0, animing=false, timer=null;
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // 已生成的句子
+    const full=seed.concat(gen);
+    ctx.textBaseline='middle';
+    let x=40; const ty=70;
+    ctx.font='20px sans-serif';
+    full.forEach((w,i)=>{
+      const isSeed=i<seed.length;
+      const justAdded=(i===full.length-1 && gen.length>0);
+      const wd=ctx.measureText(w).width+18;
+      ctx.fillStyle=justAdded?'rgba(63,185,80,.25)':(isSeed?'#1c2230':'rgba(88,166,255,.15)');
+      const r=8;const h=34;const yy=ty-h/2;
+      ctx.beginPath();ctx.moveTo(x+r,yy);ctx.arcTo(x+wd,yy,x+wd,yy+h,r);ctx.arcTo(x+wd,yy+h,x,yy+h,r);ctx.arcTo(x,yy+h,x,yy,r);ctx.arcTo(x,yy,x+wd,yy,r);ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle=justAdded?'#3fb950':(isSeed?'#2d333b':'#58a6ff');ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='#e6edf3';ctx.textAlign='center';ctx.fillText(w,x+wd/2,ty);
+      x+=wd+8;
+    });
+    // 光标
+    if(step<chain.length){
+      ctx.fillStyle='#6e7681';ctx.font='13px sans-serif';ctx.textAlign='left';
+      ctx.fillText('▌预测下一个…', x, ty);
+    }else{
+      ctx.fillStyle='#3fb950';ctx.font='13px sans-serif';ctx.textAlign='left';
+      ctx.fillText('✓ 句子完成', x, ty);
+    }
+
+    ctx.fillStyle='#9da7b3';ctx.font='13px sans-serif';ctx.textAlign='left';
+    ctx.fillText(step<chain.length?'第 '+(step+1)+' 步：基于上面全部的词，算候选概率 →':'下一个词的候选分布：', 40, 130);
+
+    // 候选概率条
+    if(step<chain.length){
+      const cands=chain[step], bx=60, bw=420, by=155, rh=34;
+      cands.forEach((c,i)=>{
+        const yy=by+i*rh;
+        const a=easeIO(Math.min(anim,1));
+        const top=(i===0);
+        ctx.fillStyle=top?'#58a6ff':'#39414f';
+        ctx.fillRect(bx, yy, c[1]*bw*a, rh-10);
+        ctx.fillStyle='#e6edf3';ctx.font='15px sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
+        ctx.fillText(c[0], bx+8, yy+(rh-10)/2);
+        ctx.fillStyle=top?'#fff':'#9da7b3';ctx.font='13px monospace';
+        ctx.fillText((c[1]*100).toFixed(0)+'%', bx+c[1]*bw*a+10, yy+(rh-10)/2);
+        if(top && a>0.8){ ctx.fillStyle='#3fb950';ctx.font='12px sans-serif';
+          ctx.fillText('← 选它（概率最高），接到句尾', bx+bw+20, yy+(rh-10)/2); }
+      });
+    }
+    ctx.fillStyle='#6e7681';ctx.font='12px sans-serif';ctx.textAlign='left';
+    ctx.fillText('注意：GPT 每步只看左边已有的词（因果掩码），看不到未来 —— 因为生成时未来还不存在。', 40, H-18);
+  }
+  function tick(){ if(animing){anim=Math.min(anim+0.06,1);if(anim>=1)animing=false;} draw(); requestAnimationFrame(tick); }
+  function next(){ if(step<chain.length){ gen.push(chain[step][0][0]); step++; anim=0; animing=true; } }
+  $('#gpt-step').onclick=next;
+  $('#gpt-reset').onclick=()=>{ gen=[];step=0;anim=0; if(timer){clearInterval(timer);timer=null;} };
+  $('#gpt-auto').onclick=()=>{ if(timer){clearInterval(timer);timer=null;return;}
+    timer=setInterval(()=>{ if(step>=chain.length){clearInterval(timer);timer=null;return;} next(); },1000); };
+  draw(); tick();
+})();
+</script>
+</body>
+</html>

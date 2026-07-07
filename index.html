@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教程合集 · Tutorials</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2230;--line:#2d333b;--tx:#e6edf3;--tx2:#9da7b3;--tx3:#6e7681;--acc:#58a6ff;--acc2:#bc8cff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7}
+  header{padding:80px 22px 40px;text-align:center;background:radial-gradient(900px 400px at 50% -120px,rgba(88,166,255,.18),transparent 70%);border-bottom:1px solid var(--line)}
+  header h1{font-size:36px;margin:0 0 12px}
+  header h1 .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--tx2);max-width:600px;margin:0 auto}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 22px 120px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;transition:.18s}
+  a.card:hover{border-color:var(--acc);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+  .card .ico{font-size:30px;margin-bottom:12px}
+  .card h3{margin:0 0 8px;font-size:19px}
+  .card p{margin:0;color:var(--tx2);font-size:14px}
+  .card .meta{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+  .tag{font-size:12px;color:var(--tx3);border:1px solid var(--line);border-radius:20px;padding:2px 10px}
+  .empty{color:var(--tx3);text-align:center;padding:40px;border:1px dashed var(--line);border-radius:14px}
+  footer{text-align:center;color:var(--tx3);font-size:13px;padding:30px 0}
+  .addhint{margin-top:40px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;color:var(--tx2);font-size:14px}
+  .addhint code{background:var(--bg);padding:2px 7px;border-radius:5px;color:#ffd9a0;font-family:Consolas,monospace}
+</style>
+</head>
+<body>
+<header>
+  <h1>教程<span class="g">合集</span></h1>
+  <p>一处一个网页教程，从零讲透一个主题。点卡片进入。</p>
+</header>
+
+<div class="wrap">
+  <div class="grid" id="grid">
+    <!-- ↓↓↓ 每加一个教程，复制一张卡片改内容即可 ↓↓↓ -->
+
+    <a class="card" href="transformer-history/">
+      <div class="ico">🤖</div>
+      <h3>Transformer 的前世今生</h3>
+      <p>从「电脑不懂字」一步步演化到 GPT。9 个可交互动画，讲清每一步在解决什么、留下什么坑。</p>
+      <div class="meta">
+        <span class="tag">深度学习</span>
+        <span class="tag">8 章 + 附录</span>
+        <span class="tag">交互动画</span>
+      </div>
+    </a>
+
+    <!-- ↑↑↑ 复制上面这张 <a class="card"> ... </a> 来新增教程 ↑↑↑ -->
+  </div>
+
+  <div class="addhint">
+    <b>怎么加新教程：</b>在本目录新建一个子文件夹（如 <code>tutorials/xxx/</code>），里面放 <code>index.html</code>；
+    再回到这个首页复制一张卡片、把 <code>href</code> 改成 <code>xxx/</code> 即可。托管后它的网址就是 <code>你的站点/xxx/</code>。
+  </div>
+</div>
+
+<footer>Tutorials · 单文件静态页 · 可托管于 GitHub Pages / Cloudflare Pages</footer>
+</body>
+</html>

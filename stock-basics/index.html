@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>股票从 0 到 1 · 小白打通全部概念（每个知识点都能自己验证）</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2d333b;
+    --tx:#e6edf3; --tx2:#9da7b3; --tx3:#6e7681;
+    --acc:#58a6ff; --acc2:#bc8cff; --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+    --up:#f85149;   /* A股：红涨 */
+    --down:#3fb950; /* A股：绿跌 */
+    --teal:#39c5cf;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--tx);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.85; font-size:16px;
+  }
+  .app{display:flex; align-items:flex-start}
+  .sidebar{
+    position:sticky; top:0; height:100vh; flex:0 0 262px; width:262px;
+    border-right:1px solid var(--line); background:var(--panel);
+    overflow-y:auto; padding:18px 0 40px; scrollbar-width:thin;
+  }
+  .sidebar::-webkit-scrollbar{width:8px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
+  .brand{padding:4px 20px 16px; border-bottom:1px solid var(--line); margin-bottom:8px}
+  .brand .logo{font-size:16px; font-weight:700; letter-spacing:.3px}
+  .brand .logo .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .sb{font-size:12px; color:var(--tx3); margin-top:5px}
+
+  nav.toc{padding:0 10px}
+  .toc .grp{font-size:11px; letter-spacing:1.5px; color:var(--tx3); padding:16px 12px 6px; font-weight:700}
+  .toc a{
+    display:flex; align-items:center; gap:9px; position:relative;
+    color:var(--tx2); text-decoration:none; font-size:13.5px;
+    padding:7px 10px 7px 14px; border-radius:8px; margin:1px 0 1px 8px;
+    border-left:2px solid var(--line); transition:.12s;
+  }
+  .toc a i{
+    flex:0 0 auto; width:20px; height:20px; border-radius:6px; font-style:normal;
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+    background:var(--panel2); color:var(--tx3); border:1px solid var(--line);
+  }
+  .toc a:hover{color:var(--tx); background:var(--panel2)}
+  .toc a.on{color:var(--acc); background:rgba(88,166,255,.1); border-left-color:var(--acc)}
+  .toc a.on i{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:700}
+
+  .main{flex:1 1 auto; min-width:0}
+  .wrap{max-width:840px; margin:0 auto; padding:0 30px 140px}
+
+  header{
+    padding:56px 30px 42px; text-align:center;
+    background:radial-gradient(900px 400px at 50% -120px,rgba(88,166,255,.20),transparent 70%);
+    border-bottom:1px solid var(--line);
+  }
+  header h1{font-size:32px; margin:0 0 14px; letter-spacing:.5px}
+  header h1 .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--tx2); max-width:660px; margin:0 auto; font-size:16px}
+  .tags{margin-top:18px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+  .tag{display:inline-block;padding:5px 14px;border:1px solid var(--line);border-radius:30px;color:var(--tx2);font-size:13px}
+
+  .menu-btn{
+    display:none; position:fixed; top:14px; left:14px; z-index:120;
+    width:42px; height:42px; border-radius:10px; font-size:18px;
+    background:var(--panel); border:1px solid var(--line); color:var(--tx);
+  }
+  .scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99}
+  @media(max-width:880px){
+    .sidebar{position:fixed; left:0; top:0; z-index:100; transform:translateX(-100%); transition:.25s; box-shadow:6px 0 30px rgba(0,0,0,.5)}
+    .sidebar.open{transform:none}
+    .scrim.open{display:block}
+    .menu-btn{display:flex; align-items:center; justify-content:center}
+    header{padding-top:64px}
+  }
+
+  section{padding:46px 0 10px; border-bottom:1px solid var(--line)}
+  .yr{font-size:13px; color:var(--acc); letter-spacing:1.5px; font-weight:600}
+  h2{font-size:26px; margin:6px 0 4px}
+  .sub{color:var(--tx3); font-size:14px; margin-bottom:18px}
+  h3{font-size:18px; margin:30px 0 8px; color:var(--tx)}
+  p{margin:12px 0}
+  b,strong{color:#fff}
+  code{background:var(--panel2); padding:2px 6px; border-radius:5px; font-size:14px; color:#ffd9a0; font-family:"Cascadia Code",Consolas,monospace}
+  ul,ol{margin:12px 0; padding-left:22px}
+  li{margin:5px 0}
+
+  /* 术语高亮 */
+  .term{color:var(--acc2); font-weight:600; border-bottom:1px dashed rgba(188,140,255,.5); cursor:help}
+  .en{color:var(--tx3); font-size:.86em; font-family:"Cascadia Code",Consolas,monospace}
+  .key{background:linear-gradient(transparent 62%,rgba(188,140,255,.35) 0); padding:0 2px}
+
+  .pain{border-left:3px solid var(--bad); background:rgba(248,81,73,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .pain b{color:var(--bad)}
+  .fix{border-left:3px solid var(--ok); background:rgba(63,185,80,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .fix b{color:var(--ok)}
+  .note{border-left:3px solid var(--acc); background:rgba(88,166,255,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .warnbox{border-left:3px solid var(--warn); background:rgba(210,153,34,.08); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .warnbox b{color:var(--warn)}
+
+  /* 🔬 验证方法盒 —— 本教程的灵魂 */
+  .verify{
+    border:1px solid rgba(57,197,207,.4); background:linear-gradient(180deg,rgba(57,197,207,.09),rgba(57,197,207,.02));
+    border-radius:10px; padding:14px 16px 12px; margin:18px 0;
+  }
+  .verify .t{font-size:13px; color:var(--teal); font-weight:700; letter-spacing:.5px; margin-bottom:8px; display:flex; align-items:center; gap:6px}
+  .verify .t::before{content:"🔬"; font-size:15px}
+  .verify ol{margin:6px 0 2px; padding-left:20px}
+  .verify li{margin:4px 0; font-size:14.5px}
+  .verify .exp{color:var(--ok); font-weight:600}
+
+  .who{border:1px solid var(--line); background:linear-gradient(180deg,rgba(188,140,255,.06),transparent); border-radius:10px; padding:14px 16px; margin:18px 0}
+  .who .t{font-size:13px; color:var(--acc2); font-weight:600; letter-spacing:.5px; margin-bottom:8px; display:flex; align-items:center; gap:6px}
+  .who dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 14px}
+  .who dt{color:var(--tx3); font-size:13px; white-space:nowrap}
+  .who dd{margin:0; font-size:14.5px}
+
+  /* 术语速查表 */
+  table.gloss{width:100%; border-collapse:collapse; margin:16px 0; font-size:14px}
+  table.gloss th,table.gloss td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+  table.gloss th{background:var(--panel2); color:var(--tx2); font-size:13px}
+  table.gloss td:first-child{white-space:nowrap; color:var(--acc2); font-weight:600}
+
+  /* 演示盒 */
+  .demo{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; margin:22px 0}
+  .demo .hd{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--tx2); margin-bottom:14px}
+  .demo .hd::before{content:"▶"; color:var(--acc); font-size:10px}
+  .ctrl{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 0 4px}
+  button{
+    background:var(--panel2); color:var(--tx); border:1px solid var(--line);
+    padding:8px 16px; border-radius:8px; cursor:pointer; font-size:14px; transition:.15s;
+  }
+  button:hover{border-color:var(--acc); color:var(--acc)}
+  button.primary{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:600}
+  button.primary:hover{filter:brightness(1.1); color:#0d1117}
+  .hint{color:var(--tx3); font-size:13px; margin-top:8px}
+  canvas{display:block; max-width:100%; border-radius:10px}
+  input[type=range]{accent-color:var(--acc)}
+  .stat{display:flex; gap:22px; flex-wrap:wrap; margin:12px 0}
+  .stat .it{font-size:13px; color:var(--tx3)}
+  .stat .it b{display:block; font-size:20px; color:var(--tx); font-family:"Cascadia Code",Consolas,monospace}
+
+  .foot{text-align:center; color:var(--tx3); font-size:13px; padding:40px 0}
+  .kbd{font-family:monospace; background:var(--panel2); border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 7px; font-size:12px}
+  .red{color:var(--up)} .green{color:var(--down)}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">股票 <span class="g">从 0 到 1</span></div>
+    <div class="sb">小白版 · 每个知识点都能自己验证 🔬</div>
+  </div>
+  <nav class="toc" id="nav">
+    <div class="grp">先搞懂"是什么"</div>
+    <a href="#c0"><i>0</i>股票到底是什么</a>
+    <a href="#c1"><i>1</i>钱从哪来（怎么赚）</a>
+
+    <div class="grp">市场是怎么运转的</div>
+    <a href="#c2"><i>2</i>股票哪来的·上市</a>
+    <a href="#c3"><i>3</i>价格怎么定·撮合</a>
+    <a href="#c4"><i>4</i>看懂一行报价</a>
+
+    <div class="grp">看懂盘面</div>
+    <a href="#c5"><i>5</i>K 线蜡烛图</a>
+    <a href="#c6"><i>6</i>分时·盘口·量价</a>
+
+    <div class="grp">真去交易</div>
+    <a href="#c7"><i>7</i>交易规则（A股）</a>
+    <a href="#c8"><i>8</i>开户·下单·费用</a>
+
+    <div class="grp">判断贵不贵·好不好</div>
+    <a href="#c9"><i>9</i>估值·市盈率</a>
+    <a href="#c10"><i>10</i>基本面·财报·分红</a>
+    <a href="#c11"><i>11</i>技术指标</a>
+
+    <div class="grp">大盘视角 · 风控</div>
+    <a href="#c12"><i>12</i>指数·板块</a>
+    <a href="#c13"><i>13</i>风险·仓位·心态</a>
+
+    <div class="grp">附录</div>
+    <a href="#cA"><i>A</i>验证工具箱</a>
+    <a href="#cB"><i>B</i>术语总表</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<header>
+  <h1>股票，<span class="g">从 0 到 1</span></h1>
+  <p>把你当纯小白：从"一股到底是什么"讲到"怎么下单、怎么判断贵贱"。<b>不背结论，讲清每个概念是怎么冒出来、要解决什么问题</b>。而且——<b class="key">每一个知识点，都配一个你能亲手做的「验证方法」</b>，让抽象名词落到你能看到的真实数字上。</p>
+  <div class="tags">
+    <span class="tag">🔬 每个概念都能自己验证</span>
+    <span class="tag">🇨🇳 以 A 股规则为主</span>
+    <span class="tag">🎛 有可动手玩的动画</span>
+    <span class="tag">⚠️ 只讲原理，不荐股</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="warnbox" style="margin-top:26px">
+  <b>开始前先说清楚三件事：</b><br>
+  ① 本教程<b>只讲概念和方法，不推荐任何股票、不预测涨跌</b>，读完你有判断力，但买卖决定和后果都是你自己的。<br>
+  ② 所有"验证方法"你都可以用<b>免费行情软件 + 模拟盘</b>做，<b>先别投真钱</b>——先把每个概念亲手验证一遍。<br>
+  ③ 股市有风险，<b>可能亏损本金</b>。这不是一句套话，第 13 章会让你真正理解它有多重要。
+</div>
+
+<!-- ============ 第0章 ============ -->
+<section id="c0">
+  <div class="yr">起点 · 先破除误解</div>
+  <h2>第 0 章：股票到底是什么？</h2>
+  <div class="sub">很多人亏钱，是因为从没想清楚这最底层的一句话</div>
+
+  <p>大部分人对股票的第一印象是"一个会上上下下的数字，猜对方向就赚钱"。<b>这是最危险的起点。</b>我们先把它掰回来。</p>
+
+  <div class="fix">
+    <b>一句话本质：</b>一股股票 = <span class="key">一家公司所有权的一小块（一小片"股份"）</span>。<br>
+    你买了一家公司 1 股，你就是这家公司的<b>股东</b>之一，法律上<b>真的拥有</b>了它极小的一部分——它的厂房、品牌、利润、现金，都有你名下微小的一份。
+  </div>
+
+  <p>举个具体的：假设一家公司总共被切成了 <b>10 亿股</b>（这个总数叫 <span class="term">总股本 <span class="en">total shares</span></span>）。你买了 <b>100 股</b>，那你就拥有这家公司的 100 / 10亿 = <b>千万分之一</b>。听起来很小，但意义完全不同——你不是在"猜数字"，你是在<b>当一家真实企业的微型合伙人</b>。</p>
+
+  <p>所以股价为什么会动？因为大家对"这家公司这一小块所有权<b>值多少钱</b>"的看法一直在变。公司赚更多钱了、前景更好了，这一块就更值钱，价格就涨。<b>股价 = 市场此刻对"公司价值"的报价</b>，不是凭空跳动的彩票号码。</p>
+
+  <div class="who">
+    <div class="t">🏛 几个必须先认识的角色</div>
+    <dl>
+      <dt>股东</dt><dd>持有股票的人（就是买了股的你）。持股越多，拥有的公司比例越大。</dd>
+      <dt>上市公司</dt><dd>把自己的股份拿到<b>证券交易所</b>公开买卖的公司，比如贵州茅台、比亚迪。</dd>
+      <dt>交易所</dt><dd>股票买卖的"大集市"。中国内地主要是<b>上海证券交易所</b>、<b>深圳证券交易所</b>、<b>北京证券交易所</b>。</dd>
+      <dt>券商</dt><dd>你和交易所之间的"中介"。你不能直接冲进交易所喊单，得通过券商（如华泰、东方财富）开的账户下单。</dd>
+    </dl>
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 亲手确认"股票=公司的一块"</div>
+    <ol>
+      <li>随便打开一个免费行情软件（东方财富 / 同花顺 / 雪球 App 都行），搜索一只大家熟悉的公司，比如 <code>贵州茅台</code>。</li>
+      <li>点进它的详情页 →「<b>F10</b>」或「公司资料」→ 看 <b>总股本</b> 这一栏（你会看到大约 12.56 亿股这样的数字）。</li>
+      <li>再看「<b>总市值</b>」——把总股本 × 当前股价，就是整家公司此刻被市场标的价钱。用计算器算一遍，<b class="exp">你算出来的应该≈软件显示的总市值</b>。</li>
+    </ol>
+    <span class="hint">验证到了什么：股价不是孤立数字，它 ×股本 = 一家真实公司的完整标价。你买的是这块蛋糕的一小片。</span>
+  </div>
+</section>
+
+<!-- ============ 第1章 ============ -->
+<section id="c1">
+  <div class="yr">动机 · 为什么有人靠股票赚钱</div>
+  <h2>第 1 章：钱到底从哪来？（股票怎么让你赚钱 / 亏钱）</h2>
+  <div class="sub">搞懂这个，你才知道自己到底在赚谁的钱、风险在哪</div>
+
+  <p>持有股票赚钱只有<b>两条路</b>，务必分清，因为它们对应完全不同的玩法：</p>
+
+  <h3>路子一：差价（低买高卖）—— <span class="en">capital gain</span></h3>
+  <p>10 元买入，15 元卖出，每股赚 5 元差价。这叫<span class="term">资本利得</span>。大部分散户想的都是这个。它的钱来自"<b>另一个愿意用更高价接手的人</b>"——所以本质上你在和其他参与者博弈。</p>
+
+  <h3>路子二：分红（公司分利润给你）—— <span class="en">dividend</span></h3>
+  <p>公司赚了钱，可以拿出一部分<b>按股份分给全体股东</b>，这叫<span class="term">分红 / 股息</span>。你啥都不卖，光持有就能定期收到现金。这条路的钱来自<b>公司真实的经营利润</b>，是"当股东"最本源的回报。</p>
+
+  <div class="note">
+    <b>为什么长期看股票能涨？</b> 因为好公司会<b>不断赚钱、不断变大</b>，它那块"所有权"就越来越值钱。这就是<span class="key">复利</span>的威力：利润再投入 → 赚更多 → 再投入……时间拉长，增长是指数型的，不是直线。下面这个动画让你亲眼看见"直线增长"和"复利增长"差多远。</p>
+  </div>
+
+  <div class="demo">
+    <div class="hd">动画 1 · 复利 vs 直线：为什么"时间"是股市里最贵的东西（拖滑块调年化收益率）</div>
+    <canvas id="cv-comp" width="800" height="360"></canvas>
+    <div class="ctrl">
+      <label style="color:var(--tx2);font-size:14px">年化收益率：</label>
+      <input type="range" id="comp-r" min="2" max="20" value="8" style="width:220px">
+      <span id="comp-rn" class="hint">8%</span>
+    </div>
+    <div class="stat">
+      <div class="it">本金 <b>¥10,000</b></div>
+      <div class="it">30 年后（复利）<b id="comp-c" class="red">—</b></div>
+      <div class="it">30 年后（不复利·只拿单利）<b id="comp-s">—</b></div>
+    </div>
+    <div class="hint">注意红线（复利）后半段陡然翘起——利滚利越到后面越猛。这就是为什么"越早开始、拿得越久"比"选对某一只"更重要。</div>
+  </div>
+
+  <div class="pain">
+    <b>但反过来——这也是风险的来源：</b>公司可能<b>不赚钱、甚至倒闭</b>，那你那块所有权就贬值甚至归零。差价这条路更是<b>零和博弈</b>：你赚的差价，是别人亏的。<span class="key">股市不承诺谁一定赚钱，它只是把"公司的兴衰"和"人性的贪婪恐惧"打包成一个每天跳动的价格。</span>
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 亲手看到"分红"和"复利"是真的</div>
+    <ol>
+      <li>验证分红：在行情软件搜一只常年分红的股（如 <code>工商银行</code>），F10 →「分红融资」/「分红送配」，你会看到一串历史记录：<b>每 10 股派 X 元</b>。这就是它每年真金白银发给股东的钱。</li>
+      <li>验证长期复利：找一个指数（如 <code>沪深300</code>），把行情周期切到「<b>月K</b>」或「年K」，拉到最长时间跨度，看这十几年的整体斜率——<b class="exp">尽管中间剧烈起伏，长期整体是向上的曲线</b>。</li>
+      <li>对照上面动画：把滑块调到 8% 左右（A股长期年化的粗略量级），感受 30 年后的差距。</li>
+    </ol>
+    <span class="hint">验证到了什么：赚钱有"差价"和"分红"两条真实来源；长期复利不是口号，历史曲线看得见。</span>
+  </div>
+</section>
+
+<!-- ============ 第2章 ============ -->
+<section id="c2">
+  <div class="yr">来源 · 一级市场 vs 二级市场</div>
+  <h2>第 2 章：股票是从哪冒出来的？（上市 / IPO）</h2>
+  <div class="sub">先搞懂"你在哪买卖"，才不会被一堆市场名词绕晕</div>
+
+  <p>你在手机上买到的股票，是从别的股东手里买的，不是从公司买的。为什么？因为有两个不同的"市场"：</p>
+
+  <div class="who">
+    <div class="t">🔀 两个市场，别搞混</div>
+    <dl>
+      <dt style="color:var(--acc)">一级市场</dt><dd><b>公司第一次把股份卖出去、直接拿到钱</b>的地方。这个过程叫 <span class="term">IPO<span class="en">首次公开募股 Initial Public Offering</span></span>，俗称"上市"。钱进了公司口袋，用来扩张、研发。普通人一般参与不了原始定价，但可以"<b>打新股</b>"申购。</dd>
+      <dt style="color:var(--acc2)">二级市场</dt><dd><b>股东之间互相买卖已发行股票</b>的地方，就是你天天看的交易所行情。<b>公司在这里不拿钱</b>，只是股份在股东间转手。你 99% 的操作都在这里。</dd>
+    </dl>
+  </div>
+
+  <p>打个比方：<b>一级市场</b>像开发商第一次卖新房（钱给开发商）；<b>二级市场</b>像二手房东之间转卖这套房（钱在买卖双方之间，开发商不参与）。</p>
+
+  <h3>几个跟"上市"绑在一起的术语</h3>
+  <table class="gloss">
+    <tr><th>术语</th><th>大白话</th></tr>
+    <tr><td>IPO / 上市</td><td>公司第一次公开卖股票、登陆交易所。</td></tr>
+    <tr><td>打新 / 申购新股</td><td>IPO 时普通投资者去"抽签"买新股，中签往往有得赚（A股新股上市初期常涨）。</td></tr>
+    <tr><td>发行价</td><td>IPO 时每股卖多少钱的定价。</td></tr>
+    <tr><td>退市</td><td>公司太差（长期亏损/违规/股价太低）被<b>赶出交易所</b>，股票变得几乎卖不掉。<b class="red">这是散户的噩梦之一。</b></td></tr>
+    <tr><td>流通股 / 限售股</td><td>能自由买卖的叫流通股；大股东有一段时间不许卖的叫限售股（限售期满会"解禁"，可能砸盘）。</td></tr>
+  </table>
+
+  <div class="verify">
+    <div class="t">验证方法 · 看到"一级→二级"的真实痕迹</div>
+    <ol>
+      <li>找一只<b>最近才上市</b>的新股（行情软件里有「新股」板块 / 打新日历）。看它的详情，会标注<b>上市日期</b>和<b>发行价</b>——发行价就是一级市场的成交价。</li>
+      <li>再看它现在的股价，和发行价对比：<b class="exp">现价 ≠ 发行价</b>，差额就是二级市场买卖博弈出来的。</li>
+      <li>搜索关键词「<code>退市</code>」看看 A 股历史上退市的公司列表（软件里有「退市整理」板块），感受"股票不是只会涨"。</li>
+    </ol>
+    <span class="hint">验证到了什么：公司拿钱只在 IPO 那一次；你买卖的价格是二级市场博弈出来的，且股票会退市归零。</span>
+  </div>
+</section>
+
+<!-- ============ 第3章 ============ -->
+<section id="c3">
+  <div class="yr">机制 · 价格是怎么"撮合"出来的</div>
+  <h2>第 3 章：价格到底谁定的？（买卖盘 · 撮合成交）</h2>
+  <div class="sub">这是全教程最该动手玩的一章——看懂它，盘口就再也不神秘</div>
+
+  <p>很多小白以为股价是"庄家"或"交易所"定的。<b>不是。</b>价格是<span class="key">买家和卖家自己喊出来、系统自动撮合</span>的结果。原理简单到你会惊讶：</p>
+
+  <div class="fix">
+    <b>撮合规则（就这一句）：</b><br>
+    所有想买的人挂出"我愿意出多少钱买"（叫 <span class="term">买盘 / bid</span>），所有想卖的挂出"我愿意多少钱卖"（叫 <span class="term">卖盘 / ask</span>）。<br>
+    系统排队：<span class="key">出价最高的买家</span> 和 <span class="key">要价最低的卖家</span> 一旦价格能对上，<b>立刻成交</b>。成交的那个价，就是你看到的"最新价"。
+  </div>
+
+  <p>所以"股价"其实是<b>最近一笔成交的价格</b>，它每一秒都可能因为新的一笔成交而变。价格上涨 = 买家愿意出更高价来抢；下跌 = 卖家愿意降价求卖。下面这个撮合台，你亲手挂单看它怎么成交：</p>
+
+  <div class="demo">
+    <div class="hd">动画 2 · 撮合台：挂买单/卖单，看成交价怎么产生（这就是交易所内部在干的事）</div>
+    <canvas id="cv-match" width="800" height="360"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="m-buy">＋ 挂一个买单（想低价买）</button>
+      <button id="m-sell">＋ 挂一个卖单（想高价卖）</button>
+      <button id="m-reset">重置</button>
+    </div>
+    <div class="stat">
+      <div class="it">最新成交价 <b id="m-last">—</b></div>
+      <div class="it">买一（最高买价）<b id="m-bid" class="red">—</b></div>
+      <div class="it">卖一（最低卖价）<b id="m-ask" class="green">—</b></div>
+    </div>
+    <div class="hint">多挂几次买单和卖单：当某个买价 ≥ 某个卖价时，它俩自动撮合成交，"最新价"随之更新。红色买盘在下、绿色卖盘在上，中间的空隙叫"买卖价差(spread)"。</div>
+  </div>
+
+  <h3>顺带认识两种开盘方式</h3>
+  <table class="gloss">
+    <tr><th>术语</th><th>大白话</th></tr>
+    <tr><td>集合竞价</td><td>开盘前（9:15–9:25）大家一起挂单，系统算出一个能让最多单成交的价格，作为<b>开盘价</b>。收盘前也有一次（14:57–15:00 定<b>收盘价</b>）。</td></tr>
+    <tr><td>连续竞价</td><td>盘中（9:30–11:30、13:00–14:57）实时逐笔撮合，就是上面动画演示的那种。</td></tr>
+    <tr><td>价格优先 / 时间优先</td><td>撮合排队原则：出价更高的买单先成交；同价的，<b>先挂的先成交</b>。</td></tr>
+  </table>
+
+  <div class="verify">
+    <div class="t">验证方法 · 盘中亲眼看撮合发生</div>
+    <ol>
+      <li><b>交易时间内</b>（工作日 9:30–11:30 / 13:00–15:00）打开任意一只活跃股票的详情页，看「<b>五档盘口</b>」——上面 5 行绿色是卖盘(卖一到卖五)，下面 5 行红色是买盘(买一到买五)，每行有价格和挂单手数。</li>
+      <li>盯着看几秒钟：<b class="exp">数字在不停跳</b>，因为有人不断挂单/撤单/成交。看「<b>逐笔成交</b>」或「分时成交明细」，每一行就是一笔真实撮合。</li>
+      <li>早上 9:15–9:25 看同一只股，你会看到"集合竞价"的匹配量在动，9:25 定出开盘价。</li>
+    </ol>
+    <span class="hint">验证到了什么：价格不是谁"定"的，是买卖双方挂单被系统实时撮合的结果；"最新价"= 最近一笔成交价。</span>
+  </div>
+</section>
+
+<!-- ============ 第4章 ============ -->
+<section id="c4">
+  <div class="yr">基本功 · 读懂屏幕上每个数字</div>
+  <h2>第 4 章：看懂一行报价的每个字段</h2>
+  <div class="sub">先把"仪表盘"上每个表认全，后面才谈得上开车</div>
+
+  <p>打开任意一只股票，你会看到一堆数字。它们各有名字和含义。逐个拆：</p>
+
+  <table class="gloss">
+    <tr><th>字段</th><th>含义（大白话）</th></tr>
+    <tr><td>股票代码</td><td>股票的身份证号。沪市多为 6 开头（如 600519），深市多为 0/3 开头，创业板 300 开头，科创板 688 开头，北交所 8/4 开头。</td></tr>
+    <tr><td>现价 / 最新价</td><td>最近一笔成交价（第 3 章讲过）。</td></tr>
+    <tr><td>涨跌额 / 涨跌幅</td><td>相对<b>昨天收盘价</b>涨/跌了多少钱、百分之几。<b class="red">A 股红色=涨，绿色=跌</b>（和欧美相反！）。</td></tr>
+    <tr><td>今开</td><td>今天开盘第一笔成交价（集合竞价定的）。</td></tr>
+    <tr><td>昨收</td><td>昨天的收盘价。<b>涨跌幅就是拿现价和它比。</b></td></tr>
+    <tr><td>最高 / 最低</td><td>今天到现在为止成交过的最高价、最低价。</td></tr>
+    <tr><td>成交量</td><td>今天累计成交了多少股（常以"手"计，<b>1 手=100 股</b>）。反映活跃度。</td></tr>
+    <tr><td>成交额</td><td>今天累计成交了多少钱（≈成交量×均价）。</td></tr>
+    <tr><td>换手率</td><td>今天成交的股数 ÷ 流通股总数。<b>越高=换手越频繁=越活跃/投机</b>。</td></tr>
+    <tr><td>振幅</td><td>(今日最高−最低) ÷ 昨收。衡量今天波动有多剧烈。</td></tr>
+    <tr><td>量比</td><td>当前每分钟成交量 ÷ 过去 5 日平均。>1 说明今天比平时更活跃。</td></tr>
+    <tr><td>市盈率(PE)/市净率(PB)</td><td>判断"贵不贵"的估值指标，第 9 章专门讲。</td></tr>
+  </table>
+
+  <div class="note">
+    <b>最容易记错的一点：颜色。</b> 在 A 股，<b class="red">红=涨、绿=跌</b>（取"红红火火"的彩头）。但美股、港股，以及很多国际软件里，<b>绿=涨、红=跌</b>。换软件时先确认颜色规则，别看反了。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 用一只股把每个字段对一遍</div>
+    <ol>
+      <li>随便打开一只股，对照上表，<b>逐个找到</b>现价、涨跌幅、今开、昨收、最高、最低、成交量、换手率。</li>
+      <li>亲手验证涨跌幅公式：<code>涨跌幅 = (现价 − 昨收) ÷ 昨收 × 100%</code>。用计算器算，<b class="exp">应≈软件显示的涨跌幅</b>。</li>
+      <li>验证"1 手=100 股"：看某笔成交是"5 手"，成交额 ÷ 成交价 ÷ 5 <b class="exp">应≈100</b>。</li>
+      <li>切到美股（搜 <code>AAPL</code> 苹果），看它涨的时候是<b>绿色</b>——确认颜色规则真的反过来了。</li>
+    </ol>
+    <span class="hint">验证到了什么：屏幕上每个数字都有确切定义和公式，不是玄学；涨跌幅锚定"昨收"，颜色因市场而异。</span>
+  </div>
+</section>
+
+<!-- ============ 第5章 ============ -->
+<section id="c5">
+  <div class="yr">看盘核心 · K 线</div>
+  <h2>第 5 章：K 线（蜡烛图）——一根线读懂一天</h2>
+  <div class="sub">这是全世界股民的通用语言，务必彻底吃透一根 K 线</div>
+
+  <p>股价图最常见的形态不是折线，是一根根"小蜡烛"，叫 <span class="term">K 线 / 蜡烛图<span class="en">candlestick</span></span>。<b>一根 K 线浓缩了一个时间段（比如一天）里的 4 个关键价格</b>：开盘价、收盘价、最高价、最低价。看下面这根拆解图，点按钮切换涨/跌：</p>
+
+  <div class="demo">
+    <div class="hd">动画 3 · 一根 K 线的解剖（切换阳线/阴线，看实体和影线怎么来的）</div>
+    <canvas id="cv-kline" width="800" height="380"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="k-up">阳线（收盘 &gt; 开盘 · 涨）</button>
+      <button id="k-down">阴线（收盘 &lt; 开盘 · 跌）</button>
+    </div>
+    <div class="hint">实体 = 开盘价到收盘价之间的粗柱；上下两根细线叫"影线"，标记这段时间摸到过的最高/最低价。A股里红实体=阳线(涨)，绿实体=阴线(跌)。</div>
+  </div>
+
+  <div class="who">
+    <div class="t">🕯 一根 K 线的四个价 + 两个部件</div>
+    <dl>
+      <dt>开盘价</dt><dd>这段时间第一笔成交价。</dd>
+      <dt>收盘价</dt><dd>这段时间最后一笔成交价（最重要，多数指标用它）。</dd>
+      <dt>最高 / 最低价</dt><dd>这段时间摸到的天花板和地板，对应上影线顶 / 下影线底。</dd>
+      <dt>实体</dt><dd>开盘价与收盘价之间的粗柱。<b class="red">红/空心=阳线（收＞开，涨）</b>，<b class="green">绿/实心=阴线（收＜开，跌）</b>。</dd>
+      <dt>影线</dt><dd>实体上下的细线。上影线长=冲高被打下来；下影线长=探底被拉回来。</dd>
+    </dl>
+  </div>
+
+  <h3>周期：日 K、周 K、分钟 K 是同一套逻辑</h3>
+  <p>一根 K 线代表多长时间，取决于你选的<b>周期</b>：<span class="term">日K</span>（一根=一天）、<span class="term">周K</span>（一根=一周）、<span class="term">月K</span>，还有 <span class="term">分时 / 1分钟 / 5分钟 / 60分钟K</span>。看长期趋势用周K月K，看短线用分钟K。<b>规则完全一样，只是浓缩的时间不同。</b></p>
+
+  <div class="warnbox">
+    <b>提醒：K 线是"结果"，不是"预言"。</b> 网上有大量"看这个形态就要涨"的说法（早晨之星、锤子线等）。它们只是<b>对过去的描述和概率性经验</b>，<b class="red">不保证未来</b>。先把"一根K线怎么读"搞扎实，别急着信形态玄学。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 把 K 线和真实价格对上</div>
+    <ol>
+      <li>打开一只股的<b>日K图</b>，把鼠标（或手指）悬停在某一根 K 线上，软件会弹出这根的<b>开/高/低/收</b>四个数——对照上面的解剖图，确认实体和影线的位置对得上。</li>
+      <li>找一根<b>红色</b>K线，确认它的<b class="exp">收盘价 &gt; 开盘价</b>；再找一根绿色的，确认<b class="exp">收盘价 &lt; 开盘价</b>。</li>
+      <li>把周期从日K切到周K，观察：<b class="exp">一根周K的最高价 = 那一周里所有日K最高价里的最大值</b>——自己核对一周的数据验证这个"浓缩"关系。</li>
+    </ol>
+    <span class="hint">验证到了什么：K 线不是画着玩的，每根都精确编码了 4 个真实价格；不同周期只是浓缩时长不同。</span>
+  </div>
+</section>
+
+<!-- ============ 第6章 ============ -->
+<section id="c6">
+  <div class="yr">看盘进阶 · 盘中信息</div>
+  <h2>第 6 章：分时图 · 盘口五档 · 量价关系</h2>
+  <div class="sub">K 线看"历史每天"，这章看"今天此刻正在发生什么"</div>
+
+  <h3>分时图：今天这一天的实时走势</h3>
+  <p><span class="term">分时图</span>是今天从开盘到现在的<b>逐分钟价格曲线</b>。上面通常有一条<b>黄线（均价线）</b>——当天所有成交的平均成本。价格在均价线上方=今天买的人整体浮盈，下方=浮亏。底部的柱子是每分钟的<b>成交量</b>。</p>
+
+  <h3>盘口五档：谁在排队买、谁在排队卖</h3>
+  <p>第 3 章的买卖盘，展开看就是 <span class="term">五档盘口</span>：<b class="green">卖五~卖一</b>（上方，别人挂着要卖的价和量）+ <b class="red">买一~买五</b>（下方，别人挂着要买的价和量）。它告诉你<b>此刻上下方的买卖力量分布</b>。</p>
+
+  <table class="gloss">
+    <tr><th>盘口术语</th><th>大白话</th></tr>
+    <tr><td>买一 / 卖一</td><td>最高的买价 / 最低的卖价，最贴近成交的两档。</td></tr>
+    <tr><td>委买 / 委卖</td><td>挂着还没成交的买单 / 卖单总量。</td></tr>
+    <tr><td>内盘 / 外盘</td><td>主动砸向买价成交的量(内盘,偏卖压) / 主动打向卖价成交的量(外盘,偏买力)。</td></tr>
+    <tr><td>封单</td><td>涨停/跌停时，挂在停板价上排队的巨量单子。封单越大越"封得死"。</td></tr>
+  </table>
+
+  <h3>量价关系：为什么老股民总盯着"成交量"</h3>
+  <div class="fix">
+    <b>核心直觉：</b>价格是"结果"，<span class="key">成交量是"有多少人真金白银在支持这个价格"</span>。<br>
+    ・放量上涨 = 很多人抢着买，涨得比较"实"。<br>
+    ・无量上涨（缩量） = 没什么人参与，涨得"虚"，容易回落。<br>
+    ・放量下跌 = 恐慌抛售，跌势凶。<br>
+    <span class="hint" style="display:block;margin-top:4px">一句口诀："量在价先"——成交量的变化常常先于价格给出信号。但这只是经验规律，不是铁律。</span>
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 盘中把这三样对上</div>
+    <ol>
+      <li><b>分时图</b>：交易时段打开分时图，找到黄色<b>均价线</b>，确认它确实比白色价格线"平滑"——因为它是累计平均。看价格在均价线上下穿梭。</li>
+      <li><b>五档</b>：看盘口，确认<b class="exp">卖一价 &gt; 买一价</b>（永远如此，否则早成交了），中间的差就是买卖价差。</li>
+      <li><b>量价</b>：在日K图上，找一根<b>大涨的红K</b>，看它下方成交量柱是不是明显比旁边高（放量）；再找一根<b>横盘小阴小阳</b>的日子，看量是不是很小（缩量）。<b class="exp">大波动往往伴随大成交量。</b></li>
+    </ol>
+    <span class="hint">验证到了什么：分时/盘口/成交量都是"此刻真实的买卖行为"，量价配合能看出涨跌是"实"还是"虚"。</span>
+  </div>
+</section>
+
+<!-- ============ 第7章 ============ -->
+<section id="c7">
+  <div class="yr">规则 · A 股的硬性交易规则</div>
+  <h2>第 7 章：真去交易前必须背下的规则（A 股）</h2>
+  <div class="sub">这些是"游戏规则"，不懂就会犯低级错误、甚至违规</div>
+
+  <table class="gloss">
+    <tr><th>规则</th><th>内容</th></tr>
+    <tr><td>交易时间</td><td>周一至周五（法定节假日休市）。<b>9:30–11:30、13:00–15:00</b>。9:15–9:25 集合竞价。周末不开市。</td></tr>
+    <tr><td>T+1</td><td><b class="red">今天买入的股票，今天不能卖，最早明天才能卖。</b>（但今天卖出的钱当天能再买别的股，只是不能取现，取现 T+1。）美股港股是 T+0（当天可回转）。</td></tr>
+    <tr><td>涨跌停</td><td>为防止暴涨暴跌，单日涨跌有上限：主板 <b>±10%</b>；创业板/科创板 <b>±20%</b>；北交所 <b>±30%</b>；ST 股 ±5%。碰到上限就"封板"，价格当天不能再突破。</td></tr>
+    <tr><td>一手 = 100 股</td><td>买入最小单位是 1 手 = 100 股，且必须是 100 的整数倍（卖出可以卖零散股）。</td></tr>
+    <tr><td>最小变动价位</td><td>报价最小跳动一般是 <b>0.01 元</b>（1 分钱）。</td></tr>
+    <tr><td>ST / *ST</td><td>股票名前带 ST = 公司经营出问题被<b>特别处理</b>风险警示，*ST = 有退市风险。<b class="red">小白务必远离。</b></td></tr>
+  </table>
+
+  <div class="pain">
+    <b>T+1 是新手最容易踩的坑：</b>很多人以为像买菜一样随买随卖。结果今天冲动买入、当天想止损，<b>却发现卖不掉，只能眼睁睁看它继续跌到明天</b>。牢记：A 股<b>买了当天锁死</b>，下单前就要想好。
+  </div>
+
+  <h3>下单方式：市价单 vs 限价单</h3>
+  <table class="gloss">
+    <tr><td>限价单</td><td>你指定"最多花 X 元买 / 最少 X 元卖"，只在你满意的价才成交（可能不成交）。<b>A 股主要用这个。</b></td></tr>
+    <tr><td>市价单</td><td>"不管多少钱，立刻按现价成交"，保证成交但价格不可控。急买急卖时用。</td></tr>
+    <tr><td>委托 / 撤单</td><td>你挂出的单叫"委托"；没成交前可以"撤单"取消。</td></tr>
+  </table>
+
+  <div class="verify">
+    <div class="t">验证方法 · 用模拟盘验证规则（别用真钱试！）</div>
+    <ol>
+      <li>下载一个带<b>模拟炒股</b>的 App（同花顺/东方财富都有模拟盘），或用券商的模拟账户。用虚拟资金操作。</li>
+      <li>验证 T+1：模拟盘<b>买入</b>一只股后，立刻尝试卖出——<b class="exp">系统会提示"当日买入不可卖出"</b>。</li>
+      <li>验证一手：下单时把数量填成 50 股，<b class="exp">会被拦下要求填 100 的整数倍</b>。</li>
+      <li>验证涨跌停：找一只当天<b>涨停</b>的主板股，看它的涨幅是不是恰好 <b class="exp">≈ +10%</b>，且价格"钉"在最高价不动（封板）。</li>
+    </ol>
+    <span class="hint">验证到了什么：T+1、一手、涨跌停都是系统强制的硬规则，模拟盘能安全地把它们全撞一遍。</span>
+  </div>
+</section>
+
+<!-- ============ 第8章 ============ -->
+<section id="c8">
+  <div class="yr">实操 · 开户到下单的完整闭环</div>
+  <h2>第 8 章：怎么开户、下单，以及交易要交哪些费</h2>
+  <div class="sub">把"从没账户"到"完成一笔交易"这条路走通</div>
+
+  <h3>开户三步</h3>
+  <ol>
+    <li><b>选券商</b>：正规持牌券商都受证监会监管，主要比<b>佣金费率</b>和 App 好不好用。</li>
+    <li><b>开户</b>：下载券商 App，用身份证+银行卡，人脸识别，10 分钟线上办完，会开一个<b>证券账户</b>+<b>资金账户</b>。</li>
+    <li><b>银证转账</b>：把银行卡的钱转进证券资金账户，才能买股票；卖出后同样转回银行卡才能花。</li>
+  </ol>
+
+  <h3>下一笔单的完整流程</h3>
+  <p>选好股 → 点"买入" → 填<b>价格</b>（限价）和<b>数量</b>（100 股整数倍）→ 确认委托 → 等待撮合成交 → 持仓里出现这只股。卖出同理。</p>
+
+  <h3>交易成本：看不见但每笔都在扣</h3>
+  <table class="gloss">
+    <tr><th>费用</th><th>说明</th></tr>
+    <tr><td>佣金</td><td>付给券商，买卖<b>双向</b>都收，费率一般万分之几（如万2.5），<b>单笔最低 5 元</b>。这是可以货比三家的。</td></tr>
+    <tr><td>印花税</td><td>付给国家，<b>只在卖出时收</b>，目前 <b>0.05%</b>（1‰的一半，2023 年下调后）。</td></tr>
+    <tr><td>过户费</td><td>沪深两市收，极小（约 0.001%），双向。</td></tr>
+    <tr><td>盈亏平衡点</td><td>因为买卖都有成本，<b class="red">你得涨过这些成本之和才真正回本</b>。频繁交易 = 成本不断吃掉利润。</td></tr>
+  </table>
+
+  <div class="fix">
+    <b>算一笔账（帮你建立成本直觉）：</b>买 10000 元的股，佣金万3=3 元（不足5按5收，这里按实际），卖出时又一笔佣金 + 印花税 0.05%×10000=5 元 + 过户费。<span class="key">一买一卖，成本大约十几到二十几块。</span>看着少，但如果你一天来回好几趟，成本会像温水煮青蛙一样吃掉你的本金。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 把费用算清并对账</div>
+    <ol>
+      <li>在券商 App 的「<b>费率</b>」页面找到你的佣金率、最低收费——记下来。</li>
+      <li>模拟盘或真实交易一笔后，看「<b>成交回报 / 交割单</b>」，里面会逐项列出<b>佣金、印花税、过户费</b>。</li>
+      <li>亲手用公式算一遍：佣金=成交额×费率(不足5元按5元)，印花税=卖出额×0.05%。<b class="exp">你算的应≈交割单上的数</b>。</li>
+    </ol>
+    <span class="hint">验证到了什么：交易不是免费的，每笔都在扣费；交割单是一分不差的"账单"，能逐项核对。</span>
+  </div>
+</section>
+
+<!-- ============ 第9章 ============ -->
+<section id="c9">
+  <div class="yr">估值 · 判断"贵不贵"</div>
+  <h2>第 9 章：这只股票到底贵不贵？（市盈率 PE）</h2>
+  <div class="sub">股价高低 ≠ 贵贱。10 元的可能很贵，1000 元的可能很便宜</div>
+
+  <p>小白最大的误区：觉得"股价便宜=划算"。<b>错。</b> 2 元的股可能巨贵，茅台 1600 元可能不算离谱。因为"贵不贵"要看<span class="key">股价相对于它赚钱能力的比例</span>，不是绝对价格。最经典的尺子是 <span class="term">市盈率 PE<span class="en">Price/Earnings</span></span>：</p>
+
+  <div class="fix">
+    <b>市盈率 PE = 股价 ÷ 每股收益(EPS)</b><br>
+    也等于 <b>总市值 ÷ 公司年净利润</b>。<br>
+    直观含义：<span class="key">按公司现在的赚钱速度，你花的钱要多少年才能靠利润赚回来。</span> PE=20，意味着"20 年回本"。PE 越低，通常越"便宜"（但要结合成长性看）。
+  </div>
+
+  <p>下面这个计算器，你调公司利润和股价，看 PE 怎么变、"贵/便宜"怎么判断：</p>
+
+  <div class="demo">
+    <div class="hd">动画 4 · 市盈率计算器（拖动两个滑块，理解"贵不贵"和绝对股价无关）</div>
+    <canvas id="cv-pe" width="800" height="300"></canvas>
+    <div class="ctrl">
+      <label style="color:var(--tx2);font-size:14px">股价：</label>
+      <input type="range" id="pe-price" min="5" max="200" value="50" style="width:180px">
+      <span id="pe-pn" class="hint">¥50</span>
+      <label style="color:var(--tx2);font-size:14px;margin-left:14px">每股收益 EPS：</label>
+      <input type="range" id="pe-eps" min="1" max="100" value="25" style="width:180px">
+      <span id="pe-en" class="hint">¥2.5</span>
+    </div>
+    <div class="stat">
+      <div class="it">市盈率 PE <b id="pe-val">—</b></div>
+      <div class="it">通俗解读 <b id="pe-say" style="font-size:15px">—</b></div>
+    </div>
+    <div class="hint">试试：把股价拉到 200、EPS 也拉高，PE 反而很低（便宜）；股价 5 元但 EPS 很低，PE 却很高（贵）。<b>可见"贵贱"看的是比例，不是标价。</b></div>
+  </div>
+
+  <h3>另外几把常用的"估值尺子"</h3>
+  <table class="gloss">
+    <tr><th>指标</th><th>大白话</th></tr>
+    <tr><td>市盈率 PE</td><td>股价/每股收益。看"多少年回本"。亏损公司 PE 为负或无意义。</td></tr>
+    <tr><td>市净率 PB</td><td>股价/每股净资产。看你花的钱是净资产的几倍。银行地产常用它。</td></tr>
+    <tr><td>每股收益 EPS</td><td>公司净利润 ÷ 总股本，一股一年赚多少钱。</td></tr>
+    <tr><td>股息率</td><td>每年分红 ÷ 股价。相当于"这只股当存款的年利率"。</td></tr>
+    <tr><td>ROE 净资产收益率</td><td>净利润 ÷ 净资产，衡量公司"用股东的钱赚钱"的效率。<b>巴菲特最看重的指标之一。</b></td></tr>
+  </table>
+
+  <div class="warnbox">
+    <b>关键提醒：PE 低 ≠ 一定值得买。</b> 有的公司 PE 低是因为大家预期它未来要衰退（"便宜有便宜的道理"）；有的高 PE 是因为市场预期它高速成长。<b>估值必须结合行业、成长性、横向对比同行</b>，不能只看一个数字。</p>
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 亲手算 PE 并做横向对比</div>
+    <ol>
+      <li>挑一只股，记下它的<b>股价</b>和 F10 里的<b>每股收益 EPS</b>，手算 <code>PE = 股价 ÷ EPS</code>，<b class="exp">应≈软件显示的市盈率</b>。</li>
+      <li>再用 <code>总市值 ÷ 净利润</code> 算一遍，<b class="exp">结果应该一致</b>（两个公式等价）。</li>
+      <li>横向对比：把<b>同一行业</b>两三家公司的 PE 列出来（如几家白酒 / 几家银行），感受"同行之间比才有意义"。</li>
+      <li>验证"贵贱和标价无关"：找一只几百元的高价股和一只几元的低价股，比它们的 PE——<b class="exp">高价股 PE 可能更低</b>。</li>
+    </ol>
+    <span class="hint">验证到了什么：PE 有确切公式、可自己复算；"贵不贵"是比例概念，必须同行横比，绝对股价会骗人。</span>
+  </div>
+</section>
+
+<!-- ============ 第10章 ============ -->
+<section id="c10">
+  <div class="yr">基本面 · 公司到底好不好</div>
+  <h2>第 10 章：看懂公司好不好（财报 · 分红 · 除权）</h2>
+  <div class="sub">估值告诉你"贵不贵"，基本面告诉你"这公司值不值得"</div>
+
+  <p>研究一家公司"值不值得长期持有"，靠的是 <span class="term">基本面分析</span>——核心是读它的<b>三张财务报表</b>。你不用会做账，只要能看懂它们各回答什么问题：</p>
+
+  <div class="who">
+    <div class="t">📊 财报三张表（各回答一个问题）</div>
+    <dl>
+      <dt style="color:var(--acc)">利润表</dt><dd>"这段时间<b>赚了多少钱</b>？" 看营业收入、净利润，以及它们是不是逐年增长。</dd>
+      <dt style="color:var(--acc2)">资产负债表</dt><dd>"公司<b>家底厚不厚、欠债多不多</b>？" 看总资产、总负债、净资产。负债率太高有暴雷风险。</dd>
+      <dt style="color:var(--ok)">现金流量表</dt><dd>"账上<b>真金白银</b>进出如何？" 利润可能是纸面数字，<b>现金流才最难造假</b>。经营性现金流长期为正才踏实。</dd>
+    </dl>
+  </div>
+
+  <h3>成长与质量的几个关键词</h3>
+  <table class="gloss">
+    <tr><td>营收 / 净利润增长率</td><td>今年比去年增长了百分之几，看公司在扩张还是萎缩。</td></tr>
+    <tr><td>毛利率</td><td>(收入−成本)/收入。越高说明产品越"值钱"、议价力越强。</td></tr>
+    <tr><td>负债率</td><td>总负债/总资产。太高（如>70%，视行业）风险大。</td></tr>
+    <tr><td>护城河</td><td>公司抵御竞争的持久优势（品牌、专利、规模、网络效应）。巴菲特术语。</td></tr>
+  </table>
+
+  <h3>分红 · 送转 · 除权除息（新手常被"股价突然腰斩"吓到）</h3>
+  <div class="fix">
+    <b>为什么某天股价突然"跌一半"却没亏？</b> 因为<span class="term">除权除息</span>。公司分红或送股后，每股对应的价值被稀释，交易所会把股价<b>对应下调</b>（叫"除权"/"除息"），你手里<b>股数变多或拿到现金，总资产不变</b>。<br>
+    ・<b>10 送 10</b>：每 10 股白送 10 股，你股数翻倍，股价对半——总值不变。<br>
+    ・<b>10 派 3 元</b>：每 10 股发 3 元现金，股价扣掉对应现金。<br>
+    <span class="hint" style="display:block;margin-top:4px">看到"前复权/后复权"的按钮就是用来把这种跳空抹平、还原真实涨跌的。</span>
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 读一次真财报 + 看懂一次除权</div>
+    <ol>
+      <li>挑一家你熟悉的公司，F10 →「财务分析」，找到<b>近 3 年营收和净利润</b>，看是增长还是下滑；再看<b>资产负债率</b>。</li>
+      <li>验证"利润 ≠ 现金"：看它的<b>经营现金流</b>和净利润是否匹配。差太多要警惕。</li>
+      <li>验证除权：找一只近期<b>刚分红送股</b>的股，把K线切到<b>不复权</b>，你会看到除权日一根"向下跳空"的缺口；再切到<b>前复权</b>，缺口消失——<b class="exp">证明那不是真跌，是除权造成的。</b></li>
+    </ol>
+    <span class="hint">验证到了什么：公司好坏藏在财报里可查证；分红送股导致的股价下跳是"除权"不是亏钱，复权功能能还原真相。</span>
+  </div>
+</section>
+
+<!-- ============ 第11章 ============ -->
+<section id="c11">
+  <div class="yr">技术面 · 图上的指标</div>
+  <h2>第 11 章：技术指标（均线 · MACD · KDJ 等）</h2>
+  <div class="sub">它们都是"对价格和成交量做数学加工"，帮你看趋势——但不是水晶球</div>
+
+  <p>基本面看"公司值不值"，<span class="term">技术分析</span>则只看<b>价格和成交量本身的图形规律</b>，试图判断趋势和买卖时机。最常用的几个：</p>
+
+  <table class="gloss">
+    <tr><th>指标</th><th>它在算什么 / 怎么用</th></tr>
+    <tr><td>均线 MA</td><td><b>最重要、最该先学。</b>过去 N 天收盘价的平均，连成线。<b>MA5</b>(5日)、<b>MA20</b>(月线)、<b>MA60</b>(季线)。价格在均线上方=偏强；短期均线上穿长期均线叫"金叉"(偏多)，下穿叫"死叉"(偏空)。</td></tr>
+    <tr><td>MACD</td><td>由两条均线的差值构成，看多空动能强弱与转折。红绿柱放大=动能增强。</td></tr>
+    <tr><td>KDJ</td><td>衡量当前价格在近期高低区间的位置，判断"超买/超卖"。>80 偏超买，<20 偏超卖。</td></tr>
+    <tr><td>RSI</td><td>相对强弱指标，同样看超买超卖，0–100，常用 70/30 为界。</td></tr>
+    <tr><td>布林带 BOLL</td><td>价格的"上下轨道"，价格触上轨偏强/偏高，触下轨偏弱/偏低。</td></tr>
+    <tr><td>成交量</td><td>不算"指标"但最基础，配合一切指标看（第 6 章量价）。</td></tr>
+  </table>
+
+  <div class="fix">
+    <b>先只掌握一个：均线。</b> 它是所有技术指标里最直观的——<span class="key">均线就是"最近一段时间大家的平均成本"</span>。价格站上 20 日线，意味着最近一个月买入的人平均都赚钱，人心稳；跌破则相反。均线的"金叉/死叉"是最入门的趋势信号。
+  </div>
+
+  <div class="warnbox">
+    <b>务必清醒：技术指标全是"滞后"的。</b> 它们是对<b>已发生</b>的价格做计算，本质是"用过去预测未来"，<b class="red">没有任何指标能保证准确</b>。指标是辅助判断概率的工具，不是必胜公式。见到"某指标一出现必涨"的说法，直接怀疑。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 亲手验证均线的定义和信号</div>
+    <ol>
+      <li>在日K图上打开 <b>MA5</b>，随便点一天，把<b>那天及前 4 天的收盘价</b>记下来求平均，<b class="exp">应≈这天的 MA5 数值</b>——证明均线就是简单平均。</li>
+      <li>找一处 MA5 <b>上穿</b> MA20 的位置（金叉），看之后一段价格走势；再找一处死叉看之后走势。<b class="exp">你会发现有时对、有时错</b>——亲身体会"指标不是必胜"。</li>
+      <li>回测心态：随便挑几个"指标信号"，往后翻K线看结果，统计一下胜率。<b class="exp">远没有想象中高。</b></li>
+    </ol>
+    <span class="hint">验证到了什么：指标是有明确公式、可复算的数学加工；信号有概率意义但会失效，绝非水晶球。</span>
+  </div>
+</section>
+
+<!-- ============ 第12章 ============ -->
+<section id="c12">
+  <div class="yr">全局 · 别只盯着一只股</div>
+  <h2>第 12 章：大盘、指数、板块——看清整片森林</h2>
+  <div class="sub">个股会涨会跌，但"大环境"往往决定大多数股的方向</div>
+
+  <p>只看一只股，就像只看一棵树。<span class="term">指数</span>把一大批股票打包算成一个数字，让你一眼看清<b>整个市场或某一类的冷暖</b>。</p>
+
+  <table class="gloss">
+    <tr><th>指数</th><th>代表什么</th></tr>
+    <tr><td>上证指数</td><td>上交所整体走势，最常被说成"大盘涨了跌了"就是它。</td></tr>
+    <tr><td>深证成指</td><td>深交所代表性股票的整体走势。</td></tr>
+    <tr><td>沪深300</td><td>沪深两市最大的 300 家龙头，代表"核心资产"。</td></tr>
+    <tr><td>创业板指</td><td>创业板（成长型/科技型公司多）的走势。</td></tr>
+    <tr><td>中证500 / 1000</td><td>中小盘股票的代表。</td></tr>
+  </table>
+
+  <h3>板块 / 概念：同类股票会"一起动"</h3>
+  <p><span class="term">板块</span>是把相关股票分组：按<b>行业</b>（白酒、银行、半导体）、按<b>概念</b>（AI、新能源、机器人）、按<b>地域</b>。同一板块常因为共同的消息一起涨跌，这叫<b>板块轮动</b>。看板块能帮你判断"现在市场的钱往哪流"。</p>
+
+  <div class="note">
+    <b>为什么小白要先看大盘和板块？</b> 因为"<b>大势不好时，好公司也可能跟着跌</b>"。个股表现 ≈ 大盘趋势 + 板块强弱 + 个股自身，三者叠加。只盯个股容易"看对了公司、输给了environment"。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 看指数与板块的联动</div>
+    <ol>
+      <li>打开 <code>上证指数</code>，看它今天的涨跌。再随机点开 5 只个股，数一下涨的多还是跌的多，<b class="exp">大盘涨的日子，多数个股偏红</b>（联动性）。</li>
+      <li>打开软件的「<b>板块</b>」页，看今天涨幅榜前列是哪些板块，点进去，<b class="exp">该板块内多数股票同向大涨</b>——这就是板块效应。</li>
+      <li>把某只个股的走势和它所属板块指数叠在一起看，观察相关性。</li>
+    </ol>
+    <span class="hint">验证到了什么：个股不是孤岛，大盘和板块会带着它一起动；"选股"之前先看"大势"。</span>
+  </div>
+</section>
+
+<!-- ============ 第13章 ============ -->
+<section id="c13">
+  <div class="yr">最重要的一章 · 风险与人性</div>
+  <h2>第 13 章：风险、仓位、心态——决定你能不能活下来</h2>
+  <div class="sub">前面 12 章教你"怎么玩"，这一章决定你"会不会输光"。请读两遍</div>
+
+  <p>残酷的事实：<b class="red">股市里长期亏钱的散户是大多数</b>。原因很少是"不懂指标"，几乎都是<b>不懂风险管理 + 管不住人性</b>。把这章当成救命的东西。</p>
+
+  <h3>风险从哪来</h3>
+  <table class="gloss">
+    <tr><td>市场风险</td><td>整体大跌，人人有份。</td></tr>
+    <tr><td>个股风险</td><td>某公司暴雷、退市，可能<b>血本无归</b>。</td></tr>
+    <tr><td>杠杆风险</td><td><span class="term">融资融券 / 配资</span>=借钱炒股，放大收益<b>也放大亏损</b>，可能<b class="red">爆仓（本金亏光甚至倒欠）</b>。<b>小白绝对不要碰杠杆。</b></td></tr>
+    <tr><td>流动性风险</td><td>冷门股想卖卖不掉，或跌停时挂单成交不了。</td></tr>
+  </table>
+
+  <h3>三条保命纪律</h3>
+  <div class="fix">
+    <b>① 仓位管理：别把钱一次全押上。</b> <span class="key">用能承受全亏的闲钱</span>，且分批买入，永远留后手。单只股别占太重，避免一只暴雷伤筋动骨。<br>
+    <b>② 止损：亏到预设幅度就认错离场。</b> 提前定好"跌 X% 就卖"，机械执行。<b>亏损不可怕，不止损让小亏拖成大亏才致命。</b><br>
+    <b>③ 分散：不把鸡蛋放一个篮子。</b> 分散到不同行业/资产，降低单一暴雷的杀伤。
+  </div>
+
+  <h3>人性：你最大的对手是自己</h3>
+  <div class="pain">
+    <b>散户四大经典死法：</b><br>
+    ・<b>追涨杀跌</b>：涨了怕错过冲进去(接盘)，跌了恐慌割在最低点。<br>
+    ・<b>贪婪</b>：赚了不舍得走，想赚更多，坐了过山车又回原点。<br>
+    ・<b>死扛</b>：亏了不肯认错，"不卖就不算亏"，越套越深直到退市。<br>
+    ・<b>频繁交易</b>：手痒天天买卖，被手续费和情绪双重消耗。<br>
+    <span class="key">承认"我大概率跑不赢市场"，是新手最宝贵的清醒。</span>
+  </div>
+
+  <div class="note">
+    <b>给纯小白最实在的一条路：</b> 与其一上来就买个股博差价，不如先用<b>模拟盘练手</b>+<b>小额定投宽基指数基金</b>（如沪深300），把上面所有概念在真实市场里慢慢验证。<b>先活下来，再谈赚钱。</b>（这不是投资建议，是风险提示。）
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 用模拟盘把"人性"照出来</div>
+    <ol>
+      <li>用模拟盘认真玩一个月，<b>记录每一笔</b>的买卖理由和当时情绪。一个月后回看：<b class="exp">多少笔是冲动/追涨/恐慌造成的？</b></li>
+      <li>验证"频繁交易的损耗"：模拟两个账户，一个天天进出、一个买了拿住，一个月后比总收益（含手续费），<b class="exp">感受折腾的代价</b>。</li>
+      <li>验证止损纪律：故意在一笔亏损时"死扛"，看它怎么越拖越大；对比另一笔按纪律止损的——体会<b class="exp">早认错的价值</b>。</li>
+    </ol>
+    <span class="hint">验证到了什么：最大的风险不是市场，是自己的情绪和纪律；模拟盘能让你在不亏真钱的情况下认识自己。</span>
+  </div>
+</section>
+
+<!-- ============ 附录 A ============ -->
+<section id="cA">
+  <div class="yr">附录 · 立刻能用的验证工具箱</div>
+  <h2>附录 A：把每个概念都验证一遍的工具箱</h2>
+  <div class="sub">本教程的核心主张——不背结论，全部自己验证</div>
+
+  <div class="who">
+    <div class="t">🧰 你需要的全部工具（都免费）</div>
+    <dl>
+      <dt>行情软件</dt><dd>东方财富 / 同花顺 / 雪球（手机或电脑）。用来看报价、K线、盘口、F10 资料、财报。上面所有验证步骤都在这里做。</dd>
+      <dt>模拟盘</dt><dd>同花顺/东方财富自带模拟炒股，或券商模拟账户。<b>用虚拟钱验证 T+1、一手、下单、费用、心态</b>，零风险。</dd>
+      <dt>F10</dt><dd>每只股详情里的"公司资料"入口，含股本、股东、财务、分红、行业对比——验证基本面的宝库。</dd>
+      <dt>官方来源</dt><dd>交易所官网、巨潮资讯网（上市公司公告/财报原文）、证监会。<b>核对权威信息，别信小道消息。</b></dd>
+    </dl>
+  </div>
+
+  <div class="fix">
+    <b>建议的"验证学习法"（照这个走，一个概念都不会飘）：</b><br>
+    读完每章 → 打开行情软件/模拟盘 → 照着那章的「🔬 验证方法」<b>亲手做一遍</b> → 数字对上了，这个概念才算真正是你的。<br>
+    <span class="key">看懂 ≠ 学会。亲手在真实数据上验证过，才叫学会。</span>
+  </div>
+
+  <div class="warnbox">
+    <b>最后再强调一次：</b>本教程不含任何选股建议、不预测涨跌。它给你的是<b>一套能自己判断、自己验证的知识框架</b>。真金白银入市前，请：① 先模拟盘练熟；② 只用亏得起的闲钱；③ 远离杠杆和 ST 股；④ 对任何"稳赚/内幕/带你飞"的说法保持警惕——<b>那大概率是骗局。</b>
+  </div>
+</section>
+
+<!-- ============ 附录 B ============ -->
+<section id="cB">
+  <div class="yr">附录 · 术语总表（速查）</div>
+  <h2>附录 B：全部术语一页速查</h2>
+  <div class="sub">忘了某个名词，回这里扫一眼</div>
+
+  <table class="gloss">
+    <tr><th>术语</th><th>一句话解释</th><th>在第几章</th></tr>
+    <tr><td>股票 / 股东</td><td>公司所有权的一小块 / 持有它的人</td><td>0</td></tr>
+    <tr><td>总股本 / 市值</td><td>公司被切成几股 / 股价×股本=公司总标价</td><td>0</td></tr>
+    <tr><td>资本利得 / 分红</td><td>差价赚钱 / 公司分利润给股东</td><td>1</td></tr>
+    <tr><td>复利</td><td>利滚利，时间越长增长越猛</td><td>1</td></tr>
+    <tr><td>一级 / 二级市场</td><td>公司卖股拿钱 / 股东间互相买卖</td><td>2</td></tr>
+    <tr><td>IPO / 打新 / 退市</td><td>上市 / 申购新股 / 被赶出交易所</td><td>2</td></tr>
+    <tr><td>买盘卖盘 / 撮合</td><td>挂单买/卖 / 系统自动配对成交</td><td>3</td></tr>
+    <tr><td>集合竞价 / 连续竞价</td><td>开收盘统一定价 / 盘中实时撮合</td><td>3</td></tr>
+    <tr><td>现价/涨跌幅/昨收/成交量/换手率</td><td>报价面板各字段</td><td>4</td></tr>
+    <tr><td>K线/阳线阴线/实体影线</td><td>蜡烛图，编码开高低收</td><td>5</td></tr>
+    <tr><td>分时图/五档/量价</td><td>今日走势 / 挂单分布 / 量与价配合</td><td>6</td></tr>
+    <tr><td>内盘外盘 / 封单</td><td>主动买卖量 / 涨跌停排队量</td><td>6</td></tr>
+    <tr><td>T+1 / 涨跌停 / 一手</td><td>当天买不能卖 / 单日涨跌上限 / 100股</td><td>7</td></tr>
+    <tr><td>限价单 / 市价单</td><td>指定价成交 / 立即按现价成交</td><td>7</td></tr>
+    <tr><td>ST / *ST</td><td>风险警示股 / 有退市风险，远离</td><td>7</td></tr>
+    <tr><td>佣金/印花税/过户费</td><td>券商费/卖出税/极小过户费</td><td>8</td></tr>
+    <tr><td>市盈率PE / 市净率PB</td><td>股价/每股收益 / 股价/每股净资产</td><td>9</td></tr>
+    <tr><td>EPS / 股息率 / ROE</td><td>每股收益 / 分红收益率 / 赚钱效率</td><td>9</td></tr>
+    <tr><td>财报三表</td><td>利润表/资产负债表/现金流量表</td><td>10</td></tr>
+    <tr><td>除权除息 / 送转 / 复权</td><td>分红后股价下调 / 送股 / 还原真实涨跌</td><td>10</td></tr>
+    <tr><td>均线MA/MACD/KDJ/RSI/BOLL</td><td>对价量的数学加工，判趋势（滞后）</td><td>11</td></tr>
+    <tr><td>金叉 / 死叉</td><td>短均线上穿/下穿长均线</td><td>11</td></tr>
+    <tr><td>指数 / 板块 / 轮动</td><td>打包一批股 / 同类分组 / 热点切换</td><td>12</td></tr>
+    <tr><td>融资融券 / 爆仓</td><td>借钱炒股（杠杆）/ 本金亏光</td><td>13</td></tr>
+    <tr><td>仓位 / 止损 / 分散</td><td>投多少 / 认错离场 / 别押一只</td><td>13</td></tr>
+  </table>
+
+  <p style="text-align:center;color:var(--acc2);font-size:18px;margin:30px 0 10px"><b>🎉 全教程完。你已经从"股票是什么"走到"怎么判断、怎么交易、怎么控制风险"——而且每一步都能自己验证。</b></p>
+  <p style="text-align:center;color:var(--tx3);font-size:14px">现在，打开模拟盘，把每章的 🔬 验证方法亲手做一遍吧。先活下来，再谈赚钱。</p>
+</section>
+
+</div><!-- /wrap -->
+
+<div class="foot">
+  股票 · 从 0 到 1 · 小白版 · 每个知识点都能自己验证<br>
+  <span style="color:var(--tx3)">本教程仅用于学习股票概念与方法 · 不构成任何投资建议 · 股市有风险，入市需谨慎</span>
+</div>
+
+</main>
+</div><!-- /app -->
+
+<script>
+const $ = s => document.querySelector(s);
+const lerp=(a,b,t)=>a+(b-a)*t;
+
+/* ===== 目录高亮 + 移动抽屉 ===== */
+const navLinks=[...document.querySelectorAll('#nav a')];
+const secs=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+function syncNav(){
+  let i=secs.findIndex((s,k)=>{
+    const r=s.getBoundingClientRect();
+    return r.top<=140 && (k===secs.length-1 || secs[k+1].getBoundingClientRect().top>140);
+  });
+  if(i<0)i=0;
+  navLinks.forEach((a,k)=>a.classList.toggle('on',k===i));
+}
+addEventListener('scroll',syncNav,{passive:true}); syncNav();
+const sidebar=$('#sidebar'), scrim=$('#scrim');
+function closeMenu(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+$('#menuBtn').onclick=()=>{ sidebar.classList.toggle('open'); scrim.classList.toggle('open'); };
+scrim.onclick=closeMenu;
+navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMenu(); }));
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+
+/* ===== 动画1：复利 vs 单利 ===== */
+(function(){
+  const cv=$('#cv-comp'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height, P0=10000, YEARS=30;
+  const padL=56,padR=20,padT=20,padB=34;
+  let r=0.08;
+  function fmt(n){ return '¥'+Math.round(n).toLocaleString(); }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const comp=[], simp=[];
+    for(let y=0;y<=YEARS;y++){ comp.push(P0*Math.pow(1+r,y)); simp.push(P0*(1+r*y)); }
+    const maxV=comp[YEARS];
+    const X=y=>padL+(W-padL-padR)*y/YEARS;
+    const Y=v=>H-padB-(H-padT-padB)*v/maxV;
+    // 网格
+    ctx.strokeStyle='rgba(255,255,255,.05)'; ctx.lineWidth=1; ctx.fillStyle='#6e7681'; ctx.font='11px monospace';
+    for(let i=0;i<=4;i++){ const v=maxV*i/4; const yy=Y(v);
+      ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();
+      ctx.textAlign='right'; ctx.fillText('¥'+Math.round(v/1000)+'k',padL-6,yy+3);
+    }
+    ctx.textAlign='center';
+    for(let y=0;y<=YEARS;y+=5){ ctx.fillText(y+'年',X(y),H-padB+16); }
+    // 单利
+    ctx.strokeStyle='#9da7b3'; ctx.lineWidth=2; ctx.setLineDash([5,4]); ctx.beginPath();
+    simp.forEach((v,y)=>{ y?ctx.lineTo(X(y),Y(v)):ctx.moveTo(X(y),Y(v)); }); ctx.stroke(); ctx.setLineDash([]);
+    // 复利
+    ctx.strokeStyle='#f85149'; ctx.lineWidth=2.6; ctx.beginPath();
+    comp.forEach((v,y)=>{ y?ctx.lineTo(X(y),Y(v)):ctx.moveTo(X(y),Y(v)); }); ctx.stroke();
+    // 填充复利下方
+    ctx.lineTo(X(YEARS),Y(0)); ctx.lineTo(X(0),Y(0)); ctx.closePath();
+    ctx.fillStyle='rgba(248,81,73,.08)'; ctx.fill();
+    // 图例
+    ctx.textAlign='left'; ctx.font='12px sans-serif';
+    ctx.fillStyle='#f85149'; ctx.fillText('■ 复利（利滚利）',padL+6,padT+14);
+    ctx.fillStyle='#9da7b3'; ctx.fillText('┄ 单利（不复投）',padL+150,padT+14);
+    $('#comp-c').textContent=fmt(comp[YEARS]);
+    $('#comp-s').textContent=fmt(simp[YEARS]);
+  }
+  $('#comp-r').oninput=e=>{ r=+e.target.value/100; $('#comp-rn').textContent=e.target.value+'%'; draw(); };
+  draw();
+})();
+
+/* ===== 动画2：撮合台 ===== */
+(function(){
+  const cv=$('#cv-match'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  let buys=[], sells=[], last=null, seedB=99, seedS=101;
+  // 简易伪随机（避免 Math.random 也行，这里页面交互可用）
+  function rnd(){ return Math.random(); }
+  function addBuy(){ const p=+(9.6+rnd()*0.7).toFixed(2); buys.push({p,v:1+Math.floor(rnd()*9)}); match(); draw(); }
+  function addSell(){ const p=+(10.0+rnd()*0.7).toFixed(2); sells.push({p,v:1+Math.floor(rnd()*9)}); match(); draw(); }
+  function match(){
+    let go=true;
+    while(go){
+      go=false;
+      if(!buys.length||!sells.length) break;
+      buys.sort((a,b)=>b.p-a.p); sells.sort((a,b)=>a.p-b.p);
+      const b=buys[0], s=sells[0];
+      if(b.p>=s.p){ // 成交
+        last=s.p; // 以卖价成交（时间/价格优先简化）
+        const q=Math.min(b.v,s.v); b.v-=q; s.v-=q;
+        if(b.v<=0)buys.shift(); if(s.v<=0)sells.shift();
+        go=true;
+      }
+    }
+  }
+  function col(x,y,w,h,c){ roundRect(ctx,x,y,w,h,6); ctx.fillStyle=c; ctx.fill(); }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const midY=H/2;
+    ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.beginPath(); ctx.moveTo(40,midY);ctx.lineTo(W-40,midY);ctx.stroke();
+    ctx.fillStyle='#9da7b3'; ctx.font='13px sans-serif'; ctx.textAlign='left';
+    ctx.fillStyle='#3fb950'; ctx.fillText('卖盘（想卖，价从低到高）',44,26);
+    ctx.fillStyle='#f85149'; ctx.fillText('买盘（想买，价从高到低）',44,H-14);
+    // 卖盘（上，绿）价低在下靠近中线
+    const ss=[...sells].sort((a,b)=>a.p-b.p).slice(0,5);
+    ss.forEach((s,i)=>{ const y=midY-24-(i+1)*26;
+      col(200,y,120,20,'rgba(63,185,80,.18)');
+      ctx.fillStyle='#3fb950'; ctx.font='13px monospace'; ctx.textAlign='right';
+      ctx.fillText('¥'+s.p.toFixed(2),315,y+15);
+      ctx.fillStyle='#9da7b3'; ctx.textAlign='left'; ctx.fillText(s.v+'手',330,y+15);
+    });
+    // 买盘（下，红）价高在上靠近中线
+    const bb=[...buys].sort((a,b)=>b.p-a.p).slice(0,5);
+    bb.forEach((b,i)=>{ const y=midY+8+(i)*26;
+      col(200,y,120,20,'rgba(248,81,73,.18)');
+      ctx.fillStyle='#f85149'; ctx.font='13px monospace'; ctx.textAlign='right';
+      ctx.fillText('¥'+b.p.toFixed(2),315,y+15);
+      ctx.fillStyle='#9da7b3'; ctx.textAlign='left'; ctx.fillText(b.v+'手',330,y+15);
+    });
+    // 最新价大字
+    ctx.textAlign='center';
+    ctx.fillStyle=last?'#e6edf3':'#6e7681'; ctx.font='bold 30px monospace';
+    ctx.fillText(last?('¥'+last.toFixed(2)):'尚无成交', W-170, midY+10);
+    ctx.fillStyle='#6e7681'; ctx.font='12px sans-serif';
+    ctx.fillText('↑ 最新成交价', W-170, midY+34);
+    // 数值面板
+    $('#m-last').textContent=last?('¥'+last.toFixed(2)):'—';
+    $('#m-bid').textContent=bb.length?('¥'+bb[0].p.toFixed(2)):'—';
+    $('#m-ask').textContent=ss.length?('¥'+ss[0].p.toFixed(2)):'—';
+  }
+  $('#m-buy').onclick=addBuy; $('#m-sell').onclick=addSell;
+  $('#m-reset').onclick=()=>{ buys=[];sells=[];last=null; draw(); };
+  draw();
+})();
+
+/* ===== 动画3：K线解剖 ===== */
+(function(){
+  const cv=$('#cv-kline'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  let up=true;
+  // 价格：高 low open close
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const hi=95, lo=15, open=up?35:80, close=up?80:35;
+    const scale=v=>H-40-(v/100)*(H-80);
+    const cx=W/2-40, bw=70;
+    const col=up?'#f85149':'#3fb950';
+    // 影线
+    ctx.strokeStyle=col; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(cx,scale(hi)); ctx.lineTo(cx,scale(lo)); ctx.stroke();
+    // 实体
+    const yO=scale(open), yC=scale(close);
+    const top=Math.min(yO,yC), bh=Math.abs(yO-yC);
+    roundRect(ctx,cx-bw/2,top,bw,bh,4);
+    ctx.fillStyle=up?col:col; ctx.globalAlpha=up?0.25:1; ctx.fill(); ctx.globalAlpha=1;
+    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.stroke();
+    // 标注
+    ctx.font='13px sans-serif'; ctx.textAlign='left'; ctx.fillStyle='#9da7b3';
+    const lx=cx+bw/2+40;
+    function tag(y,txt,c){
+      ctx.strokeStyle='rgba(255,255,255,.2)'; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(cx,y); ctx.lineTo(lx-8,y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=c||'#9da7b3'; ctx.fillText(txt,lx,y+4);
+    }
+    tag(scale(hi),'最高价（上影线顶）','#9da7b3');
+    tag(scale(lo),'最低价（下影线底）','#9da7b3');
+    if(up){ tag(scale(close),'收盘价（阳线在上）','#f85149'); tag(scale(open),'开盘价','#f85149'); }
+    else { tag(scale(open),'开盘价（阴线在上）','#3fb950'); tag(scale(close),'收盘价','#3fb950'); }
+    // 左侧文字
+    ctx.textAlign='left'; ctx.fillStyle=col; ctx.font='bold 15px sans-serif';
+    ctx.fillText(up?'阳线 · 收盘 > 开盘 · 涨':'阴线 · 收盘 < 开盘 · 跌', 30, 26);
+    ctx.fillStyle='#6e7681'; ctx.font='12px sans-serif';
+    ctx.fillText('中间粗柱=实体（开盘↔收盘），上下细线=影线（摸到的最高最低）',30,H-14);
+  }
+  $('#k-up').onclick=()=>{up=true;draw();};
+  $('#k-down').onclick=()=>{up=false;draw();};
+  draw();
+})();
+
+/* ===== 动画4：市盈率计算器 ===== */
+(function(){
+  const cv=$('#cv-pe'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  let price=50, eps=2.5;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const pe=price/eps;
+    // 两根条：股价、每股收益（不同量纲，仅示意）
+    ctx.font='13px sans-serif'; ctx.textAlign='left';
+    function bar(y,label,val,max,c){
+      ctx.fillStyle='#9da7b3'; ctx.fillText(label,30,y-8);
+      roundRect(ctx,30,y,W-260,24,6); ctx.fillStyle='rgba(255,255,255,.05)'; ctx.fill();
+      const w=(W-260)*Math.min(val/max,1);
+      roundRect(ctx,30,y,w,24,6); ctx.fillStyle=c; ctx.fill();
+      ctx.fillStyle='#e6edf3'; ctx.font='13px monospace'; ctx.fillText(val,30+w+8,y+17); ctx.font='13px sans-serif';
+    }
+    bar(60,'股价（元）','¥'+price,200,'#58a6ff');
+    bar(120,'每股收益 EPS（元/年）','¥'+eps.toFixed(1),10,'#bc8cff');
+    // PE 大字
+    ctx.textAlign='center';
+    let c='#3fb950', say='偏便宜';
+    if(pe>=15&&pe<30){c='#d29922';say='中等';}
+    if(pe>=30){c='#f85149';say='偏贵';}
+    ctx.fillStyle=c; ctx.font='bold 46px monospace';
+    ctx.fillText('PE '+pe.toFixed(1), W-135, 90);
+    ctx.font='16px sans-serif'; ctx.fillText(say, W-135, 120);
+    ctx.fillStyle='#6e7681'; ctx.font='12px sans-serif';
+    ctx.fillText('≈ '+pe.toFixed(0)+' 年靠利润回本', W-135, 145);
+    // 公式
+    ctx.textAlign='left'; ctx.fillStyle='#9da7b3'; ctx.font='14px monospace';
+    ctx.fillText('PE = 股价 ÷ 每股收益 = '+price+' ÷ '+eps.toFixed(1)+' = '+pe.toFixed(1), 30, 190);
+    ctx.fillStyle='#6e7681'; ctx.font='12px sans-serif';
+    ctx.fillText('注：15/30 只是粗略示意分界，真实需结合行业与成长性横向比较', 30, 215);
+    $('#pe-val').textContent=pe.toFixed(1);
+    const el=$('#pe-say'); el.textContent=say; el.style.color=c;
+  }
+  $('#pe-price').oninput=e=>{price=+e.target.value; $('#pe-pn').textContent='¥'+price; draw();};
+  $('#pe-eps').oninput=e=>{eps=+e.target.value/10; $('#pe-en').textContent='¥'+eps.toFixed(1); draw();};
+  draw();
+})();
+</script>
+</body>
+</html>

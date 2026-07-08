@@ -175,6 +175,7 @@
 
     <div class="grp">附录</div>
     <a href="#cA"><i>A</i>原理 vs 工程</a>
+    <a href="#cB"><i>B</i>算力治不好幻觉/健忘</a>
   </nav>
 </aside>
 
@@ -733,6 +734,102 @@
   <div class="note">
     <b>结论：</b>"两百行"一点不夸张 —— 它是精华，是你要"<b>再现原理</b>"时唯一必须吃透的部分。其余 99% 的代码和那几个 G，<b>都不是在让模型更聪明</b>，而是在解决"<span class="key">如何把这个聪明的小核心，在真实硬件上、用真实数据、给真实用户，高效可靠地跑起来</span>"。<br>
     这就是为什么：<b>读懂 nanoGPT，你就懂了 Transformer；但要训出一个 GPT-4，需要一整个工程团队。</b>
+  </div>
+</section>
+
+<!-- ============ 附录 B ============ -->
+<section id="cB">
+  <div class="yr">附录 · 常见疑问</div>
+  <h2>附录 B：显卡内存那么大，为什么还会"胡说"和"失忆"？</h2>
+  <div class="sub">"东西明明都在内存里，凭什么还会忘、还会编？" —— 拆穿这个直觉误解</div>
+
+  <p>很多人有个特别自然的想法：<b>超级计算机那么强、显存那么大，几百 GB 的东西全在内存里，那它应该过目不忘、有问必答才对啊？</b>为什么现实里它又会<b>忘掉前面说过的话</b>，又会<b>一本正经地胡编</b>？</p>
+  <p>答案的关键，是先搞清楚一件事：<span class="key">那几百 GB 的显存里，装的到底是什么？</span></p>
+
+  <h3>破误解：大显存装的不是"记忆"，是"模型 + 一次性草稿纸"</h3>
+  <div class="pain">
+    <b>它不是一个能存东西的数据库。</b>显存里主要放两样：<br>
+    ① <b>模型参数（权重）</b>：就是第 6-8 章那套计算规则，训练完就<b>固定死了</b>，跟你聊天时一个字节都不会变。<br>
+    ② <b>这一次对话的临时草稿（KV cache / 上下文）</b>：算完这轮、清空就没了。<br>
+    <span style="display:block;margin-top:6px">所以 —— <b>你说过的话根本没有被"存进"模型。</b>显存大，只是说明"模型能造得更大、一次能多算几个词"，<b>不等于它有一本能不断写入的记事本。</b></span>
+  </div>
+
+  <h3>一、为什么会"失忆"（上下文遗忘）</h3>
+  <p>模型每生成一个词，能"看到"的只有一个<b>固定大小的窗口</b>（上下文窗口 context window，比如 8 千、12 万个词）。<span class="key">超出窗口的旧内容，不是"被忘了"，是压根<b>没被喂进去</b>参与计算</span> —— 就像考试时桌上只放得下一张 A4 纸，写满了，前面的内容你只能擦掉腾地方，不是你记性差。</p>
+
+  <div class="demo">
+    <div class="hd">动画 10 · 上下文窗口：对话越长，最早的内容被挤出窗口（模型再也看不到）</div>
+    <canvas id="cv-ctx" width="800" height="260"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="ctx-step">▶ 你再说一句</button>
+      <button id="ctx-reset">重置对话</button>
+      <span class="hint">窗口大小固定。新话进来，最老的话就滑出框外变灰 —— 那部分模型完全看不到了。</span>
+    </div>
+  </div>
+
+  <p><b>那为什么不把窗口做成无限大？</b>因为自注意力是 <code>O(n²)</code>（第 5 章）：词数翻一倍，计算量和显存要翻<b>四倍</b>。窗口从 8 千拉到 12 万，代价是爆炸式增长的 —— 这是<b>算法复杂度</b>的墙，不是"多买两条内存"能推平的。</p>
+  <div class="pain">
+    <b>更根本的一点：模型没有"长期记忆"这个器官。</b>它的权重训练完就冻结了，跟你聊一整天，它也<b>学不到</b>任何新东西、记不住你是谁。每次新对话都是<b>彻底的白纸</b>。<br>
+    <span style="display:block;margin-top:6px">这很像电影《记忆碎片》里那个<b>无法形成新长期记忆</b>的人：他不是笨，是大脑少了"往长期记忆写入"的那道工序，只能靠身上贴的纸条（= 上下文窗口）过活，纸条写满或弄丢，他就"断片"了。</span>
+  </div>
+
+  <h3>二、为什么会"幻觉"（一本正经地胡编）</h3>
+  <p>回到第 8 章那个本质：<span class="key">模型做的事，是"预测下一个最像样的词"，不是"查证真相"。</span>在它眼里，真话和假话都只是 token 的概率高低，它优化的目标从来是"<b>说得顺、像人话</b>"，<b>不是"说得对"</b>。</p>
+  <div class="pain">
+    <b>它的知识是"模糊压缩"进权重的，不是逐条存好的。</b>就像你把一本书读了一万遍，能讲个大概，但要你逐字背出第 237 页，你会<b>"编"一个听起来很对的版本</b>。模型也一样 —— 遇到记不清的细节，它不会说"我不知道"，而是<b>用统计规律流畅地填空</b>，填出来的东西<b>顺口但不保证真</b>。这就是幻觉。
+  </div>
+
+  <div class="demo">
+    <div class="hd">动画 11 · 幻觉从哪来：确定时概率很尖，不确定时也照样"自信地挑一个"</div>
+    <canvas id="cv-hal" width="800" height="280"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="hal-know">问它知道的（首都是…）</button>
+      <button id="hal-unknow">问它不确定的（某冷门人物生日是…）</button>
+      <span class="hint">看候选概率的形状：知道时一根独高；不确定时一片平摊 —— 但它<b>仍然会挑最高的那个说出来</b>，不会停下。</span>
+    </div>
+  </div>
+
+  <p><b>关键：更强的算力改变不了这个机制。</b>更大的显卡只是让它<b>算得更快、模型更大、压缩进去的知识更多</b>，但"预测下一个词 + 不确定时也硬填"这个<b>根本玩法没变</b>。就像给一个<b>博览群书、口才极好、但从不查证、也意识不到自己哪里不懂</b>的人换个更聪明的大脑 —— 他还是会在记不清时圆一个漂亮的谎，因为他的目标是把话说圆。</p>
+
+  <h3>三、所以"买更大的显卡"为什么治不好</h3>
+  <div class="who" style="background:none">
+    <div class="t" style="color:var(--acc)">⚖️ 量 vs 质：搞错了药方</div>
+    <div style="font-family:'Cascadia Code',Consolas,monospace;font-size:13px;line-height:1.95;color:var(--tx2);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px 16px">
+      大显存 / 强算力  能解决 →  <span style="color:var(--ok)">模型能多大、上下文能多长、算得多快</span>（量的问题）<br>
+      <br>
+      幻觉 / 遗忘      属于     →  <span style="color:var(--warn)">机制和算法的问题</span>（质的问题）<br>
+      &nbsp;&nbsp;・遗忘 = 窗口有限 + 权重冻结（没有长期记忆器官）<br>
+      &nbsp;&nbsp;・幻觉 = 目标是"说得像"而非"说得对"<br>
+      <br>
+      → <span style="color:var(--bad)">拿"加内存"去治"机制病"，是搞错了药方。</span>
+    </div>
+  </div>
+
+  <h3>四、那业界怎么缓解？（靠"打补丁"，不是堆硬件）</h3>
+  <div class="fix">
+    <b>治"遗忘"：给它接一个外部记忆</b><br>
+    ・<b>RAG（检索增强）</b>：把资料存外部数据库，每次按需捞相关片段塞进窗口 —— 相当于给那个"记不住事的人"配一个随时能翻的档案柜。<br>
+    ・<b>对话摘要</b>：把很久以前的对话压缩成短摘要再喂进去，省窗口。<br>
+    ・<b>更长上下文 + 注意力优化</b>：把窗口做大、把 O(n²) 优化得更省 —— 有用，但仍有限、仍变贵。
+  </div>
+  <div class="fix">
+    <b>治"幻觉"：别让它光凭记忆瞎填</b><br>
+    ・<b>RAG / 工具调用</b>：让它先去<b>查真实资料 / 调计算器 / 搜网页</b>，再基于查到的东西回答，而不是凭权重里的模糊印象。<br>
+    ・<b>标注来源、给引用</b>：逼它有据可依。<br>
+    ・<b>训练它学会说"我不确定"</b>（RLHF 等）：让"承认不知道"也变成一种被奖励的行为。
+  </div>
+
+  <div class="note">
+    <b>一句话收口：</b>幻觉和遗忘<b>不是"内存不够"的 bug，而是"预测下一个词 + 没有可更新长期记忆"这套机制的天然副作用</b>。<br>
+    所以你会看到：业界砸钱的方向除了更大的模型，更多是 <b>RAG、工具调用、外部记忆、让它学会说"不知道"</b> 这些<span class="key">绕过机制局限的"补丁"</span> —— 而不是单纯地再塞几张显卡。理解了这一点，你就不会再被"算力越强 AI 就越不会错"这种直觉误导了。
+  </div>
+
+  <div class="who">
+    <div class="t">诚实边界</div>
+    <dl>
+      <dt>确定的</dt><dd>上下文窗口有限、权重训练后冻结、模型本质是预测下一个词、O(n²) 注意力代价 —— 这些是本教程前面讲过、业界公认的机制。</dd>
+      <dt>我不确定的</dt><dd>各家模型<b>具体</b>的窗口大小、内部有没有用某种记忆机制、幻觉率的确切数字，会随版本变化，我<b>不编</b>。想要准数请查各模型的官方文档。</dd>
+    </dl>
   </div>
 </section>
 
@@ -1489,6 +1586,106 @@ navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMe
   $('#gpt-auto').onclick=()=>{ if(timer){clearInterval(timer);timer=null;return;}
     timer=setInterval(()=>{ if(step>=chain.length){clearInterval(timer);timer=null;return;} next(); },1000); };
   draw(); tick();
+})();
+
+/* ============ 动画10：上下文窗口 ============ */
+(function(){
+  const cv=$('#cv-ctx'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const lines=['你好，我叫小明','我养了一只叫花花的猫','我最喜欢的颜色是蓝色',
+    '我在北京工作','今天我想聊聊旅行','上次说的猫叫什么来着？'];
+  const WIN=4;                 // 窗口只装得下 4 句
+  let count=1;                 // 已说的句数
+  function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const said=lines.slice(0,count);
+    const winStart=Math.max(0,count-WIN);      // 窗口起点
+    // 窗口框
+    const fx=270, fw=470, rowH=40, fy=40, fh=WIN*rowH+16;
+    rr(fx-10,fy-10,fw+20,fh,12); ctx.strokeStyle='#58a6ff'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#58a6ff'; ctx.font='12px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.fillText('▲ 模型能看到的窗口（固定容量='+WIN+' 句）', fx-10, fy-16);
+
+    said.forEach((t,i)=>{
+      const inWin = i>=winStart;
+      const y = inWin ? fy + (i-winStart)*rowH : fy + (i-winStart)*rowH; // 窗外用负偏移
+      const yy = inWin ? y : fy + (i-winStart)*rowH;
+      // 位置：窗内按行排，窗外堆在左侧灰色区
+      let bx,by;
+      if(inWin){ bx=fx; by=fy + (i-winStart)*rowH; }
+      else { bx=20; by=fy + (i-winStart)*rowH; }   // i-winStart 为负 → 在框上方左侧
+      rr(bx,by,inWin?fw:230,32,8);
+      ctx.fillStyle = inWin ? 'rgba(88,166,255,.14)' : '#141922';
+      ctx.fill();
+      ctx.strokeStyle = inWin ? '#58a6ff' : '#2d333b'; ctx.lineWidth=1.2; ctx.stroke();
+      ctx.fillStyle = inWin ? '#e6edf3' : '#4a5261';
+      ctx.font='14px sans-serif'; ctx.textBaseline='middle'; ctx.textAlign='left';
+      ctx.fillText((inWin?'':'（看不到）')+t, bx+10, by+16);
+    });
+
+    // 说明
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.fillStyle='#9da7b3'; ctx.font='13px sans-serif';
+    const dropped=Math.max(0,count-WIN);
+    if(count>WIN){
+      ctx.fillStyle='#f85149';
+      ctx.fillText('已有 '+dropped+' 句滑出窗口 → 模型完全看不到。', 20, H-40);
+      ctx.fillStyle='#6e7681';
+      ctx.fillText('所以问"猫叫什么"时，如果那句已滑出，它只能靠猜 → 这就是"失忆"。', 20, H-20);
+    }else{
+      ctx.fillStyle='#6e7681';
+      ctx.fillText('目前都还在窗口里。继续点"你再说一句"，看最早的话怎么被挤出去。', 20, H-20);
+    }
+  }
+  $('#ctx-step').onclick=()=>{ if(count<lines.length) count++; draw(); };
+  $('#ctx-reset').onclick=()=>{ count=1; draw(); };
+  draw();
+})();
+
+/* ============ 动画11：幻觉 = 概率填空 ============ */
+(function(){
+  const cv=$('#cv-hal'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const known={q:'中国的首都是 ___',
+    cands:[['北京',.97],['上海',.01],['南京',.008],['天津',.007],['其它',.005]]};
+  const unknown={q:'（某冷门小说角色）的生日是 ___',
+    cands:[['3月4日',.16],['7月9日',.15],['11月2日',.14],['某年某月',.14],['一大堆其它',.41]]};
+  let cur=known;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#e6edf3'; ctx.font='16px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.fillText('问题：'+cur.q, 30, 40);
+    ctx.fillStyle='#9da7b3'; ctx.font='13px sans-serif';
+    ctx.fillText('模型对"下一个词"的候选概率：', 30, 66);
+
+    const bx=140, bw=380, by=86, rh=32;
+    cur.cands.forEach((c,i)=>{
+      const y=by+i*rh, top=(i===0);
+      ctx.fillStyle=top?(cur===known?'#3fb950':'#d29922'):'#39414f';
+      ctx.fillRect(bx, y, c[1]*bw, rh-10);
+      ctx.fillStyle='#cdd5df'; ctx.font='13px sans-serif'; ctx.textAlign='right'; ctx.textBaseline='middle';
+      ctx.fillText(c[0], bx-8, y+(rh-10)/2);
+      ctx.fillStyle=top?'#fff':'#9da7b3'; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText((c[1]*100).toFixed(0)+'%', bx+c[1]*bw+8, y+(rh-10)/2);
+    });
+
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    if(cur===known){
+      ctx.fillStyle='#3fb950'; ctx.font='14px sans-serif';
+      ctx.fillText('✅ 分布很"尖"：一根独高。它是真的"知道"，说出来大概率对。', 30, H-40);
+      ctx.fillStyle='#6e7681'; ctx.font='13px sans-serif';
+      ctx.fillText('这种情况没问题。', 30, H-20);
+    }else{
+      ctx.fillStyle='#d29922'; ctx.font='14px sans-serif';
+      ctx.fillText('⚠️ 分布很"平"：其实它并不知道，几个选项半斤八两。', 30, H-42);
+      ctx.fillStyle='#f85149'; ctx.font='13px sans-serif';
+      ctx.fillText('但机制逼它必须挑一个 → 它照样"自信地"挑最高的说出来 = 幻觉。它不会停下说"我不知道"。', 30, H-20);
+    }
+  }
+  $('#hal-know').onclick=()=>{ cur=known; draw(); };
+  $('#hal-unknow').onclick=()=>{ cur=unknown; draw(); };
+  draw();
 })();
 </script>
 </body>

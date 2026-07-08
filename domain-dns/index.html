@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>域名 · 从注册到访问的完整旅程（大白话讲透 DNS）</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2d333b;
+    --tx:#e6edf3; --tx2:#9da7b3; --tx3:#6e7681;
+    --acc:#58a6ff; --acc2:#bc8cff; --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+    --teal:#39c5cf; --gold:#e3b341;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--tx);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.85; font-size:16px;}
+  .app{display:flex; align-items:flex-start}
+  .sidebar{position:sticky; top:0; height:100vh; flex:0 0 262px; width:262px;
+    border-right:1px solid var(--line); background:var(--panel);
+    overflow-y:auto; padding:18px 0 40px; scrollbar-width:thin;}
+  .sidebar::-webkit-scrollbar{width:8px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
+  .brand{padding:4px 20px 16px; border-bottom:1px solid var(--line); margin-bottom:8px}
+  .brand .logo{font-size:16px; font-weight:700; letter-spacing:.3px}
+  .brand .logo .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .sb{font-size:12px; color:var(--tx3); margin-top:5px}
+  nav.toc{padding:0 10px}
+  .toc .grp{font-size:11px; letter-spacing:1.5px; color:var(--tx3); padding:16px 12px 6px; font-weight:700}
+  .toc a{display:flex; align-items:center; gap:9px; position:relative;
+    color:var(--tx2); text-decoration:none; font-size:13.5px;
+    padding:7px 10px 7px 14px; border-radius:8px; margin:1px 0 1px 8px;
+    border-left:2px solid var(--line); transition:.12s;}
+  .toc a i{flex:0 0 auto; width:20px; height:20px; border-radius:6px; font-style:normal;
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+    background:var(--panel2); color:var(--tx3); border:1px solid var(--line);}
+  .toc a:hover{color:var(--tx); background:var(--panel2)}
+  .toc a.on{color:var(--acc); background:rgba(88,166,255,.1); border-left-color:var(--acc)}
+  .toc a.on i{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:700}
+  .main{flex:1 1 auto; min-width:0}
+  .wrap{max-width:840px; margin:0 auto; padding:0 30px 140px}
+  header{padding:56px 30px 42px; text-align:center;
+    background:radial-gradient(900px 400px at 50% -120px,rgba(88,166,255,.20),transparent 70%);
+    border-bottom:1px solid var(--line);}
+  header h1{font-size:32px; margin:0 0 14px; letter-spacing:.5px}
+  header h1 .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--tx2); max-width:660px; margin:0 auto; font-size:16px}
+  .tags{margin-top:18px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+  .tag{display:inline-block;padding:5px 14px;border:1px solid var(--line);border-radius:30px;color:var(--tx2);font-size:13px}
+  .menu-btn{display:none; position:fixed; top:14px; left:14px; z-index:120;
+    width:42px; height:42px; border-radius:10px; font-size:18px;
+    background:var(--panel); border:1px solid var(--line); color:var(--tx);}
+  .scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99}
+  @media(max-width:880px){
+    .sidebar{position:fixed; left:0; top:0; z-index:100; transform:translateX(-100%); transition:.25s; box-shadow:6px 0 30px rgba(0,0,0,.5)}
+    .sidebar.open{transform:none}
+    .scrim.open{display:block}
+    .menu-btn{display:flex; align-items:center; justify-content:center}
+    header{padding-top:64px}
+  }
+  section{padding:46px 0 10px; border-bottom:1px solid var(--line)}
+  .yr{font-size:13px; color:var(--acc); letter-spacing:1.5px; font-weight:600}
+  h2{font-size:26px; margin:6px 0 4px}
+  .sub{color:var(--tx3); font-size:14px; margin-bottom:18px}
+  h3{font-size:18px; margin:30px 0 8px; color:var(--tx)}
+  p{margin:12px 0}
+  b,strong{color:#fff}
+  code{background:var(--panel2); padding:2px 6px; border-radius:5px; font-size:14px; color:#ffd9a0; font-family:"Cascadia Code",Consolas,monospace}
+  ul,ol{margin:12px 0; padding-left:22px}
+  li{margin:5px 0}
+  .term{color:var(--acc2); font-weight:600; border-bottom:1px dashed rgba(188,140,255,.5)}
+  .en{color:var(--tx3); font-size:.86em; font-family:"Cascadia Code",Consolas,monospace}
+  .key{background:linear-gradient(transparent 62%,rgba(188,140,255,.35) 0); padding:0 2px}
+  .pain{border-left:3px solid var(--bad); background:rgba(248,81,73,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .pain b{color:var(--bad)}
+  .fix{border-left:3px solid var(--ok); background:rgba(63,185,80,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .fix b{color:var(--ok)}
+  .note{border-left:3px solid var(--acc); background:rgba(88,166,255,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .warnbox{border-left:3px solid var(--warn); background:rgba(210,153,34,.08); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .warnbox b{color:var(--warn)}
+  .verify{border:1px solid rgba(57,197,207,.4); background:linear-gradient(180deg,rgba(57,197,207,.09),rgba(57,197,207,.02));
+    border-radius:10px; padding:14px 16px 12px; margin:18px 0;}
+  .verify .t{font-size:13px; color:var(--teal); font-weight:700; letter-spacing:.5px; margin-bottom:8px; display:flex; align-items:center; gap:6px}
+  .verify .t::before{content:"🔬"; font-size:15px}
+  .verify ol{margin:6px 0 2px; padding-left:20px}
+  .verify li{margin:4px 0; font-size:14.5px}
+  .verify .exp{color:var(--ok); font-weight:600}
+  .who{border:1px solid var(--line); background:linear-gradient(180deg,rgba(188,140,255,.06),transparent); border-radius:10px; padding:14px 16px; margin:18px 0}
+  .who .t{font-size:13px; color:var(--acc2); font-weight:600; letter-spacing:.5px; margin-bottom:8px; display:flex; align-items:center; gap:6px}
+  .who dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 14px}
+  .who dt{color:var(--tx3); font-size:13px; white-space:nowrap}
+  .who dd{margin:0; font-size:14.5px}
+  table.gloss{width:100%; border-collapse:collapse; margin:16px 0; font-size:14px}
+  table.gloss th,table.gloss td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+  table.gloss th{background:var(--panel2); color:var(--tx2); font-size:13px}
+  table.gloss td:first-child{white-space:nowrap; color:var(--acc2); font-weight:600}
+  .demo{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; margin:22px 0}
+  .demo .hd{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--tx2); margin-bottom:14px}
+  .demo .hd::before{content:"▶"; color:var(--acc); font-size:10px}
+  .ctrl{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 0 4px}
+  button{background:var(--panel2); color:var(--tx); border:1px solid var(--line);
+    padding:8px 16px; border-radius:8px; cursor:pointer; font-size:14px; transition:.15s;}
+  button:hover{border-color:var(--acc); color:var(--acc)}
+  button.primary{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:600}
+  .hint{color:var(--tx3); font-size:13px; margin-top:8px}
+  canvas{display:block; max-width:100%; border-radius:10px}
+  pre{background:#0b0f14; border:1px solid var(--line); border-radius:10px; padding:14px 16px; overflow-x:auto; margin:14px 0;
+    font-family:"Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.7; color:#cfe3ff;}
+  pre .cm{color:var(--tx3)}
+  pre .cmd{color:#7ee787}
+  .addr{font-family:"Cascadia Code",Consolas,monospace; background:#0b0f14; border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:14px 0; font-size:15px; overflow-x:auto}
+  .addr .p{color:var(--tx3)} .addr .sub{color:var(--teal)} .addr .dom{color:var(--acc)} .addr .tld{color:var(--gold)} .addr .root{color:var(--bad)}
+  .foot{text-align:center; color:var(--tx3); font-size:13px; padding:40px 0}
+  .journey{list-style:none; padding:0; counter-reset:j}
+  .journey li{position:relative; padding:10px 0 10px 46px; border-left:2px solid var(--line); margin-left:14px}
+  .journey li::before{counter-increment:j; content:counter(j); position:absolute; left:-15px; top:8px;
+    width:28px; height:28px; border-radius:50%; background:var(--panel2); border:1px solid var(--acc); color:var(--acc);
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700}
+  .journey li b{color:#fff}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">域名 <span class="g">从 0 到 1</span></div>
+    <div class="sb">注册 → 回车访问 · 全程串起来</div>
+  </div>
+  <nav class="toc" id="nav">
+    <div class="grp">先认识域名</div>
+    <a href="#c0"><i>0</i>域名到底是什么</a>
+    <a href="#c1"><i>1</i>拆解一个网址</a>
+
+    <div class="grp">从哪来</div>
+    <a href="#c2"><i>2</i>注册·谁在管</a>
+
+    <div class="grp">核心机制</div>
+    <a href="#c3"><i>3</i>DNS 是什么</a>
+    <a href="#c4"><i>4</i>★回车后发生了什么</a>
+    <a href="#c5"><i>5</i>缓存·TTL·为啥要等</a>
+
+    <div class="grp">接上你的网站</div>
+    <a href="#c6"><i>6</i>把域名指向网站</a>
+    <a href="#c7"><i>7</i>那把小锁·HTTPS</a>
+
+    <div class="grp">收尾</div>
+    <a href="#c8"><i>8</i>排错·冷知识</a>
+    <a href="#cA"><i>A</i>亲手追踪+速查</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<header>
+  <h1>域名，<span class="g">从注册到访问的完整旅程</span></h1>
+  <p>你在地址栏敲下 <code>example.com</code> 按下回车——短短一瞬间，背后是<b>一整套全球接力系统</b>在跑。这篇把<b class="key">域名怎么注册、DNS 怎么翻译、浏览器到网站之间到底发生了什么</b>，用大白话一条线串通，每个概念都能自己动手验证。</p>
+  <div class="tags">
+    <span class="tag">🌍 全球寻址原理</span>
+    <span class="tag">🗣 全程大白话</span>
+    <span class="tag">🔬 命令可验证</span>
+    <span class="tag">🔗 接上部署那篇</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="note" style="margin-top:26px">
+  <b>这篇和「静态部署」那篇是一对：</b>部署那篇让你有了 <code>用户名.github.io</code> 这种网址；这篇讲清<b>域名怎么运作</b>，以及怎么把 <code>你的名字.com</code> 接到那个网站上。读完你会彻底明白"输入网址→看到页面"中间的每一步。
+</div>
+
+<!-- ============ 第0章 ============ -->
+<section id="c0">
+  <div class="yr">起点 · 域名解决的根本问题</div>
+  <h2>第 0 章：域名到底是什么？</h2>
+  <div class="sub">一句话：给冷冰冰的服务器地址，起一个人能记住的名字</div>
+
+  <p>互联网上每台服务器，真正的"门牌号"是一串数字，叫 <span class="term">IP 地址</span>，比如 <code>93.184.216.34</code>。电脑之间靠 IP 互相找到对方。但问题来了：</p>
+
+  <div class="pain">
+    <b>核心难题：</b>没人记得住一堆 IP 数字。你能记住 <code>142.250.72.14</code> 是谁吗？但你记得住 <code>google.com</code>。<span class="key">IP 是给机器用的，人需要一个好记的名字。</span>
+  </div>
+
+  <div class="fix">
+    <b>域名就是这个"好记的名字"：</b><code>example.com</code> 是贴在 IP <code>93.184.216.34</code> 上的一张便签。你输入域名，系统在背后帮你把它<b>翻译成 IP</b>，再去连接。<br>
+    打个比方：<span class="key">域名像"张三"这个名字，IP 像他的手机号。你存通讯录时记"张三"，拨号时手机自动翻出号码去拨。</span>域名系统，就是整个互联网的通讯录。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 亲眼看到"域名背后是个 IP"</div>
+    <ol>
+      <li>打开终端（Windows 用 Git Bash / PowerShell / CMD），敲 <code>ping example.com</code>。</li>
+      <li>看输出：<b class="exp">域名旁边会显示一串 IP 数字</b>（如 <code>[93.184.216.34]</code>）——这就是它翻译出来的真实门牌号。</li>
+      <li>再 <code>ping baidu.com</code>，换一个域名，IP 也换了。证明每个域名都对应着某个（或某些）IP。</li>
+    </ol>
+    <span class="hint">验证到了什么：你输入的域名，最终都被翻译成一个 IP 才能连上——名字是给你看的，机器认的是数字。</span>
+  </div>
+</section>
+
+<!-- ============ 第1章 ============ -->
+<section id="c1">
+  <div class="yr">结构 · 一个网址是怎么组成的</div>
+  <h2>第 1 章：拆开一个网址，每一段都有名字</h2>
+  <div class="sub">看懂结构，后面 DNS 的"接力"才好理解</div>
+
+  <p>以 <code>https://www.example.com</code> 为例，域名部分要<b>从右往左</b>读，因为越右边"级别越高"：</p>
+
+  <div class="addr">
+    <span class="p">https://</span><span class="sub">www</span>.<span class="dom">example</span>.<span class="tld">com</span><span class="root">（.）</span><br>
+    <span style="font-size:12px;color:var(--tx3)">协议　　子域名　主域名　顶级域　(隐藏的根)</span>
+  </div>
+
+  <div class="who">
+    <div class="t">🧩 从右往左，一层层拆</div>
+    <dl>
+      <dt style="color:var(--bad)">根 <code>.</code></dt><dd>最顶层，平时省略不写（末尾那个隐藏的点）。全世界所有域名都挂在这个"根"下面。</dd>
+      <dt style="color:var(--gold)">顶级域 TLD</dt><dd>就是 <code>.com</code> <code>.cn</code> <code>.org</code> <code>.net</code> <code>.io</code> 这些。<span class="en">Top-Level Domain</span>。分商业(.com)、国家(.cn/.jp)等。</dd>
+      <dt style="color:var(--acc)">主域名</dt><dd><code>example</code>——<b>这才是你花钱注册、真正属于你的那部分</b>（连同它的 TLD，合称你的"域名"）。</dd>
+      <dt style="color:var(--teal)">子域名</dt><dd><code>www</code>——你注册到主域名后，可以<b>自己免费任意划分</b>：<code>www</code>、<code>blog</code>、<code>mail</code>、<code>shop</code> 都行，指向不同地方。</dd>
+      <dt style="color:var(--tx3)">协议 <code>https://</code></dt><dd>严格说不属于域名，是"用什么方式通信"（见第 7 章）。<code>/path</code> 路径也不是域名的一部分。</dd>
+    </dl>
+  </div>
+
+  <div class="note">
+    <b>关键领悟：</b>你买 <code>example.com</code>，买的是<b>主域名+顶级域</b>这一整块。买到手后，<span class="key">前面的子域名（www、blog…）随你切分，不额外花钱</span>。这就是为什么一个域名能开出无数个子站点。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 用一个真网址对号入座</div>
+    <ol>
+      <li>看这个教程站的地址（假设是 <code>用户名.github.io</code>）：<code>github.io</code> 里 <code>.io</code> 是 TLD、<code>github</code> 是主域名、<code>用户名</code> 是子域名。</li>
+      <li>随便找 3 个你常用的网址，把每段对应到"子域名/主域名/顶级域"。<b class="exp">你会发现 www 只是个可有可无的子域名</b>——很多网站去掉 www 也能开。</li>
+    </ol>
+    <span class="hint">验证到了什么：网址是分层的；你拥有的是主域名，子域名是你自己的地盘。</span>
+  </div>
+</section>
+
+<!-- ============ 第2章 ============ -->
+<section id="c2">
+  <div class="yr">来源 · 域名从哪注册、谁在管</div>
+  <h2>第 2 章：域名怎么注册？（以及它其实是"租"的）</h2>
+  <div class="sub">搞懂管理体系，你才明白为什么要每年续费、去哪买</div>
+
+  <p>域名不能凭空占有，背后有一套三层管理体系，别被名字绕晕：</p>
+
+  <div class="who">
+    <div class="t">🏛 谁在管域名（三层）</div>
+    <dl>
+      <dt>ICANN</dt><dd>最顶层的<b>国际管理机构</b>，制定规则、管理根和 TLD 的分配。你不直接跟它打交道。</dd>
+      <dt>注册局 Registry</dt><dd>管理<b>某个 TLD</b> 的机构。比如 <code>.com</code> 由 Verisign 管，<code>.cn</code> 由 CNNIC 管。它维护该后缀下所有域名的总账本。</dd>
+      <dt>注册商 Registrar</dt><dd><b>你实际买域名的地方</b>——面向消费者的零售商。如 Cloudflare、阿里云万网、腾讯云、GoDaddy、Namecheap。你付钱给它，它去注册局帮你登记。</dd>
+    </dl>
+  </div>
+
+  <div class="warnbox">
+    <b>重要真相：域名是"租"不是"买断"。</b> 你注册域名是<b>按年付费租用使用权</b>（1 年起，可续多年）。<span class="key">到期不续费，域名会被释放，别人就能抢注。</span>所以务必开<b>自动续费</b>，或记好到期日——很多人的网站挂掉就是忘了续费。
+  </div>
+
+  <h3>从 0 到 1 注册一个域名</h3>
+  <ul class="journey">
+    <li><b>想名字</b>：越短越好记越好；选后缀（个人站 <code>.com</code>/<code>.io</code>/<code>.me</code> 都行）。</li>
+    <li><b>查是否可注册</b>：在任意注册商网站搜索框输入想要的名字，它会告诉你"可注册"还是"已被占用"。</li>
+    <li><b>下单付费</b>：选年限，结算。常见 <code>.com</code> 一年几十到一百多块。</li>
+    <li><b>实名认证</b>：<code>.cn</code> 等国内后缀需实名（上传身份证）。国际后缀通常更快。</li>
+    <li><b>拿到手</b>：注册成功后，你就能在注册商后台管理它的 <b>DNS 解析</b>（第 3、6 章）。</li>
+  </ul>
+
+  <div class="verify">
+    <div class="t">验证方法 · 查一个域名的"户口本"</div>
+    <ol>
+      <li>用 <span class="term">WHOIS</span> 查询（搜"whois 查询"或用注册商的工具）输入任意域名，能看到<b>注册商是谁、注册日期、到期日期</b>（部分信息可能被隐私保护）。</li>
+      <li>命令行版：<code>whois example.com</code>（部分系统需安装）。<b class="exp">看到 Registrar 和 Expiry Date 字段</b>，印证"有注册商、有到期日=租用制"。</li>
+      <li>去任一注册商搜你的名字试试，感受"可注册/已占用"的即时反馈。</li>
+    </ol>
+    <span class="hint">验证到了什么：每个域名都有注册商和到期日；它是有期限的租约，不是永久财产。</span>
+  </div>
+</section>
+
+<!-- ============ 第3章 ============ -->
+<section id="c3">
+  <div class="yr">核心 · DNS 这本"通讯录"</div>
+  <h2>第 3 章：DNS 是什么？（把名字翻译成 IP 的系统）</h2>
+  <div class="sub">这是整篇的枢纽，务必吃透</div>
+
+  <p><span class="term">DNS<span class="en">Domain Name System 域名系统</span></span> 就是第 0 章说的那本<b>全球通讯录</b>：你给它一个域名，它还你一个 IP。但它不是一本存在某一台电脑里的书——它是<b>分布在全球、层层分工</b>的一套系统（第 4 章看它怎么接力）。</p>
+
+  <p>你在注册商后台给域名配的那些"解析记录"，就是往这本通讯录里<b>写条目</b>。常见记录类型：</p>
+
+  <table class="gloss">
+    <tr><th>记录类型</th><th>大白话作用</th></tr>
+    <tr><td>A 记录</td><td>把域名指向一个 <b>IPv4 地址</b>（如 <code>93.184.216.34</code>）。最常用。</td></tr>
+    <tr><td>AAAA 记录</td><td>把域名指向一个 <b>IPv6 地址</b>（新一代更长的 IP）。</td></tr>
+    <tr><td>CNAME 记录</td><td>把域名指向<b>另一个域名</b>（别名）。比如把 <code>www.你的域名</code> 指向 <code>用户名.github.io</code>——部署那篇就是这么绑的。</td></tr>
+    <tr><td>MX 记录</td><td>指定<b>收邮件的服务器</b>。用你的域名发/收邮件时配它。</td></tr>
+    <tr><td>TXT 记录</td><td>放一段<b>文本</b>，常用于"证明这域名是你的"（域名验证）、防伪邮件等。</td></tr>
+    <tr><td>NS 记录</td><td>指定这个域名<b>由哪些"权威服务器"负责解析</b>（第 4 章的最后一棒）。</td></tr>
+  </table>
+
+  <div class="note">
+    <b>一句话记住区别：</b><code>A</code> = 指向数字 IP；<code>CNAME</code> = 指向另一个名字（让它再去解析）。个人建站你用得最多的就是这两个。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 亲手查一个域名的解析记录</div>
+    <ol>
+      <li>终端敲 <code>nslookup example.com</code>，<b class="exp">返回它的 A 记录 IP</b>。</li>
+      <li>查 CNAME：<code>nslookup -type=cname www.github.com</code>（换成有 CNAME 的域名），<b class="exp">看到它指向另一个域名</b>。</li>
+      <li>进阶用 <code>dig example.com</code>（Mac/Linux/Git Bash 自带），输出里 <code>ANSWER SECTION</code> 就是解析结果。</li>
+    </ol>
+    <span class="hint">验证到了什么：DNS 记录是真实可查的；A 给 IP、CNAME 给别名，一目了然。</span>
+  </div>
+</section>
+
+<!-- ============ 第4章 ============ -->
+<section id="c4">
+  <div class="yr">★ 全篇高潮 · 把所有概念串起来</div>
+  <h2>第 4 章：按下回车后，到底发生了什么？</h2>
+  <div class="sub">从敲下 example.com 到看见页面——一次完整旅程，逐步点给你看</div>
+
+  <p>这一步把前面所有概念（IP、域名、DNS、记录）全部串成一条线。先玩下面的动画，再看文字版：</p>
+
+  <div class="demo">
+    <div class="hd">动画 · 一次访问的接力旅程（点"下一步"，看数据包怎么一棒棒传下去）</div>
+    <canvas id="cv-journey" width="800" height="420"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="jn-next">▶ 下一步</button>
+      <button id="jn-reset">重置</button>
+      <span class="hint" id="jn-tip">点"下一步"开始这场接力。</span>
+    </div>
+  </div>
+
+  <h3>文字版·完整 8 步（大白话）</h3>
+  <ol class="journey">
+    <li><b>先翻自己的小本本（缓存）</b>：浏览器/电脑先看"我最近查过 example.com 吗？"查过就直接用记着的 IP，跳到第 6 步。省时间。</li>
+    <li><b>问"解析器"（递归 DNS）</b>：没记录，就问一个专门帮你查的<b>递归解析器</b>（通常是你的宽带运营商，或你手动设的 <code>8.8.8.8</code>/<code>1.1.1.1</code>）。你只管问，它负责跑完整个流程。</li>
+    <li><b>解析器问根服务器</b>：解析器先问<b>根服务器</b>"<code>.com</code> 归谁管？"根不知道具体 IP，但知道<b>该去问 .com 的管理者</b>，于是把 <code>.com</code> 顶级域服务器的地址告诉解析器。</li>
+    <li><b>再问 .com 顶级域服务器</b>：解析器接着问它"<code>example.com</code> 归谁管？"它也不存最终 IP，但知道 example.com 的<b>权威服务器</b>是谁（就是你在注册商配的 NS），把地址给回来。</li>
+    <li><b>最后问权威服务器</b>：解析器问这个<b>权威服务器</b>"<code>example.com</code> 的 IP 是多少？"这台才是真正存着你配的 <b>A 记录</b>的地方，它回答：<code>93.184.216.34</code>。解析器把结果<b>记下来（缓存）</b>再交给你的浏览器。</li>
+    <li><b>拿到 IP，建立连接（TCP 握手）</b>：浏览器有 IP 了，跟那台服务器<b>握手三次</b>建立一条可靠通道（"你在吗？"—"在，你在吗？"—"在，开始吧"）。</li>
+    <li><b>亮身份、加密（TLS 握手，https 才有）</b>：如果是 <code>https</code>，双方交换证书、协商密钥，把通道<b>加密</b>，别人偷看也是乱码——这就是地址栏那把🔒（第 7 章）。</li>
+    <li><b>发请求、拿页面、渲染</b>：浏览器发一句 <code>HTTP 请求</code>"把首页给我"，服务器回一份 <b>HTML</b>，浏览器再按需要去取 CSS/JS/图片，最后<b>画</b>成你看到的页面。旅程结束。</li>
+  </ol>
+
+  <div class="fix">
+    <b>一句话总结这趟接力：</b><span class="key">缓存没有 → 找解析器 → 解析器依次问 根→顶级域→权威 三级，一级指路给下一级 → 拿到 IP → TCP 连上 → TLS 加密 → HTTP 要页面 → 渲染。</span>前 5 步都是"把名字翻译成 IP"（DNS 的活），后 3 步才是"真正连上去拿东西"。
+  </div>
+
+  <div class="note">
+    <b>为什么要分这么多级？</b> 因为全世界域名太多，<b>不可能存在一台机器里</b>。分级 = 分工：根只管"哪个后缀找谁"，顶级域只管"这个后缀下哪个域名找谁"，权威才管"具体 IP"。层层甩锅，各管一段，才扛得住全球流量。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 亲眼看到这趟旅程的每一段</div>
+    <ol>
+      <li><b>看 DNS 那几步</b>：用 <code>dig +trace example.com</code>（Git Bash/Mac/Linux），它会<b class="exp">把"问根→问 .com→问权威"整条链一行行打印出来</b>——和上面第 3–5 步完全对应。</li>
+      <li><b>看后面连接那几步</b>：浏览器按 <code>F12</code> 打开开发者工具 → <b>Network（网络）</b>标签 → 刷新页面 → 点第一个请求 → 看 <b>Timing</b>：里面有 <code>DNS Lookup</code>、<code>Initial connection</code>(TCP)、<code>SSL</code>(TLS)、<code>Waiting</code>(等服务器)、<code>Content Download</code>——<b class="exp">八步几乎一一对上</b>。</li>
+    </ol>
+    <span class="hint">验证到了什么：这不是抽象比喻，<code>dig +trace</code> 和浏览器 Timing 面板让你逐段看到真实发生的接力。</span>
+  </div>
+</section>
+
+<!-- ============ 第5章 ============ -->
+<section id="c5">
+  <div class="yr">机制细节 · 缓存与"为什么要等"</div>
+  <h2>第 5 章：缓存、TTL，和"改了 DNS 为啥不立刻生效"</h2>
+  <div class="sub">这解释了新手最困惑的一件事：明明改对了，怎么没反应</div>
+
+  <p>第 4 章每一级查完都会<b>把结果记一段时间</b>（缓存），这样下次同样的查询就不用再跑全程，快得多。记多久？由一个值决定：</p>
+
+  <div class="fix">
+    <b>TTL（Time To Live，存活时间）</b>：每条 DNS 记录都带一个 TTL，比如 <code>600</code> 秒。意思是"<span class="key">这条结果可以放心用 600 秒，过期再来问我</span>"。TTL 越大缓存越久（访问快、但改动慢生效）；越小越灵活（改动快生效、但查询更频繁）。
+  </div>
+
+  <div class="pain">
+    <b>这就解释了那个经典困惑：</b>你在注册商把 A 记录从旧 IP 改成新 IP，<b>但访问还是旧的</b>。因为全世界的解析器、你的电脑、浏览器里，<b>旧记录还在缓存里没到期</b>。得等 TTL 过期，新记录才铺开。这个铺开过程叫 <span class="term">DNS 传播</span>，可能几分钟到几十小时。<span class="key">不是你配错了，是缓存还没散。</span>
+  </div>
+
+  <div class="note">
+    <b>实用技巧：</b>打算改 DNS 前，<b>提前把 TTL 调小</b>（如 300 秒），等改动稳定后再调回大值。改完想让本机立刻重查，可清本地 DNS 缓存：Windows <code>ipconfig /flushdns</code>，Mac <code>sudo killall -HUP mDNSResponder</code>。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 看到缓存和 TTL 真实存在</div>
+    <ol>
+      <li><code>dig example.com</code> 看 ANSWER 里那个数字（如 <code>3600</code>）就是 TTL。<b>连续再查一次</b>，你会看到<b class="exp">这个数字在变小</b>——它在倒计时，说明你拿的是缓存、正在过期。</li>
+      <li>换个"全球 DNS 检测"网站（搜 "dns checker"），输入一个域名，能看到<b class="exp">不同国家/地区解析出的结果</b>——直观感受"传播"是逐地铺开的。</li>
+      <li>Windows 敲 <code>ipconfig /displaydns</code> 看本机缓存里存了哪些域名。</li>
+    </ol>
+    <span class="hint">验证到了什么：缓存和 TTL 是真的，改 DNS 要等是缓存机制的必然，不是故障。</span>
+  </div>
+</section>
+
+<!-- ============ 第6章 ============ -->
+<section id="c6">
+  <div class="yr">接上你的网站 · 和部署那篇合体</div>
+  <h2>第 6 章：把你买的域名，指向你的网站</h2>
+  <div class="sub">现在把"域名"和"部署"两篇彻底连起来</div>
+
+  <p>你在部署那篇拿到了 <code>用户名.github.io/my-site/</code> 这种网址。现在想让 <code>www.你的域名.com</code> 打开同一个站。做的事就一句话：<span class="key">在域名的 DNS 里加一条记录，把它指向托管平台。</span></p>
+
+  <div class="who">
+    <div class="t">🔗 两种常见指向方式</div>
+    <dl>
+      <dt>指向 GitHub Pages</dt><dd><b>子域名（www）</b>：加一条 <code>CNAME</code>，把 <code>www</code> 指向 <code>用户名.github.io</code>。<br><b>根域名（不带 www）</b>：加 GitHub 给的几个 <code>A</code> 记录（指向它的 IP）。再在仓库 Settings→Pages 填上自定义域名。</dd>
+      <dt>指向 Cloudflare Pages</dt><dd>如果域名本来就托管在 Cloudflare，直接在 Pages 项目里"添加自定义域名"，它<b>自动配好记录</b>。否则加 <code>CNAME</code> 指向 <code>项目名.pages.dev</code>。</dd>
+    </dl>
+  </div>
+
+  <div class="note">
+    <b>"域名商"和"DNS 托管商"可以不是同一家。</b> 你在 A 家买域名，但可以把它的 <b>NS（第 3 章）</b>改成 B 家（如 Cloudflare），让 B 家负责解析——很多人这么做，因为 Cloudflare 的 DNS 又快又免费。买域名的地方 ≠ 一定在那里管解析。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 确认域名真的接上了</div>
+    <ol>
+      <li>配完记录，等一会儿（TTL 传播），<code>nslookup www.你的域名.com</code>，<b class="exp">看到它解析到 github.io / pages.dev 或对应 IP</b>。</li>
+      <li>浏览器打开 <code>https://www.你的域名.com</code>，能看到你的网站 = 接通了。</li>
+      <li>对照第 4 章：现在你自己的域名，也要走一遍那趟"根→顶级域→权威"的接力，只不过最后一棒返回的是你配的记录。</li>
+    </ol>
+    <span class="hint">验证到了什么：DNS 记录一配、传播一到，自定义域名就能打开你的静态站——两篇教程在这里合体。</span>
+  </div>
+</section>
+
+<!-- ============ 第7章 ============ -->
+<section id="c7">
+  <div class="yr">安全 · 地址栏那把小锁</div>
+  <h2>第 7 章：那把 🔒 是什么？（HTTPS / SSL 证书）</h2>
+  <div class="sub">第 4 章第 7 步的展开，大白话版</div>
+
+  <p><code>http</code> 是"明文通信"，中间任何人（同一个 WiFi、你的运营商）都能<b>偷看甚至篡改</b>你传的内容。<code>https</code> 里多的那个 <b>s = secure</b>，就是给通信<b>加了密</b>。</p>
+
+  <div class="fix">
+    <b>它靠"证书"实现，大白话三件事：</b><br>
+    ① <b>加密</b>：内容变乱码，中间人偷看到的是天书。<br>
+    ② <b>验明正身</b>：证书由可信的<span class="term">证书颁发机构 CA</span>签发，证明"你连的确实是这个域名的真服务器，不是钓鱼假冒的"。<br>
+    ③ <b>防篡改</b>：内容被中途改动能被发现。<br>
+    <span class="key">地址栏的 🔒，就是浏览器在说"这条连接已加密、对方身份已验证"。</span>
+  </div>
+
+  <div class="note">
+    <b>好消息：证书现在免费且自动。</b> 过去要花钱买证书，如今 GitHub Pages、Cloudflare Pages 都会<b>自动帮你申请并续期</b>免费证书（用 Let's Encrypt 这类免费 CA）。你几乎不用管——第 5 章绑好域名，勾一下"强制 HTTPS"，锁就来了。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · 检查证书的真伪和信息</div>
+    <ol>
+      <li>打开任意 https 网站，<b>点地址栏那把 🔒</b> → "证书/连接安全" → 能看到<b class="exp">证书颁给了哪个域名、由哪个 CA 签发、有效期</b>。</li>
+      <li>故意访问一个证书有问题的站（或把系统时间调到很久以后），浏览器会<b class="exp">弹红色警告</b>——这就是"验明正身"在起作用。</li>
+      <li>对照第 4 章第 7 步：这把锁就是那次 TLS 握手的成果。</li>
+    </ol>
+    <span class="hint">验证到了什么：HTTPS 的锁不是装饰，点开能看到真实证书；它保证加密+对方身份可信。</span>
+  </div>
+</section>
+
+<!-- ============ 第8章 ============ -->
+<section id="c8">
+  <div class="yr">收尾 · 排错与冷知识</div>
+  <h2>第 8 章：常见困惑排错 + 几个冷知识</h2>
+  <div class="sub">把零散的疑问一次收干净</div>
+
+  <table class="gloss">
+    <tr><th>困惑 / 现象</th><th>大白话解释</th></tr>
+    <tr><td>改了 DNS 没生效</td><td>缓存没过期（第 5 章 TTL）。等传播，或清本地缓存 <code>ipconfig /flushdns</code>。</td></tr>
+    <tr><td>域名突然打不开了</td><td>先查<b>是不是忘了续费到期</b>（第 2 章）；再查 DNS 记录是否被误删。</td></tr>
+    <tr><td>某些网络能开、某些不能</td><td>可能是 DNS 缓存不一致，或<b>被网络屏蔽/污染</b>（部分地区对某些域名的解析被干扰）。换 DNS（<code>1.1.1.1</code>）有时能缓解。</td></tr>
+    <tr><td>www 能开、不带 www 打不开（或反过来）</td><td>两者是<b>不同记录</b>，要<b>各配一条</b>（或设置一个跳转到另一个）。</td></tr>
+    <tr><td>域名和网址、URL 什么关系</td><td>域名是网址里"定位服务器"的那一段；<b>URL = 协议 + 域名 + 端口 + 路径 + 参数</b>，域名只是其中一块。</td></tr>
+    <tr><td>hosts 文件是什么</td><td>你电脑里一个<b>本地小通讯录</b>，优先级比 DNS 高。可手动写"某域名→某 IP"用于测试（第 4 章第 1 步会先查它）。</td></tr>
+  </table>
+
+  <div class="warnbox">
+    <b>安全提醒：</b>域名是你的重要资产。<b>开自动续费</b>、给注册商账号<b>开两步验证</b>、别在不明网站输入域名管理密码。域名被盗或过期被抢，网站和邮箱可能一起丢。
+  </div>
+
+  <div class="verify">
+    <div class="t">验证方法 · hosts 优先级小实验（可选）</div>
+    <ol>
+      <li>（了解即可，改前备份）在 hosts 文件加一行 <code>127.0.0.1  example.com</code>，保存后 <code>ping example.com</code>，<b class="exp">会指向 127.0.0.1</b>——证明 hosts 比 DNS 先被查。</li>
+      <li>实验完<b>务必删掉那行</b>，否则你真访问不了那个域名了。</li>
+    </ol>
+    <span class="hint">验证到了什么：第 4 章"先查本地"不是空话，hosts 就是那个最优先的本地小本本。</span>
+  </div>
+</section>
+
+<!-- ============ 附录 A ============ -->
+<section id="cA">
+  <div class="yr">附录 · 亲手追踪一次解析 + 速查</div>
+  <h2>附录 A：一条命令看完整旅程 + 术语速查</h2>
+  <div class="sub">把第 4 章的接力，用命令亲手跑一遍</div>
+
+  <h3>亲手追踪 DNS 接力（第 4 章第 3–5 步）</h3>
+  <pre><span class="cm"># 逐级追踪：根 → 顶级域 → 权威，一行行打印</span>
+<span class="cmd">dig</span> +trace example.com
+
+<span class="cm"># 只看最终结果 + TTL</span>
+<span class="cmd">dig</span> example.com
+
+<span class="cm"># Windows 没有 dig 时用 nslookup</span>
+<span class="cmd">nslookup</span> example.com
+<span class="cmd">nslookup</span> -type=cname www.某域名.com
+<span class="cmd">nslookup</span> -type=ns example.com     <span class="cm"># 看权威服务器是谁</span></pre>
+
+  <h3>看"连接"部分（第 4 章第 6–8 步）</h3>
+  <pre><span class="cm"># 浏览器 F12 → Network → 点第一个请求 → Timing 面板</span>
+<span class="cm"># 能看到 DNS / TCP(Initial connection) / SSL(TLS) / Waiting / Download</span>
+
+<span class="cm"># 命令行看连接细节</span>
+<span class="cmd">curl</span> -v https://example.com     <span class="cm"># -v 打印握手、证书、响应头</span>
+<span class="cmd">ping</span> example.com                <span class="cm"># 看域名→IP + 连通性</span></pre>
+
+  <h3>术语速查</h3>
+  <table class="gloss">
+    <tr><th>术语</th><th>一句话</th><th>章</th></tr>
+    <tr><td>IP 地址</td><td>服务器真正的数字门牌号</td><td>0</td></tr>
+    <tr><td>域名</td><td>贴在 IP 上的好记名字</td><td>0</td></tr>
+    <tr><td>TLD 顶级域</td><td>.com/.cn 这类后缀</td><td>1</td></tr>
+    <tr><td>主域名 / 子域名</td><td>你买的那块 / 你自己划分的前缀</td><td>1</td></tr>
+    <tr><td>注册局 / 注册商</td><td>管某后缀的机构 / 你买域名的店</td><td>2</td></tr>
+    <tr><td>WHOIS</td><td>查域名注册信息的工具</td><td>2</td></tr>
+    <tr><td>DNS</td><td>把域名翻译成 IP 的全球系统</td><td>3</td></tr>
+    <tr><td>A / CNAME 记录</td><td>指向 IP / 指向另一个域名</td><td>3</td></tr>
+    <tr><td>递归解析器</td><td>帮你跑完整个查询的那台</td><td>4</td></tr>
+    <tr><td>根 / 顶级域 / 权威服务器</td><td>三级接力，层层指路</td><td>4</td></tr>
+    <tr><td>TCP 握手</td><td>建立可靠连接的三次招呼</td><td>4</td></tr>
+    <tr><td>TLS 握手</td><td>协商加密，https 的关键一步</td><td>4/7</td></tr>
+    <tr><td>TTL</td><td>一条记录可缓存多久</td><td>5</td></tr>
+    <tr><td>DNS 传播</td><td>改动逐地铺开、要等的过程</td><td>5</td></tr>
+    <tr><td>NS 记录</td><td>指定谁负责这域名的解析</td><td>3/6</td></tr>
+    <tr><td>SSL 证书 / CA</td><td>加密+验明正身 / 签发证书的机构</td><td>7</td></tr>
+    <tr><td>hosts 文件</td><td>本机最优先的小通讯录</td><td>8</td></tr>
+    <tr><td>URL</td><td>协议+域名+路径+参数的完整地址</td><td>8</td></tr>
+  </table>
+
+  <p style="text-align:center;color:var(--acc2);font-size:18px;margin:30px 0 10px"><b>🎉 从"敲下域名"到"看见页面"，整条链你已经全程走通，还能用命令亲手验证每一段。</b></p>
+  <p style="text-align:center;color:var(--tx3);font-size:14px">配合「静态部署」那篇，你现在能独立完成：注册域名 → 发布网站 → 把域名接上去 → 看懂访问的全过程。</p>
+</section>
+
+</div><!-- /wrap -->
+
+<div class="foot">
+  域名 · 从注册到访问的完整旅程 · 大白话讲透 DNS<br>
+  <span style="color:var(--tx3)">IP 是给机器的，域名是给人的；中间那套全球接力，就是 DNS</span>
+</div>
+
+</main>
+</div><!-- /app -->
+
+<script>
+const $ = s => document.querySelector(s);
+const navLinks=[...document.querySelectorAll('#nav a')];
+const secs=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+function syncNav(){
+  let i=secs.findIndex((s,k)=>{
+    const r=s.getBoundingClientRect();
+    return r.top<=140 && (k===secs.length-1 || secs[k+1].getBoundingClientRect().top>140);
+  });
+  if(i<0)i=0;
+  navLinks.forEach((a,k)=>a.classList.toggle('on',k===i));
+}
+addEventListener('scroll',syncNav,{passive:true}); syncNav();
+const sidebar=$('#sidebar'), scrim=$('#scrim');
+function closeMenu(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+$('#menuBtn').onclick=()=>{ sidebar.classList.toggle('open'); scrim.classList.toggle('open'); };
+scrim.onclick=closeMenu;
+navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMenu(); }));
+
+/* ===== 访问旅程 stepper ===== */
+(function(){
+  const cv=$('#cv-journey'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  // 节点
+  const nodes=[
+    {id:'you', x:90,  y:80,  label:'你的浏览器', ic:'🧑‍💻'},
+    {id:'res', x:400, y:80,  label:'递归解析器', ic:'📖'},
+    {id:'root',x:680, y:70,  label:'根服务器', ic:'🌐'},
+    {id:'tld', x:680, y:180, label:'.com 顶级域', ic:'🏷'},
+    {id:'auth',x:680, y:290, label:'权威服务器', ic:'📇'},
+    {id:'srv', x:400, y:340, label:'网站服务器', ic:'🖥'},
+  ];
+  const N=id=>nodes.find(n=>n.id===id);
+  // 每一步：从 -> 到，说明，是否"返回"（虚线）
+  const steps=[
+    {a:'you',b:'you', t:'第1步 · 先查本机缓存："我记得 example.com 吗？"没有 → 去问解析器', hop:false, self:true},
+    {a:'you',b:'res', t:'第2步 · 把域名交给递归解析器（如 8.8.8.8），它替你跑全程', hop:true},
+    {a:'res',b:'root',t:'第3步 · 解析器问根：".com 归谁管？" 根指路 → 去问 .com', hop:true},
+    {a:'root',b:'res',t:'　　　根回复：".com 找这台顶级域服务器"', hop:true, back:true},
+    {a:'res',b:'tld', t:'第4步 · 解析器问 .com："example.com 归谁管？"', hop:true},
+    {a:'tld',b:'res', t:'　　　.com 回复：去问 example.com 的权威服务器', hop:true, back:true},
+    {a:'res',b:'auth',t:'第5步 · 解析器问权威服务器："IP 到底是多少？"', hop:true},
+    {a:'auth',b:'res',t:'　　　权威回复 A 记录：93.184.216.34（解析器缓存它）', hop:true, back:true},
+    {a:'res',b:'you', t:'　　　解析器把 IP 交回你的浏览器', hop:true, back:true},
+    {a:'you',b:'srv', t:'第6-7步 · 拿 IP 连服务器：TCP 握手 + TLS 加密（https 的🔒）', hop:true},
+    {a:'srv',b:'you', t:'第8步 · HTTP 请求页面 → 服务器回 HTML → 浏览器渲染。完成！', hop:true, back:true, done:true},
+  ];
+  let cur=-1, anim=0, animing=false;
+
+  function nodeBox(n, active){
+    const w=128,h=44;
+    ctx.beginPath();
+    const x=n.x-w/2,y=n.y-h/2,r=10;
+    ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+    ctx.fillStyle= active? 'rgba(88,166,255,.18)' : '#1c2230';
+    ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle= active? '#58a6ff':'#2d333b'; ctx.stroke();
+    ctx.fillStyle='#e6edf3'; ctx.font='14px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(n.ic+' '+n.label, n.x, n.y);
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // 已完成的连线（淡）
+    for(let i=0;i<=cur;i++){
+      const s=steps[i]; if(s.self) continue;
+      const A=N(s.a),B=N(s.b);
+      ctx.strokeStyle= s.back? 'rgba(63,185,80,.25)':'rgba(88,166,255,.25)';
+      ctx.lineWidth=2; ctx.setLineDash(s.back?[5,4]:[]);
+      ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // 节点
+    const activeIds = cur>=0 ? [steps[cur].a, steps[cur].b] : ['you'];
+    nodes.forEach(n=> nodeBox(n, activeIds.includes(n.id)));
+    // 当前动画包
+    if(cur>=0){
+      const s=steps[cur];
+      if(s.self){
+        const n=N('you');
+        ctx.fillStyle='#d29922'; ctx.font='22px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('🔍', n.x, n.y-40+Math.sin(anim*6)*3);
+      } else {
+        const A=N(s.a),B=N(s.b);
+        const t=Math.min(anim,1);
+        const px=A.x+(B.x-A.x)*t, py=A.y+(B.y-A.y)*t;
+        // 高亮当前线
+        ctx.strokeStyle= s.back? '#3fb950':'#58a6ff'; ctx.lineWidth=2.5; ctx.setLineDash(s.back?[5,4]:[]);
+        ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(px,py); ctx.stroke(); ctx.setLineDash([]);
+        // 包
+        ctx.beginPath(); ctx.arc(px,py,9,0,7);
+        ctx.fillStyle= s.done? '#3fb950' : (s.back?'#3fb950':'#58a6ff'); ctx.fill();
+        ctx.fillStyle='#0d1117'; ctx.font='11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(s.back?'✓':'?', px,py);
+      }
+    }
+    // 图例
+    ctx.textAlign='left'; ctx.font='12px sans-serif'; ctx.textBaseline='alphabetic';
+    ctx.fillStyle='#58a6ff'; ctx.fillText('— 去问（查询）', 30, H-16);
+    ctx.fillStyle='#3fb950'; ctx.fillText('┄ 回答（返回）', 160, H-16);
+  }
+  function loop(){
+    if(animing){ anim=Math.min(anim+0.04,1); if(anim>=1) animing=false; }
+    draw(); requestAnimationFrame(loop);
+  }
+  $('#jn-next').onclick=()=>{
+    if(cur<steps.length-1){ cur++; anim=0; animing=true; $('#jn-tip').textContent=steps[cur].t; }
+    else { $('#jn-tip').textContent='旅程结束 ✅ 点"重置"再看一遍。'; }
+  };
+  $('#jn-reset').onclick=()=>{ cur=-1; anim=0; animing=false; $('#jn-tip').textContent='点"下一步"开始这场接力。'; draw(); };
+  draw(); loop();
+})();
+</script>
+</body>
+</html>

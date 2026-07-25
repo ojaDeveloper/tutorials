@@ -605,40 +605,100 @@
 <section id="c7">
   <div class="yr">合流① · 全是旧零件，没有新数学</div>
   <h2>第 7 层：看懂一个神经网络</h2>
-  <div class="sub">把前 6 层拼起来——你会发现"训练神经网络"没有一个新数学</div>
+  <div class="sub">上一层卡在哪 → 零件都懂了（wx+b、矩阵乘、softmax、交叉熵、梯度、下降），但还没拼成一台"能学"的完整机器</div>
 
-  <div class="concept"><dl>
-    <dt>一个神经元</dt><dd>= <code>激活(w·x + b)</code>：直线(第1层) + 一个掰弯。<span class="dep">依赖：wx+b</span></dd>
-    <dt>激活函数</dt><dd>= 给直线<b>掰个弯</b>。没有它，多少层叠起来还是一条直线，学不了复杂东西。</dd>
-    <dt>前向传播</dt><dd>= 一连串<b>矩阵乘 + 激活</b>，最后 softmax 出概率。<span class="dep">依赖：矩阵乘、softmax</span></dd>
-    <dt>反向传播</dt><dd>= <b>链式法则</b>从输出层求梯度回到输入层。<span class="dep">依赖：链式法则</span></dd>
-    <dt>参数更新</dt><dd>= <b>梯度下降 / Adam</b>，每个 w、b 减去学习率×自己的梯度。<span class="dep">依赖：梯度下降</span></dd>
-  </dl></div>
+  <div class="teach">
+    <div class="lead">① 一个神经元 = 一条直线，掰个弯</div>
+    <p>一个神经元干两件事：先算第 1 层那条直线 <code>w·x+b</code>，再过一个<b>激活函数</b>把它"掰个弯"。最常用的激活 <b>ReLU</b> 简单到发指：<b>负的归零、正的原样</b>。<span class="dep">依赖：wx+b</span></p>
+    <div class="formula">神经元输出 = 激活( w·x + b )　<span class="c">例：ReLU(−0.3)=0，ReLU(0.7)=0.7</span></div>
+    <p>为什么非要掰弯？这正是第 2 层那个反问的答案：<b>不掰弯，多少层矩阵乘叠起来还是等价于一条直线</b>，再深也学不了弯弯绕绕。</p>
+  </div>
 
-  <div class="fix"><b>本层顿悟：</b>训练神经网络 = <span class="key">前向(矩阵乘) → 损失(交叉熵) → 反向(链式法则) → 更新(梯度下降)，循环</span>。全是第 0–6 层的零件。</div>
+  <div class="teach">
+    <div class="lead">② 一层 = 矩阵乘 + 激活；很多层叠起来 = 深度网络</div>
+    <p>把一整排神经元一起算，就是第 2 层的<b>矩阵乘</b>，后面跟一个激活。一层接一层地叠，就是"深度"学习。数据从输入层一路 <b>矩阵乘→激活→矩阵乘→激活……</b> 流到输出层，最后用 <b>softmax</b>（第 4 层）吐出概率——这整个流动就叫<b>前向传播</b>。<span class="dep">依赖：矩阵乘、softmax</span></p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">③ 把"学"这台机器拼齐：四步一循环</div>
+    <p>现在所有零件对号入座，拼成一个完整循环——<b>没有一个新数学</b>：</p>
+    <ul class="mini">
+      <li><b>前向传播</b>：矩阵乘+激活，一路算到 softmax 出概率。<span class="en">（第 2、4 层）</span></li>
+      <li><b>算损失</b>：交叉熵比对"输出概率"和"真答案"，得一个数。<span class="en">（第 5 层）</span></li>
+      <li><b>反向传播</b>：链式法则从输出层把梯度一环环乘回输入层。<span class="en">（第 3 层）</span></li>
+      <li><b>更新参数</b>：每个 w、b 减去学习率×自己的梯度（SGD/Adam）。<span class="en">（第 6 层）</span></li>
+    </ul>
+    <p>然后<b>重复很多步</b>。注意：这个"重复"（epoch/循环）是<b>外面训练脚本</b>的事，不在网络本身里——正是你文档反复强调的"Epoch 是外挂，不属于模型核心"。</p>
+  </div>
+
+  <div class="chain">
+<span class="a">前向(矩阵乘+激活+softmax)</span> <span class="ar">→</span> <span class="a">损失(交叉熵)</span> <span class="ar">→</span> <span class="a">反向(链式法则求梯度)</span> <span class="ar">→</span> <span class="a">更新(梯度下降/Adam)</span> <span class="ar">→</span> <span class="z">↺ 循环</span>
+  </div>
+
+  <div class="drill">
+    <div class="t">练习 · 第 7 层</div>
+    <div class="item"><span class="lv l1">手算</span> 一个神经元 <code>w=[0.5, −1]</code>、<code>b=0.1</code>，输入 <code>x=[2, 1]</code>，激活用 ReLU。求输出。
+      <details class="ans"><summary></summary><div class="body"><code>w·x+b = 0.5×2 + (−1)×1 + 0.1 = 1 − 1 + 0.1 = 0.1</code>；<code>ReLU(0.1)=0.1</code>（正的原样）。<br>若算出来是负的（比如 −0.3），ReLU 会把它压成 0。整个神经网络，就是成千上万个这种"点积+掰弯"叠出来的。</div></details>
+    </div>
+    <div class="item"><span class="lv l2">反问</span> 如果把所有激活函数都去掉（纯矩阵乘叠 10 层），这个"深度网络"还能学复杂东西吗？
+      <details class="ans"><summary></summary><div class="body"><b>不能。</b>10 层纯矩阵乘 = 10 个矩阵连乘 = 数学上<b>等价于一个矩阵</b> = 一层线性变换，再深也只是一条（超平面）直线，学不了非线性的东西（连"异或"都学不会）。<b>激活的"掰弯"才是"深度"有意义的前提。</b>这就是第 2 层那个反问的正式答案。</div></details>
+    </div>
+    <div class="item"><span class="lv l3">思考</span> 前向传播，和"推理时生成一个词"是同一个前向吗？训练的前向 vs 推理的前向差在哪？
+      <details class="ans"><summary></summary><div class="body"><b>核心计算完全一样</b>（矩阵乘+激活+softmax，同一套权重）。差在"外面接什么"：<b>训练</b>时前向后面接"算损失→反向→更新参数"，且一次并行算整句（teacher forcing）；<b>推理</b>时前向后面只接"采样出一个词→拼回输入→再前向"，<b>不改参数</b>。所以训练和推理不是两套机制，是<b>同一个前向核心 + 不同的外包流程</b>。</div></details>
+    </div>
+  </div>
+
+  <div class="fix"><b>本层顿悟：</b>训练神经网络 = <span class="key">前向(矩阵乘+激活) → 损失(交叉熵) → 反向(链式法则) → 更新(Adam)，循环</span>。<b>全是第 0–6 层的零件，没有一样新东西。</b>下一层，把这台机器升级成 Transformer。</div>
 </section>
 
 <!-- ============ 第8层 ============ -->
 <section id="c8">
   <div class="yr">合流② · 终点：通关那份 Transformer 文档</div>
   <h2>第 8 层：看懂 Transformer</h2>
-  <div class="sub">把文档里每个数学符号，用前面学的东西逐一拆开</div>
+  <div class="sub">上一层卡在哪 → 普通网络能把"一堆数变成另一堆数"，但没法让"每个词主动关注句子里相关的其他词"</div>
 
-  <div class="concept"><dl>
-    <dt>词向量</dt><dd>= 把"字"变成一串数，语义近的向量也近。<span class="dep">依赖：向量</span></dd>
-    <dt>Q、K、V</dt><dd>= 对词向量各乘一个矩阵得到的三份新向量（查询/被查/内容）。<span class="dep">依赖：矩阵乘</span></dd>
-    <dt>注意力打分</dt><dd>= <b>Q·K 点积</b>：两个词相关不相关，用点积量相似度。<span class="dep">依赖：点积</span></dd>
-    <dt>÷ √dₖ</dt><dd>= <b>缩放</b>，防点积太大 → softmax 饱和 → 梯度变小学不动（是<b>防梯度消失</b>；文档里一处说成"防爆炸"是反的）。</dd>
-    <dt>softmax(打分)</dt><dd>= 把相关度变成<b>注意力权重</b>（加起来=1）。<span class="dep">依赖：softmax</span></dd>
-    <dt>加权求和 V</dt><dd>= 按注意力权重把各词内容<b>混合</b>（权重×向量再相加）。<span class="dep">依赖：数乘、向量加法</span></dd>
-    <dt>多头</dt><dd>= 同时开好几套 Q/K/V 看不同角度，再拼起来。</dd>
-  </dl></div>
+  <div class="teach">
+    <div class="lead">① 什么问题逼出"注意力"？——让每个词看到并加权关注其他词</div>
+    <p>"小明把书给<b>他</b>"——这个"他"指谁？模型得让"他"这个词<b>回头去看</b>前面的词、判断跟谁最相关。老办法（RNN）一个字一个字地读，又慢、隔太远还会忘。Transformer 的答案是<b>注意力</b>：让每个词<b>一次性看到全句</b>，按"相关度"加权吸收信息。而"相关度"怎么算？——正是第 2 层的<b>点积</b>。</p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">② 把文档里的注意力公式，逐符号拆到你学过的东西</div>
+    <p>先把字变成<b>词向量</b>（第 2 层：一串数，语义近向量近）。然后：</p>
+    <div class="concept"><dl>
+      <dt>Q、K、V</dt><dd>对每个词向量各乘一个矩阵，得到三份新向量：查询 Q / 键 K / 值 V。<span class="dep">第2层：矩阵乘</span></dd>
+      <dt>Q·K 打分</dt><dd>用 <b>点积</b>算"这个词该多关注那个词"——点积=相似度。<span class="dep">第2层：点积</span></dd>
+      <dt>÷ √dₖ</dt><dd><b>缩放</b>：维度大时点积会很大，太大会让 softmax 饱和、梯度变小学不动，所以除以 √dₖ 拉回来。<b>（防梯度消失；你文档说成"防爆炸"是反的）</b></dd>
+      <dt>softmax</dt><dd>把一排分数变成<b>注意力权重</b>（加起来=1）。<span class="dep">第4层：softmax</span></dd>
+      <dt>加权求和 V</dt><dd>按权重把各词的 V <b>混合</b>起来（权重×向量再相加）——这就是这个词"吸收"到的信息。<span class="dep">第2层：数乘+向量加法</span></dd>
+      <dt>多头</dt><dd>同时开好几套 Q/K/V 看不同角度（谁是主语、谁在修饰…），再拼起来。</dd>
+    </dl></div>
+    <div class="formula">Attention(Q,K,V) = softmax( Q·Kᵀ / √dₖ ) · V<span class="c">　←整个公式，现在每个符号你都能说出它是第几层的什么</span></div>
+  </div>
+
+  <div class="teach">
+    <div class="lead">③ 整台机器：还是第 7 层那个循环，一点没变</div>
+    <p>把"注意力 + 前馈(就是第 7 层的矩阵乘+激活) + 残差 + 归一化"打包成一层，叠 N 层，最后 softmax 出"下一个词的概率"。<b>训练照样是第 7 层那四步循环</b>：前向 → 交叉熵 → 反向 → Adam。Transformer 不是新物种，是<b>把注意力塞进了那台你已经看穿的机器</b>。</p>
+  </div>
 
   <div class="chain">
 词向量 <span class="ar">→</span> (注意力 ＋ 前馈 ＋ 残差 ＋ 归一化) × N 层 <span class="ar">→</span> softmax 出下一个词概率 <span class="ar">→</span> <span class="h">交叉熵损失</span> <span class="ar">→</span> <span class="h">反向传播</span> <span class="ar">→</span> <span class="h">Adam 更新</span>
   </div>
 
   <div class="fix"><b>通关顿悟：</b><span class="key">Transformer = 一堆矩阵乘 + 点积 + softmax 叠 N 层</span>，训练照样是"前向→交叉熵→反向→Adam"。文档里那句"一百多行代码"的每一行，现在都对应到你学过的某个数学零件。</div>
+
+  <div class="drill">
+    <div class="t">练习 · 第 8 层</div>
+    <div class="item"><span class="lv l1">手算</span> 两个词向量 <code>a=[1, 0]</code>、<code>b=[0.6, 0.8]</code>，求 <code>a</code> 对 <code>a</code>、<code>a</code> 对 <code>b</code> 的注意力打分（点积），谁更受关注？
+      <details class="ans"><summary></summary><div class="body"><code>a·a=1×1+0×0=1</code>；<code>a·b=1×0.6+0×0.8=0.6</code>。<code>a</code> 对自己打分 1 > 对 b 的 0.6，所以<b>更关注自己</b>。这两个分数再过 softmax，会变成加起来=1 的两个权重（约 0.6 和 0.4），就是"分给谁多少注意力"。<b>点积大 → 相关 → 多分配注意力</b>，一条龙全是第 2、4 层的东西。</div></details>
+    </div>
+    <div class="item"><span class="lv l2">反问</span> 为什么注意力公式要除以 <code>√dₖ</code>？不除会怎样？（顺便说说你文档哪里讲反了）
+      <details class="ans"><summary></summary><div class="body">词向量维度 dₖ 常是几百上千，点积是 dₖ 项之和，数值和方差都随 dₖ <b>变大</b>。分数太大喂进 softmax → 几乎一个接近 1、其余接近 0（<b>饱和</b>）→ 梯度极小 → 学不动（<b>梯度消失</b>）。除以 √dₖ 把方差压回 ~1，保住梯度。<br>所以它是<b>防饱和/防梯度消失</b>——你文档里有一处说成"防梯度<b>爆炸</b>"，方向反了。</div></details>
+    </div>
+    <div class="item"><span class="lv l3">思考</span> 注意力让每个词看全句，n 个词要两两算 = n² 个点积。为什么长文本是"算力杀手"？但"训练慢全怪注意力平方"这话准确吗？
+      <details class="ans"><summary></summary><div class="body">n 个词每个和 n 个算打分 = n×n，<b>长度翻倍、注意力的计算和显存翻 4 倍</b>（O(n²) 平方级），这是长文本瓶颈的来源。<br>但不准确的是"全怪它"：整个前向里还有<b>前馈层</b>等和参数量成正比的<b>线性项</b>，计算量也很大，短/中等长度时反而是大头。<b>把"训练慢"全归给注意力平方是以偏概全</b>（你文档就这么讲，欠准确）——只有序列很长时，n² 项才真正主导。</div></details>
+    </div>
+  </div>
 
   <h3>验证你真的通关了</h3>
   <ul class="mini">

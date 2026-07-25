@@ -417,17 +417,59 @@
 <section id="c4">
   <div class="yr">不确定性的语言 · 模型不给答案，给概率</div>
   <h2>第 4 层：概率与统计（分布 · 期望 · softmax）</h2>
-  <div class="sub">AI 输出的不是"确定答案"，而是"每个选项的概率"</div>
+  <div class="sub">上一层卡在哪 → 能让模型"算出一个确定的数"了，但现实是不确定的：同样的开头，下一个词有很多可能</div>
 
-  <div class="concept"><dl>
-    <dt>概率</dt><dd>= 可能性的度量（0 到 1）= "占比"。<span class="dep">依赖：比例</span></dd>
-    <dt>期望</dt><dd>= <b>加权平均</b>：每个结果 × 它的概率，再相加。<span class="star">★</span> <b>损失就是误差的期望</b>。<span class="dep">依赖：乘法、加法</span></dd>
-    <dt>条件概率 P(A|B)</dt><dd>= 给定 B 后 A 的概率。<span class="star">★</span> <b>语言模型的本质就是 P(下一个词 | 前面的词)</b>。</dd>
-    <dt>softmax</dt><dd>= 把一串分数变成一串<b>概率</b>：先各取指数（拉开差距、变正数），再除以总和（凑成 1）。<span class="star">★</span> <b>模型输出层就是它</b>。<span class="dep">依赖：指数、除法</span></dd>
-    <dt>极大似然</dt><dd>= 调旋钮，<b>让"真实数据出现"的概率最大</b>——这就是训练目标的本质。<span class="dep">依赖：条件概率</span></dd>
-  </dl></div>
+  <div class="teach">
+    <div class="lead">① 什么问题逼出"概率"？——想给"可能性"一个数</div>
+    <p>17 世纪贵族赌骰子，找帕斯卡、费马算"这局我平均能赢多少、该怎么分赌注"。为了回答，人类被逼着给"可能性"配一个数：<b>概率 = 0 到 1 之间的一个数</b>，0=不可能、1=必然，本质就是"占比"（掷骰子出 6 的概率 = 1/6）。<span class="dep">依赖：比例</span></p>
+    <p><span class="star">★</span> 对 AI 极其关键：<b>模型不该吐"唯一确定答案"</b>。"今天天气很___"后面填"好/热/冷/糟"都合理，模型该给的是<b>每个词多大可能</b>——一张 <b>概率分布</b>表，而不是一个词。</p>
+  </div>
 
-  <div class="fix"><b>本层顿悟：</b><span class="key">模型不输出答案，输出概率分布（softmax）；训练目标 = 让真实答案的概率尽量大</span>。</div>
+  <div class="teach">
+    <div class="lead">② 什么问题逼出"期望"？——想知道"平均而言得多少"</div>
+    <p>赌局有多个结果、各有概率，想问"长期玩下去平均每把赢多少"。答案是 <b>期望 = 加权平均</b>：每个结果 × 它的概率，再全部相加。<span class="dep">依赖：乘法、加法</span></p>
+    <p><span class="star">★</span> <b>AI 的"损失"就是误差的期望</b>——不是看某一条数据错多少，而是看"平均而言错多少"。另一个量 <b>方差 = 波动有多大</b>（离平均多散）；<span class="star">★</span> 权重初始化、归一化，本质都在<b>控制方差</b>，别让信号越传越炸或越传越没。</p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">③ 什么问题逼出"条件概率"？——语言模型的真身</div>
+    <p><b>条件概率 <code>P(A|B)</code></b> = "已经知道 B 发生了，A 的概率是多少"（下雨天带伞的概率，比晴天高）。<span class="star">★★</span> <b>语言模型的本质，一句话就是它</b>：</p>
+    <div class="formula">P(下一个词 │ 前面所有词)<span class="c">　（"今天天气很" 已知 → "好"的概率多大？"热"呢？）</span></div>
+    <p>整个 GPT，做的就是不停算这个条件概率、然后按概率挑下一个词。<span class="dep">依赖：概率</span></p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">④ 什么问题逼出"softmax"？——把一堆"分数"变成"概率"</div>
+    <p>模型内部一通矩阵乘（第 2 层）算出来的，是一串<b>没头没脑的分数</b>（叫 logits，可正可负、可大可小，比如 <code>[2, 1, 0]</code>）。可"概率"必须满足两条：<b>都非负</b>、<b>加起来等于 1</b>。分数不满足，怎么办？<b>softmax</b> 两步搞定：</p>
+    <div class="formula">① 各取指数（变正、拉开差距）：e² , e¹ , e⁰ = 7.39 , 2.72 , 1.00
+② 除以总和（凑成 1）：/11.11 → <b>0.665 , 0.245 , 0.090</b><span class="c">　←加起来=1，成了概率</span></div>
+    <p><span class="star">★</span> <b>模型输出层就是它</b>。用指数是因为它<b>永远为正</b>、还能把"分数的小差距"放大成"概率的大差距"（2 比 1 只高 1 分，概率却 0.665 比 0.245 高一大截）。<span class="dep">依赖：指数、除法</span></p>
+    <div class="note"><b>连回第 1 层：</b>为什么偏用"指数"而不是别的变正办法？因为指数和第 5 层的 <code>log</code> 是逆运算，一对上，损失函数的求导会变得异常干净——这不是巧合，是精心设计。</div>
+  </div>
+
+  <div class="teach">
+    <div class="lead">⑤ 训练目标的本质：极大似然</div>
+    <p>那"训得好"到底是什么标准？<b>极大似然</b>：调旋钮，让模型给<b>真实出现过的数据</b>打的概率<b>尽量大</b>。训练语料里"今天天气很好"出现了，就调参数让 <code>P(好│今天天气很)</code> 变高。<span class="key">训练 = 让真实答案的概率最大化。</span><span class="dep">依赖：条件概率</span></p>
+  </div>
+
+  <div class="chain">
+"想量可能性" <span class="ar">→</span> <span class="a">概率</span> <span class="ar">→</span> "平均得多少" <span class="ar">→</span> <span class="a">期望=损失</span> <span class="ar">→</span> "给定前文猜下词" <span class="ar">→</span> <span class="a">条件概率=语言模型</span> <span class="ar">→</span> "分数变概率" <span class="ar">→</span> <span class="z">softmax = 输出层</span>
+  </div>
+
+  <div class="drill">
+    <div class="t">练习 · 第 4 层</div>
+    <div class="item"><span class="lv l1">手算</span> 对分数 <code>[1, 0, 0]</code> 做 softmax（<code>e¹≈2.72, e⁰=1</code>），求三个概率；并说说和 <code>[2,1,0]</code> 那个例子比，谁"更拿不定主意"。
+      <details class="ans"><summary></summary><div class="body">exp 后 <code>[2.72, 1, 1]</code>，总和 4.72 → 概率 <code>[0.576, 0.212, 0.212]</code>。<br>它比 <code>[2,1,0]→[0.665,0.245,0.09]</code> <b>更拿不定主意</b>：最高概率只有 0.576（vs 0.665），且后两个并列。<b>分数拉得越开，softmax 越"自信"；分数越接近，输出越"平均、越犹豫"</b>——这正是第 5 层"熵=不确定性"的前奏。</div></details>
+    </div>
+    <div class="item"><span class="lv l2">反问</span> 既然要"分数变概率"，为什么不直接"每个分数 ÷ 总分"，非要先取指数这么麻烦？
+      <details class="ans"><summary></summary><div class="body">"÷总分"有两个死穴：① 分数可能是<b>负数</b>（如 −3），除出来会是负概率，非法；② 差距被压得太平，模型没法表达"我很确定是它"。<b>指数先把一切变正、又把差距按指数放大</b>，两个问题一起解决。所以 softmax 的"麻烦"是<b>被这两个硬约束逼出来的</b>，不是故弄玄虚。</div></details>
+    </div>
+    <div class="item"><span class="lv l3">思考</span> "训练=让真实答案概率最大"。若某句训练数据里下一个词是"好"，模型当前给"好"的概率只有 0.05，你觉得接下来梯度会把这个概率往哪推？这跟第 3 层的"梯度"怎么接上？
+      <details class="ans"><summary></summary><div class="body">往<b>上</b>推——目标是让 <code>P(好)</code> 变大。具体做法：定义一个"越不对越大"的损失（第 5 层的交叉熵 <code>−log(0.05)</code>，很大），对它求梯度（第 3 层），梯度会告诉每个旋钮"往哪拧能让 P(好) 升、损失降"，再往反方向挪一步（第 6 层）。<b>你看，概率(4层)→损失(5层)→梯度(3层)→更新(6层)已经串起来了</b>，第 7 层就是把它们拼成完整训练循环。</div></details>
+    </div>
+  </div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">模型不输出答案，输出概率分布（靠 softmax）；训练目标 = 让真实答案的概率尽量大（极大似然）</span>。下一层就把"概率错多少"变成一个能求导的损失数。</div>
 </section>
 
 <!-- ============ 第5层 ============ -->

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 背后的数学 · 从「数是什么」到「看懂反向传播」</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2d333b;
+    --tx:#e6edf3; --tx2:#9da7b3; --tx3:#6e7681;
+    --acc:#58a6ff; --acc2:#bc8cff; --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+    --teal:#39c5cf; --gold:#e3b341;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--tx);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.85; font-size:16px;}
+  .app{display:flex; align-items:flex-start}
+  .sidebar{position:sticky; top:0; height:100vh; flex:0 0 268px; width:268px;
+    border-right:1px solid var(--line); background:var(--panel);
+    overflow-y:auto; padding:18px 0 40px; scrollbar-width:thin;}
+  .sidebar::-webkit-scrollbar{width:8px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
+  .brand{padding:4px 20px 16px; border-bottom:1px solid var(--line); margin-bottom:8px}
+  .brand .logo{font-size:16px; font-weight:700; letter-spacing:.3px}
+  .brand .logo .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .sb{font-size:12px; color:var(--tx3); margin-top:5px}
+  nav.toc{padding:0 10px}
+  .toc .grp{font-size:11px; letter-spacing:1.5px; color:var(--tx3); padding:16px 12px 6px; font-weight:700}
+  .toc a{display:flex; align-items:center; gap:9px; position:relative;
+    color:var(--tx2); text-decoration:none; font-size:13.5px;
+    padding:7px 10px 7px 14px; border-radius:8px; margin:1px 0 1px 8px;
+    border-left:2px solid var(--line); transition:.12s;}
+  .toc a i{flex:0 0 auto; width:20px; height:20px; border-radius:6px; font-style:normal;
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+    background:var(--panel2); color:var(--tx3); border:1px solid var(--line);}
+  .toc a:hover{color:var(--tx); background:var(--panel2)}
+  .toc a.on{color:var(--acc); background:rgba(88,166,255,.1); border-left-color:var(--acc)}
+  .toc a.on i{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:700}
+  .main{flex:1 1 auto; min-width:0}
+  .wrap{max-width:840px; margin:0 auto; padding:0 30px 140px}
+  header{padding:56px 30px 42px; text-align:center;
+    background:radial-gradient(900px 400px at 50% -120px,rgba(88,166,255,.20),transparent 70%);
+    border-bottom:1px solid var(--line);}
+  header h1{font-size:32px; margin:0 0 14px; letter-spacing:.5px}
+  header h1 .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--tx2); max-width:680px; margin:0 auto; font-size:16px}
+  .tags{margin-top:18px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+  .tag{display:inline-block;padding:5px 14px;border:1px solid var(--line);border-radius:30px;color:var(--tx2);font-size:13px}
+  .menu-btn{display:none; position:fixed; top:14px; left:14px; z-index:120;
+    width:42px; height:42px; border-radius:10px; font-size:18px;
+    background:var(--panel); border:1px solid var(--line); color:var(--tx);}
+  .scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99}
+  @media(max-width:880px){
+    .sidebar{position:fixed; left:0; top:0; z-index:100; transform:translateX(-100%); transition:.25s; box-shadow:6px 0 30px rgba(0,0,0,.5)}
+    .sidebar.open{transform:none}
+    .scrim.open{display:block}
+    .menu-btn{display:flex; align-items:center; justify-content:center}
+    header{padding-top:64px}
+  }
+  section{padding:46px 0 10px; border-bottom:1px solid var(--line)}
+  .yr{font-size:13px; color:var(--acc); letter-spacing:1.5px; font-weight:600}
+  h2{font-size:26px; margin:6px 0 4px}
+  .sub{color:var(--tx3); font-size:14px; margin-bottom:18px}
+  h3{font-size:18px; margin:30px 0 8px; color:var(--tx)}
+  p{margin:12px 0}
+  b,strong{color:#fff}
+  code{background:var(--panel2); padding:2px 6px; border-radius:5px; font-size:14px; color:#ffd9a0; font-family:"Cascadia Code",Consolas,monospace}
+  ul,ol{margin:12px 0; padding-left:22px}
+  li{margin:6px 0}
+  .term{color:var(--acc2); font-weight:600; border-bottom:1px dashed rgba(188,140,255,.5)}
+  .en{color:var(--tx3); font-size:.86em; font-family:"Cascadia Code",Consolas,monospace}
+  .key{background:linear-gradient(transparent 62%,rgba(188,140,255,.35) 0); padding:0 2px}
+  .pain{border-left:3px solid var(--bad); background:rgba(248,81,73,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .pain b{color:var(--bad)}
+  .fix{border-left:3px solid var(--ok); background:rgba(63,185,80,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .fix b{color:var(--ok)}
+  .note{border-left:3px solid var(--acc); background:rgba(88,166,255,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .warnbox{border-left:3px solid var(--warn); background:rgba(210,153,34,.08); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .warnbox b{color:var(--warn)}
+  /* 概念卡 */
+  .concept{border:1px solid var(--line); background:linear-gradient(180deg,rgba(88,166,255,.05),transparent); border-radius:10px; padding:4px 16px 6px; margin:16px 0}
+  .concept dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:9px 16px; align-items:baseline}
+  .concept dt{color:var(--acc); font-weight:700; font-size:14.5px; white-space:nowrap}
+  .concept dd{margin:0; font-size:15px}
+  .dep{display:inline-block; margin-top:3px; font-size:12.5px; color:var(--tx3); border:1px solid var(--line); border-radius:20px; padding:1px 9px}
+  .star{color:var(--gold)}
+  /* 拆解链 */
+  .chain{font-family:"Cascadia Code",Consolas,monospace; background:#0b0f14; border:1px solid var(--line);
+    border-radius:10px; padding:12px 14px; margin:12px 0; font-size:14px; overflow-x:auto; line-height:2}
+  .chain .h{color:var(--acc2); font-weight:700} .chain .a{color:var(--teal)} .chain .z{color:var(--gold)}
+  .chain .ar{color:var(--tx3)}
+  table.gloss{width:100%; border-collapse:collapse; margin:16px 0; font-size:14px}
+  table.gloss th,table.gloss td{border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+  table.gloss th{background:var(--panel2); color:var(--tx2); font-size:13px}
+  table.gloss td:first-child{white-space:nowrap; color:var(--acc2); font-weight:600}
+  .demo{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; margin:22px 0}
+  .demo .hd{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--tx2); margin-bottom:14px}
+  .demo .hd::before{content:"▶"; color:var(--acc); font-size:10px}
+  .ctrl{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 0 4px}
+  button{background:var(--panel2); color:var(--tx); border:1px solid var(--line);
+    padding:8px 16px; border-radius:8px; cursor:pointer; font-size:14px; transition:.15s;}
+  button:hover{border-color:var(--acc); color:var(--acc)}
+  button.primary{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:600}
+  input[type=range]{accent-color:var(--acc)}
+  .hint{color:var(--tx3); font-size:13px; margin-top:8px}
+  canvas{display:block; max-width:100%; border-radius:10px; background:#0b0f14}
+  .foot{text-align:center; color:var(--tx3); font-size:13px; padding:40px 0}
+  .mini{list-style:none; padding:0; counter-reset:j}
+  .mini li{position:relative; padding:8px 0 8px 44px; border-left:2px solid var(--line); margin-left:14px}
+  .mini li::before{counter-increment:j; content:counter(j); position:absolute; left:-15px; top:6px;
+    width:28px; height:28px; border-radius:50%; background:var(--panel2); border:1px solid var(--acc); color:var(--acc);
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700}
+  .mini li b{color:#fff}
+  .pill{display:inline-block; font-size:12px; color:var(--gold); border:1px solid rgba(227,179,65,.4); background:rgba(227,179,65,.08); border-radius:20px; padding:1px 9px; margin-left:6px}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">AI 数学 <span class="g">从 0 到反向传播</span></div>
+    <div class="sb">每个术语都拆到"数" · 绝不空降</div>
+  </div>
+  <nav class="toc" id="nav">
+    <div class="grp">先看终点</div>
+    <a href="#chain"><i>⛓</i>五条拆解链总览</a>
+
+    <div class="grp">打地基</div>
+    <a href="#c0"><i>0</i>数与运算的本质</a>
+    <a href="#c1"><i>1</i>代数与函数</a>
+
+    <div class="grp">AI 的骨架</div>
+    <a href="#c2"><i>2</i>线性代数·点积</a>
+    <a href="#c3"><i>3</i>微积分·梯度</a>
+
+    <div class="grp">让它学起来</div>
+    <a href="#c4"><i>4</i>概率·softmax</a>
+    <a href="#c5"><i>5</i>信息论·交叉熵</a>
+    <a href="#c6"><i>6</i>优化·梯度下降</a>
+
+    <div class="grp">合流通关</div>
+    <a href="#c7"><i>7</i>看懂神经网络</a>
+    <a href="#c8"><i>8</i>看懂 Transformer</a>
+
+    <div class="grp">速查</div>
+    <a href="#cA"><i>A</i>术语拆解速查</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<header>
+  <h1>AI 背后的数学，<span class="g">从「数是什么」到「看懂反向传播」</span></h1>
+  <p>不学"全部数学"，只走<b>一条最短直线</b>：从最原始的"数"一路层层递进，直到你能<b class="key">完全看懂 AI 训练里每一个符号</b>——反向传播、交叉熵、softmax、点积注意力、Adam，一个不剩。<b>铁律：绝不空降术语，能拆的一律拆到"数"。</b></p>
+  <div class="tags">
+    <span class="tag">🧮 从 0 起步</span>
+    <span class="tag">🪜 层层递进</span>
+    <span class="tag">⛓ 术语拆到底</span>
+    <span class="tag">🎯 直奔 AI</span>
+    <span class="tag">🔗 接上 Transformer 那篇</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="note" style="margin-top:26px">
+  <b>这是一张"地图"，也是学习顺序。</b> 每一层<b>只用到前面层的东西</b>，从不超前。看不懂某句，就顺着它的 <span class="dep">依赖</span> 标签退回上一层。完整正文（讲解＋练习）会按这张图<b>逐层填</b>。核心比喻先记住一句：<span class="key">AI 就是一个巨大的函数 f，训练就是不停微调它的几十亿旋钮，让它吐得越来越对。</span>
+</div>
+
+<!-- ============ 拆解链总览 ============ -->
+<section id="chain">
+  <div class="yr">先看终点 · 五个最唬人的词，全能拆到"数"</div>
+  <h2>五条拆解链总览</h2>
+  <div class="sub">这五个就是 Transformer 文档里最吓人的术语。顺着箭头一直退，每个都落到第 0 层的"数"</div>
+
+  <div class="chain">
+<span class="h">① 点积注意力</span> <span class="ar">⟵</span> 点积 <span class="ar">⟵</span> <span class="a">向量(一串数)</span> <span class="ar">⟵</span> <span class="z">数</span>
+<span class="h">② 交叉熵损失</span> <span class="ar">⟵</span> 熵 <span class="ar">⟵</span> 信息量 <span class="ar">⟵</span> 对数 <span class="ar">⟵</span> 指数 <span class="ar">⟵</span> 重复乘法 <span class="ar">⟵</span> 乘法 <span class="ar">⟵</span> 加法 <span class="ar">⟵</span> <span class="z">数</span>
+<span class="h">③ 反向传播</span>   <span class="ar">⟵</span> 链式法则 <span class="ar">⟵</span> 求导 <span class="ar">⟵</span> 导数 <span class="ar">⟵</span> <span class="a">斜率(Δy/Δx)</span> <span class="ar">⟵</span> 除法 <span class="ar">⟵</span> <span class="z">数</span>
+<span class="h">④ 梯度下降</span>   <span class="ar">⟵</span> 梯度 <span class="ar">⟵</span> 偏导数 <span class="ar">⟵</span> 导数 <span class="ar">⟵</span> 斜率 <span class="ar">⟵</span> 变化 <span class="ar">⟵</span> <span class="z">数</span>
+<span class="h">⑤ Adam 优化器</span> <span class="ar">⟵</span> 梯度下降 ＋ 移动平均(加权平均) <span class="ar">⟵</span> 期望 <span class="ar">⟵</span> 概率 <span class="ar">⟵</span> 比例 <span class="ar">⟵</span> 除法 <span class="ar">⟵</span> <span class="z">数</span>
+  </div>
+
+  <div class="fix">
+    <b>看懂这张表你就知道：</b>没有任何一个 AI 术语是"魔法"，<span class="key">全是"数"一层层叠出来的</span>。下面从第 0 层开始，把这些箭头一根根接起来。
+  </div>
+</section>
+
+<!-- ============ 第0层 ============ -->
+<section id="c0">
+  <div class="yr">最原始层 · 一切的地基</div>
+  <h2>第 0 层：数与运算的本质</h2>
+  <div class="sub">把"数"和"四则运算"抠到最底——上面每一层都踩在这</div>
+
+  <div class="concept"><dl>
+    <dt>数</dt><dd>= 数量的<b>标签</b>。5 个苹果和 5 根手指"一样多"靠配对，数字只是贴上去的名字。</dd>
+    <dt>加法</dt><dd>= <b>合并</b>。最原始的运算，其余全由它长出来。</dd>
+    <dt>减法</dt><dd>= 加法的<b>逆</b>（"还差多少"）。引出 <b>负数 = 反方向</b>（欠债、零下）。</dd>
+    <dt>乘法</dt><dd>= <b>重复加</b>。3×4 就是 4+4+4。<span class="dep">依赖：加法</span></dd>
+    <dt>除法</dt><dd>= 乘法的<b>逆 / 平均分</b>。引出 <b>分数 = 把 1 切开</b>。<span class="dep">依赖：乘法</span></dd>
+    <dt>比例</dt><dd>= 除法的一种用法（"谁是谁的几倍"）。<b>概率、期望、学习率</b>全是比例。<span class="dep">依赖：除法</span></dd>
+  </dl></div>
+
+  <div class="fix"><b>本层顿悟：</b>每个运算都在回答一个"逆问题"，而且 <span class="key">乘法只是加法的偷懒、除法只是乘法的偷懒</span>。往上全部术语，最终都由加法长出来。</div>
+</section>
+
+<!-- ============ 第1层 ============ -->
+<section id="c1">
+  <div class="yr">第一次抽象 · 操纵"还不知道的数"</div>
+  <h2>第 1 层：代数与函数</h2>
+  <div class="sub">AI 的一切都是"未知的旋钮"——先学会用字母思考</div>
+
+  <div class="concept"><dl>
+    <dt>变量 x</dt><dd>= 装任意数的<b>盒子</b>。从 <code>3+□=7</code> 升级到 <code>3+x=7</code>，第一次操纵"未知"。</dd>
+    <dt>函数 f(x)</dt><dd>= 输入→输出的<b>机器</b>：给一个数，还你一个数。<span class="star">★</span> <b>整个 AI 模型就是一个巨大的 f</b>，全教程的核心比喻。<span class="dep">依赖：变量</span></dd>
+    <dt>y = w·x + b</dt><dd>一条<b>直线</b>：<code>w</code> 控多陡、<code>b</code> 控上下移。<span class="star">★</span> <b>这就是"一个神经元"的骨架</b>，记死。<span class="dep">依赖：乘法、加法</span></dd>
+    <dt>指数</dt><dd>= <b>重复乘</b>。<code>2³=2×2×2</code>，翻倍再翻倍。<span class="dep">依赖：乘法</span></dd>
+    <dt>对数 log</dt><dd>= 指数的<b>逆</b>，问"翻了几次"。<code>log₂8=3</code>。<span class="star">★</span> <b>损失函数里的 log 就是"数量级/翻倍次数"</b>。<span class="dep">依赖：指数</span></dd>
+  </dl></div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">万物皆可写成 f(x)</span>；最简单的 f 就是直线 <code>w·x+b</code>——AI 的几十亿参数，本质就是无数个 w 和 b。</div>
+</section>
+
+<!-- ============ 第2层 ============ -->
+<section id="c2">
+  <div class="yr">AI 的骨架 · 一个操作撑起半个 AI</div>
+  <h2>第 2 层：线性代数（向量 · 点积 · 矩阵乘）</h2>
+  <div class="sub">AI 的数据不是一个数，而是"一串数"和"一表数"</div>
+
+  <div class="concept"><dl>
+    <dt>向量</dt><dd>= <b>一串数</b> <code>[1.2,-0.3,0.8]</code>。可看成"一个词的编码"，也可看成"空间里的箭头"。<span class="dep">依赖：数</span></dd>
+    <dt>点积</dt><dd>= 对应相乘再相加，得<b>一个数</b>：<code>[a,b]·[c,d]=ac+bd</code>。<b>方向越一致，点积越大 → 它就是"相似度打分"</b>。<span class="star">★</span> 注意力的核心。<span class="dep">依赖：乘法、加法</span></dd>
+    <dt>矩阵</dt><dd>= <b>一表数 / 一批向量</b>，也可看成"对空间的一个变换"（旋转/拉伸/投影）。<span class="dep">依赖：向量</span></dd>
+    <dt>矩阵 × 向量</dt><dd>= <b>一次做很多个点积</b>。<span class="star">★</span> <b>神经网络"一层"的计算，就是一次矩阵乘</b>。<span class="dep">依赖：点积</span></dd>
+    <dt>shape 形状</dt><dd>= 行数×列数。<b>AI 报错一大半是 shape 对不上</b>，所以要会数。</dd>
+  </dl></div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">神经网络的每一层 = 一次矩阵乘法</span>；而点积同时又是"相似度"。这一个操作，撑起半个 AI。</div>
+</section>
+
+<!-- ============ 第3层 ============ -->
+<section id="c3">
+  <div class="yr">学习的引擎 · 回答"旋钮往哪拧"</div>
+  <h2>第 3 层：微积分（导数 · 链式法则 · 梯度）</h2>
+  <div class="sub">训练 = "往哪个方向调旋钮能让误差变小"，回答"方向"的数学就是导数</div>
+
+  <div class="concept"><dl>
+    <dt>斜率</dt><dd>= <b>Δy / Δx</b>："x 动一点，y 动多少"——就是除法的一个用法。<span class="dep">依赖：除法</span></dd>
+    <dt>导数</dt><dd>= <b>瞬时斜率</b>：把 Δx 缩到无穷小。<b>它告诉你旋钮往哪拧能让误差降</b>。<span class="dep">依赖：斜率</span></dd>
+    <dt>链式法则</dt><dd>= 一环套一环求导：<code>dy/dx = dy/du × du/dx</code>。<span class="star">★★</span> <b>这一条就是反向传播的全部数学</b>：误差从最后一层，一环环乘回第一层。<span class="dep">依赖：导数</span></dd>
+    <dt>偏导数</dt><dd>= 多个旋钮时，<b>固定其它、只动一个</b>的导数。几十亿旋钮就有几十亿偏导。<span class="dep">依赖：导数</span></dd>
+    <dt>梯度</dt><dd>= 所有偏导<b>打包成的向量</b>，指向"误差上升最快"的方向；<b>反过来走就是下降最快</b>。<span class="dep">依赖：偏导、向量</span></dd>
+  </dl></div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">反向传播不神秘，就是链式法则批量算梯度</span>；训练每一步 = "算出梯度 → 往反方向挪一小步"。</div>
+</section>
+
+<!-- ============ 第4层 ============ -->
+<section id="c4">
+  <div class="yr">不确定性的语言 · 模型不给答案，给概率</div>
+  <h2>第 4 层：概率与统计（分布 · 期望 · softmax）</h2>
+  <div class="sub">AI 输出的不是"确定答案"，而是"每个选项的概率"</div>
+
+  <div class="concept"><dl>
+    <dt>概率</dt><dd>= 可能性的度量（0 到 1）= "占比"。<span class="dep">依赖：比例</span></dd>
+    <dt>期望</dt><dd>= <b>加权平均</b>：每个结果 × 它的概率，再相加。<span class="star">★</span> <b>损失就是误差的期望</b>。<span class="dep">依赖：乘法、加法</span></dd>
+    <dt>条件概率 P(A|B)</dt><dd>= 给定 B 后 A 的概率。<span class="star">★</span> <b>语言模型的本质就是 P(下一个词 | 前面的词)</b>。</dd>
+    <dt>softmax</dt><dd>= 把一串分数变成一串<b>概率</b>：先各取指数（拉开差距、变正数），再除以总和（凑成 1）。<span class="star">★</span> <b>模型输出层就是它</b>。<span class="dep">依赖：指数、除法</span></dd>
+    <dt>极大似然</dt><dd>= 调旋钮，<b>让"真实数据出现"的概率最大</b>——这就是训练目标的本质。<span class="dep">依赖：条件概率</span></dd>
+  </dl></div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">模型不输出答案，输出概率分布（softmax）；训练目标 = 让真实答案的概率尽量大</span>。</div>
+</section>
+
+<!-- ============ 第5层 ============ -->
+<section id="c5">
+  <div class="yr">损失函数从哪来 · 把"对不对"变成一个数</div>
+  <h2>第 5 层：信息论（信息量 · 熵 · 交叉熵）</h2>
+  <div class="sub">怎么把"猜得对不对"变成一个可求导的数？答案在这，直接产出 AI 的损失函数</div>
+
+  <div class="concept"><dl>
+    <dt>信息量</dt><dd>= <b>-log(概率)</b>：越不可能的事，一旦发生信息量越大。用 log 是为了把"翻倍的稀有度"变成"加法的信息"。<span class="dep">依赖：对数、概率</span></dd>
+    <dt>熵</dt><dd>= <b>平均信息量 = 不确定性</b>：把信息量按概率加权平均。越乱越大。<span class="dep">依赖：信息量、期望</span></dd>
+    <dt>交叉熵</dt><dd>= 用"模型以为的分布"去编码"真实分布"的<b>代价</b>。<span class="star">★★</span> <b>这就是损失函数</b>：真答案是"苹果"，模型给苹果的概率越低，<code>-log(概率)</code> 越大，罚得越狠。<span class="dep">依赖：熵</span></dd>
+    <dt>KL 散度</dt><dd>= 两个分布的<b>"距离"</b>。衡量"模型分布"离"真实分布"多远。<span class="dep">依赖：交叉熵</span></dd>
+  </dl></div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">交叉熵损失 = -log(模型给正确答案的概率)</span>——只盯正确答案那一项，概率越低惩罚越狠。</div>
+  <div class="warnbox"><b>纠个常见错：</b>你那份 Transformer 文档把交叉熵说成"两个分布做减法"，其实是<b>取 -log</b>（不是减法）；而且它反传时会把正确词往上推、<b>所有</b>错词往下压，不是"只惩罚某一个词"。</div>
+</section>
+
+<!-- ============ 第6层 ============ -->
+<section id="c6">
+  <div class="yr">怎么调到最好 · 训练的心脏</div>
+  <h2>第 6 层：优化（梯度下降 · SGD · 动量 · Adam）</h2>
+  <div class="sub">有了"损失"(第5层)和"梯度"(第3层)，这层讲怎么一步步把损失调到最小</div>
+
+  <div class="concept"><dl>
+    <dt>梯度下降</dt><dd>= 沿梯度<b>反方向</b>走一小步：<code>新旋钮 = 旧旋钮 − 学习率 × 梯度</code>。<span class="star">★</span> <b>这一行就是训练的心脏</b>。<span class="dep">依赖：梯度</span></dd>
+    <dt>学习率</dt><dd>= <b>每步迈多大</b>。太大跨过最低点甚至飞出去，太小走到天荒地老。它是"比例"，在优化器里、不在模型里。<span class="dep">依赖：比例</span></dd>
+    <dt>SGD</dt><dd>= 随机梯度下降：<b>抽一小批数据估计梯度</b>，快且带噪声（噪声还能帮忙逃出小坑）。<span class="dep">依赖：梯度下降、期望</span></dd>
+    <dt>动量</dt><dd>= 给下山<b>加惯性</b>：把过去几步方向做加权平均，冲过小坑、加速直道。<span class="dep">依赖：移动平均</span></dd>
+    <dt>Adam</dt><dd>= 每个旋钮<b>有自己的步长</b>：一阶矩(方向惯性) + 二阶矩(最近抖得凶就自动减速)。<span class="dep">依赖：动量、方差</span></dd>
+  </dl></div>
+
+  <div class="demo">
+    <div class="hd">动画 · 梯度下降"下山"（拖学习率滑块，看它是稳稳到谷底、还是飞出去）</div>
+    <canvas id="cv-gd" width="800" height="360"></canvas>
+    <div class="ctrl">
+      <button class="primary" id="gd-step">▶ 走一步</button>
+      <button id="gd-auto">⏩ 自动跑</button>
+      <button id="gd-reset">重置</button>
+      <label style="font-size:13px;color:var(--tx2)">学习率
+        <input type="range" id="gd-lr" min="0.02" max="1.05" step="0.01" value="0.30" style="vertical-align:middle;width:150px">
+        <span id="gd-lrv" style="color:var(--acc);font-family:monospace">0.30</span>
+      </label>
+    </div>
+    <div class="hint" id="gd-tip">小球在"损失山谷"里。每走一步 = <code>x ← x − 学习率 × 斜率</code>。试试把学习率拉到 0.9 以上，看它怎么"跨过谷底反复横跳甚至飞走"。</div>
+  </div>
+
+  <div class="warnbox"><b>纠个常见错：</b>Adam 的二阶矩是<b>"梯度平方的移动平均"</b>（谁最近抖得凶就给谁减速），不是你文档里说的"历史加速度"，Adam 也和物理"动量定理"无关（它叫<b>自适应矩估计</b>）。</div>
+  <div class="fix"><b>本层顿悟：</b><span class="key">训练 = 反复执行「算损失 → 反向传播求梯度 → 旋钮 −= 学习率×梯度」</span>；Adam 只是让这一步更聪明。</div>
+</section>
+
+<!-- ============ 第7层 ============ -->
+<section id="c7">
+  <div class="yr">合流① · 全是旧零件，没有新数学</div>
+  <h2>第 7 层：看懂一个神经网络</h2>
+  <div class="sub">把前 6 层拼起来——你会发现"训练神经网络"没有一个新数学</div>
+
+  <div class="concept"><dl>
+    <dt>一个神经元</dt><dd>= <code>激活(w·x + b)</code>：直线(第1层) + 一个掰弯。<span class="dep">依赖：wx+b</span></dd>
+    <dt>激活函数</dt><dd>= 给直线<b>掰个弯</b>。没有它，多少层叠起来还是一条直线，学不了复杂东西。</dd>
+    <dt>前向传播</dt><dd>= 一连串<b>矩阵乘 + 激活</b>，最后 softmax 出概率。<span class="dep">依赖：矩阵乘、softmax</span></dd>
+    <dt>反向传播</dt><dd>= <b>链式法则</b>从输出层求梯度回到输入层。<span class="dep">依赖：链式法则</span></dd>
+    <dt>参数更新</dt><dd>= <b>梯度下降 / Adam</b>，每个 w、b 减去学习率×自己的梯度。<span class="dep">依赖：梯度下降</span></dd>
+  </dl></div>
+
+  <div class="fix"><b>本层顿悟：</b>训练神经网络 = <span class="key">前向(矩阵乘) → 损失(交叉熵) → 反向(链式法则) → 更新(梯度下降)，循环</span>。全是第 0–6 层的零件。</div>
+</section>
+
+<!-- ============ 第8层 ============ -->
+<section id="c8">
+  <div class="yr">合流② · 终点：通关那份 Transformer 文档</div>
+  <h2>第 8 层：看懂 Transformer</h2>
+  <div class="sub">把文档里每个数学符号，用前面学的东西逐一拆开</div>
+
+  <div class="concept"><dl>
+    <dt>词向量</dt><dd>= 把"字"变成一串数，语义近的向量也近。<span class="dep">依赖：向量</span></dd>
+    <dt>Q、K、V</dt><dd>= 对词向量各乘一个矩阵得到的三份新向量（查询/被查/内容）。<span class="dep">依赖：矩阵乘</span></dd>
+    <dt>注意力打分</dt><dd>= <b>Q·K 点积</b>：两个词相关不相关，用点积量相似度。<span class="dep">依赖：点积</span></dd>
+    <dt>÷ √dₖ</dt><dd>= <b>缩放</b>，防点积太大 → softmax 饱和 → 梯度变小学不动（是<b>防梯度消失</b>；文档里一处说成"防爆炸"是反的）。</dd>
+    <dt>softmax(打分)</dt><dd>= 把相关度变成<b>注意力权重</b>（加起来=1）。<span class="dep">依赖：softmax</span></dd>
+    <dt>加权求和 V</dt><dd>= 按注意力权重把各词内容<b>混合</b>（权重×向量再相加）。<span class="dep">依赖：数乘、向量加法</span></dd>
+    <dt>多头</dt><dd>= 同时开好几套 Q/K/V 看不同角度，再拼起来。</dd>
+  </dl></div>
+
+  <div class="chain">
+词向量 <span class="ar">→</span> (注意力 ＋ 前馈 ＋ 残差 ＋ 归一化) × N 层 <span class="ar">→</span> softmax 出下一个词概率 <span class="ar">→</span> <span class="h">交叉熵损失</span> <span class="ar">→</span> <span class="h">反向传播</span> <span class="ar">→</span> <span class="h">Adam 更新</span>
+  </div>
+
+  <div class="fix"><b>通关顿悟：</b><span class="key">Transformer = 一堆矩阵乘 + 点积 + softmax 叠 N 层</span>，训练照样是"前向→交叉熵→反向→Adam"。文档里那句"一百多行代码"的每一行，现在都对应到你学过的某个数学零件。</div>
+
+  <h3>验证你真的通关了</h3>
+  <ul class="mini">
+    <li>拿注意力公式 <code>softmax(QKᵀ/√dₖ)V</code>，<b>逐符号标注</b>"这是第几层学的什么"。</li>
+    <li>说清 <code>-log(0.05)</code> 为什么比 <code>-log(0.8)</code> 大 —— 对上"交叉熵为什么概率越低罚越狠"。</li>
+    <li>用"链式法则"一句话解释"误差怎么从最后一层传回第一层"。</li>
+  </ul>
+</section>
+
+<!-- ============ 附录 A ============ -->
+<section id="cA">
+  <div class="yr">速查 · 每个都能退到"数"</div>
+  <h2>附录 A：术语拆解速查</h2>
+  <div class="sub">忘了某个词时，回这查它的"拆到底"路径</div>
+
+  <table class="gloss">
+    <tr><th>AI 术语</th><th>一句话</th><th>拆到底</th><th>层</th></tr>
+    <tr><td>点积注意力</td><td>用相似度决定关注谁</td><td>点积←向量←数</td><td>2/8</td></tr>
+    <tr><td>交叉熵</td><td>猜错正确答案的代价</td><td>熵←信息量←log←指数←乘法←数</td><td>5</td></tr>
+    <tr><td>softmax</td><td>把分数变概率</td><td>指数＋除法←数</td><td>4</td></tr>
+    <tr><td>反向传播</td><td>从后往前批量求梯度</td><td>链式法则←导数←斜率←除法←数</td><td>3/7</td></tr>
+    <tr><td>梯度下降</td><td>沿最陡下坡挪一小步</td><td>梯度←偏导←导数←斜率←数</td><td>6</td></tr>
+    <tr><td>学习率</td><td>每步迈多大</td><td>比例←除法←数</td><td>6</td></tr>
+    <tr><td>Adam</td><td>每个旋钮自适应步长</td><td>梯度下降＋移动平均←期望←概率←数</td><td>6</td></tr>
+    <tr><td>神经元</td><td>直线掰个弯</td><td>wx+b←乘法＋加法←数</td><td>1/7</td></tr>
+    <tr><td>矩阵乘=一层</td><td>一次做很多点积</td><td>点积←向量←数</td><td>2/7</td></tr>
+  </table>
+
+  <p style="text-align:center;color:var(--acc2);font-size:18px;margin:30px 0 10px"><b>🎉 从"数是什么"到"看懂 Transformer 每个符号"，这条最短直线你已经有了完整地图。</b></p>
+  <p style="text-align:center;color:var(--tx3);font-size:14px">下一步：按这张图<b>逐层填正文</b>（讲解＋手算/反问/思考题）。想先从哪层开填，告诉作者即可。</p>
+</section>
+
+</div><!-- /wrap -->
+
+<div class="foot">
+  AI 背后的数学 · 从「数是什么」到「看懂反向传播」<br>
+  <span style="color:var(--tx3)">没有魔法，全是"数"叠出来的 · 每个术语都能拆到底</span>
+</div>
+
+</main>
+</div><!-- /app -->
+
+<script>
+const $ = s => document.querySelector(s);
+const navLinks=[...document.querySelectorAll('#nav a')];
+const secs=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+function syncNav(){
+  let i=secs.findIndex((s,k)=>{
+    const r=s.getBoundingClientRect();
+    return r.top<=140 && (k===secs.length-1 || secs[k+1].getBoundingClientRect().top>140);
+  });
+  if(i<0)i=0;
+  navLinks.forEach((a,k)=>a.classList.toggle('on',k===i));
+}
+addEventListener('scroll',syncNav,{passive:true}); syncNav();
+const sidebar=$('#sidebar'), scrim=$('#scrim');
+function closeMenu(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+$('#menuBtn').onclick=()=>{ sidebar.classList.toggle('open'); scrim.classList.toggle('open'); };
+scrim.onclick=closeMenu;
+navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMenu(); }));
+
+/* ===== 梯度下降"下山"动画 ===== */
+(function(){
+  const cv=$('#cv-gd'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  // 损失曲线：一条碗状 loss(x)，画在画布坐标里
+  const padL=50, padR=30, padT=24, padB=40;
+  const x0=-3.2, x1=3.2;               // 定义域
+  const loss = x => 0.55*x*x + 0.15*Math.sin(2.3*x)*x + 0.3;  // 带点起伏的碗
+  const dloss= x => 1.10*x + 0.15*(Math.sin(2.3*x) + 2.3*x*Math.cos(2.3*x)); // 导数
+  let ymin=1e9,ymax=-1e9;
+  for(let x=x0;x<=x1;x+=0.01){const y=loss(x); if(y<ymin)ymin=y; if(y>ymax)ymax=y;}
+  const sx = x => padL + (x-x0)/(x1-x0)*(W-padL-padR);
+  const sy = y => H-padB - (y-ymin)/(ymax-ymin)*(H-padT-padB);
+
+  let x = 2.7, lr = 0.30, steps=0, autotimer=null, exploded=false, trail=[];
+  function reset(){ x=2.7; steps=0; exploded=false; trail=[{x:x,y:loss(x)}]; stopAuto(); draw(); tip(); }
+  function tip(msg){
+    $('#gd-tip').innerHTML = msg || ('第 '+steps+' 步 · 当前 x='+x.toFixed(3)+'，斜率='+dloss(x).toFixed(3)+
+      '，下一步 <code>x ← x − '+lr.toFixed(2)+'×斜率</code>。'+
+      (exploded?' <b style="color:#f85149">💥 学习率太大，飞出去了！</b>':''));
+  }
+  function step(){
+    if(exploded){return;}
+    const g=dloss(x);
+    x = x - lr*g;
+    steps++;
+    if(!isFinite(x) || Math.abs(x)>6){ exploded=true; x=Math.sign(x)*6; }
+    trail.push({x:x,y:loss(Math.max(x0,Math.min(x1,x)))});
+    if(trail.length>60) trail.shift();
+    draw(); tip();
+    if(exploded) stopAuto();
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // 轴
+    ctx.strokeStyle='#2d333b'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,H-padB); ctx.lineTo(W-padR,H-padB); ctx.stroke();
+    ctx.fillStyle='#6e7681'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('旋钮取值 x', (padL+W-padR)/2, H-14);
+    ctx.save(); ctx.translate(16,(padT+H-padB)/2); ctx.rotate(-Math.PI/2); ctx.fillText('损失 loss', 0,0); ctx.restore();
+    // 曲线
+    ctx.strokeStyle='#39c5cf'; ctx.lineWidth=2.5; ctx.beginPath();
+    let first=true;
+    for(let xx=x0;xx<=x1;xx+=0.01){ const px=sx(xx),py=sy(loss(xx)); if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);}
+    ctx.stroke();
+    // 谷底
+    let bx=0,bmin=1e9; for(let xx=x0;xx<=x1;xx+=0.005){const y=loss(xx); if(y<bmin){bmin=y;bx=xx;}}
+    ctx.fillStyle='#3fb950'; ctx.beginPath(); ctx.arc(sx(bx),sy(bmin),4,0,7); ctx.fill();
+    ctx.fillStyle='#3fb950'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('谷底(最优)', sx(bx), sy(bmin)+18);
+    // 轨迹
+    ctx.strokeStyle='rgba(227,179,65,.5)'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]); ctx.beginPath();
+    trail.forEach((p,i)=>{ const cx=Math.max(x0,Math.min(x1,p.x)); const px=sx(cx),py=sy(loss(cx)); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py);});
+    ctx.stroke(); ctx.setLineDash([]);
+    // 小球
+    const cx=Math.max(x0,Math.min(x1,x)); const px=sx(cx),py=sy(loss(cx));
+    ctx.beginPath(); ctx.arc(px,py,9,0,7); ctx.fillStyle= exploded?'#f85149':'#58a6ff'; ctx.fill();
+    ctx.strokeStyle='#0d1117'; ctx.lineWidth=2; ctx.stroke();
+    // 斜率箭头（切线方向提示）
+    if(!exploded){
+      const g=dloss(cx); const dir=-Math.sign(g);
+      ctx.strokeStyle='#bc8cff'; ctx.lineWidth=2; ctx.beginPath();
+      ctx.moveTo(px,py-16); ctx.lineTo(px+dir*26,py-16); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px+dir*26,py-16); ctx.lineTo(px+dir*20,py-20); ctx.lineTo(px+dir*20,py-12); ctx.fillStyle='#bc8cff'; ctx.fill();
+    }
+  }
+  function startAuto(){ if(autotimer)return; $('#gd-auto').textContent='⏸ 暂停'; autotimer=setInterval(()=>{ step(); if(exploded||Math.abs(dloss(x))<0.01){ stopAuto(); } },260); }
+  function stopAuto(){ if(autotimer){clearInterval(autotimer); autotimer=null;} $('#gd-auto').textContent='⏩ 自动跑'; }
+  $('#gd-step').onclick=step;
+  $('#gd-auto').onclick=()=>{ autotimer?stopAuto():startAuto(); };
+  $('#gd-reset').onclick=reset;
+  $('#gd-lr').oninput=e=>{ lr=parseFloat(e.target.value); $('#gd-lrv').textContent=lr.toFixed(2); tip(); };
+  reset();
+})();
+</script>
+</body>
+</html>

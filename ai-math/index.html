@@ -114,6 +114,29 @@
     display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700}
   .mini li b{color:#fff}
   .pill{display:inline-block; font-size:12px; color:var(--gold); border:1px solid rgba(227,179,65,.4); background:rgba(227,179,65,.08); border-radius:20px; padding:1px 9px; margin-left:6px}
+  /* 讲透块 */
+  .teach{margin:16px 0}
+  .teach .lead{color:var(--acc2); font-weight:600}
+  .formula{font-family:"Cascadia Code",Consolas,monospace; background:#0b0f14; border:1px solid var(--line);
+    border-radius:10px; padding:12px 14px; margin:12px 0; font-size:15px; overflow-x:auto; color:#cfe3ff; text-align:center}
+  .formula .c{color:var(--tx3); font-size:13px}
+  /* 练习 */
+  .drill{border:1px solid rgba(57,197,207,.4); background:linear-gradient(180deg,rgba(57,197,207,.09),rgba(57,197,207,.02));
+    border-radius:10px; padding:14px 16px 12px; margin:20px 0}
+  .drill .t{font-size:13px; color:var(--teal); font-weight:700; letter-spacing:.5px; margin-bottom:10px}
+  .drill .t::before{content:"✏️ "}
+  .drill .lv{display:inline-block; font-size:11px; border-radius:20px; padding:1px 8px; margin-right:6px; border:1px solid var(--line)}
+  .drill .l1{color:var(--ok); border-color:rgba(63,185,80,.4)}
+  .drill .l2{color:var(--warn); border-color:rgba(210,153,34,.4)}
+  .drill .l3{color:var(--acc2); border-color:rgba(188,140,255,.4)}
+  .drill .item{margin:12px 0}
+  details.ans{margin:7px 0 0; border-top:1px dashed var(--line); padding-top:7px}
+  details.ans summary{cursor:pointer; color:var(--acc); font-size:13px; list-style:none; user-select:none}
+  details.ans summary::-webkit-details-marker{display:none}
+  details.ans summary::before{content:"▸ 看答案 / 点拨"}
+  details.ans[open] summary::before{content:"▾ 收起"}
+  details.ans .body{font-size:14px; color:var(--tx2); margin-top:8px; line-height:1.8}
+  details.ans .body b{color:#fff}
 </style>
 </head>
 <body>
@@ -171,7 +194,7 @@
 <div class="wrap">
 
 <div class="note" style="margin-top:26px">
-  <b>这是一张"地图"，也是学习顺序。</b> 每一层<b>只用到前面层的东西</b>，从不超前。看不懂某句，就顺着它的 <span class="dep">依赖</span> 标签退回上一层。完整正文（讲解＋练习）会按这张图<b>逐层填</b>。核心比喻先记住一句：<span class="key">AI 就是一个巨大的函数 f，训练就是不停微调它的几十亿旋钮，让它吐得越来越对。</span>
+  <b>这是「知所以然版」——按数学被"逼"出来的顺序讲。</b> 每一层先问 <b>"上一套在哪卡住了？"</b>，于是被逼出新东西（= 知其所以然）；卡住时顺着 <span class="dep">依赖</span> 标签退回上一层（= 绝不空降）。<br><span class="en">配套的「📘 课本顺序版」随后补上，届时合成"双轨 + 顶部对照表"，你可两版对照学。</span> 核心比喻先记死：<span class="key">AI 就是一个巨大的函数 f，训练就是不停微调它的几十亿旋钮，让它吐得越来越对。</span>
 </div>
 
 <!-- ============ 拆解链总览 ============ -->
@@ -197,69 +220,197 @@
 <section id="c0">
   <div class="yr">最原始层 · 一切的地基</div>
   <h2>第 0 层：数与运算的本质</h2>
-  <div class="sub">把"数"和"四则运算"抠到最底——上面每一层都踩在这</div>
+  <div class="sub">主线不是"介绍运算"，而是——每一种数，都是被某个"算不下去"的问题逼出来的</div>
 
-  <div class="concept"><dl>
-    <dt>数</dt><dd>= 数量的<b>标签</b>。5 个苹果和 5 根手指"一样多"靠配对，数字只是贴上去的名字。</dd>
-    <dt>加法</dt><dd>= <b>合并</b>。最原始的运算，其余全由它长出来。</dd>
-    <dt>减法</dt><dd>= 加法的<b>逆</b>（"还差多少"）。引出 <b>负数 = 反方向</b>（欠债、零下）。</dd>
-    <dt>乘法</dt><dd>= <b>重复加</b>。3×4 就是 4+4+4。<span class="dep">依赖：加法</span></dd>
-    <dt>除法</dt><dd>= 乘法的<b>逆 / 平均分</b>。引出 <b>分数 = 把 1 切开</b>。<span class="dep">依赖：乘法</span></dd>
-    <dt>比例</dt><dd>= 除法的一种用法（"谁是谁的几倍"）。<b>概率、期望、学习率</b>全是比例。<span class="dep">依赖：除法</span></dd>
-  </dl></div>
+  <p>课本会直接把负数、分数一股脑塞给你，好像它们天经地义。但真实的数学史是：<b>人类先只会数数，后来一次次撞到"这套数不够用"的墙，才被逼着发明新数。</b>看懂这条"被逼扩张"的主线，你就真的<b class="key">知其所以然</b>了。</p>
 
-  <div class="fix"><b>本层顿悟：</b>每个运算都在回答一个"逆问题"，而且 <span class="key">乘法只是加法的偷懒、除法只是乘法的偷懒</span>。往上全部术语，最终都由加法长出来。</div>
+  <div class="teach">
+    <div class="lead">① 最开始：只有"数数"——数 = 数量的标签</div>
+    <p>远古人要记"我有几只羊"，于是把"5 只羊"和"5 根手指"里共同的那个东西抽出来，贴个标签叫 <code>5</code>。<span class="key">数不是实物，是"数量"这个抽象</span>——同一个 5，能贴给羊、人、天数。这一步抽象，就是一切数学的起点。</p>
+    <p><b>加法</b>是最原始的运算 = <b>合并</b>（两堆并一堆）。<b>减法</b>是它的逆 = "拿走 / 还差多少"。</p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">② 第一次撞墙：<span style="color:#f85149">"3 减 5" 不够减</span> → 逼出 0 和负数</div>
+    <p>只用数数的数（1,2,3…），<code>3−5</code> 是<b>做不下去</b>的——你没法从 3 只羊里拿走 5 只。但现实里"欠债 2 只""亏了 2 块"明明存在。于是人类被逼着造出 <b>负数</b>（反方向的数）和 <b>0</b>（什么都没有也得有个数表示）。</p>
+    <div class="note"><b>知所以然：</b>负数的存在理由，就一句话——<span class="key">为了让减法"永远做得下去"</span>。<br><span class="en">历史张力：中国《九章算术》两千年前就用正负数记盈亏；而欧洲到 17 世纪还骂负数是"荒谬的数"。课本一句"数轴向左"把这几百年的挣扎全抹平了。</span></div>
+  </div>
+
+  <div class="teach">
+    <div class="lead">③ 偷懒与再撞墙：乘法 = 重复加；<span style="color:#f85149">"3 个饼分 2 人"</span> → 逼出分数</div>
+    <p><b>乘法</b>不是新东西，是<b>加法的偷懒</b>：<code>3×4</code> 就是 <code>4+4+4</code>。<b>除法</b>是乘法的逆，也是"平均分"。</p>
+    <p>可 <code>3÷2</code> 又<b>做不下去</b>了——整数里没有哪个数乘 2 等于 3。但"3 个饼分 2 人，每人一个半"现实存在。于是被逼出 <b>分数 / 小数</b> = <span class="key">把"1"切开</span>。</p>
+    <div class="fix"><b>看出规律没：</b>负数是为了"减法封闭"，分数是为了"除法封闭"。<span class="key">每一次数系扩张，都是为了让某个运算"不再卡壳"。</span></div>
+  </div>
+
+  <div class="teach">
+    <div class="lead">④ 通往初中的钩子：<span style="color:#f85149">正方形对角线"量不尽"</span> → 逼出无理数</div>
+    <p>边长为 1 的正方形，对角线长是 <code>√2</code>。毕达哥拉斯学派本以为"任何长度都能用分数表示"，结果发现 <code>√2</code> <b>写不成任何分数</b>（无限不循环）——这直接引爆了古希腊的数学信仰危机。于是分数（有理数）也不够用了，被逼出 <b>无理数</b>。（严格的"实数"要到第 1 层以后才收拾干净。）</p>
+    <p class="hint">再往后：<code>x²=−1</code> 在实数里无解 → 又逼出"虚数"。可见这条"被逼扩张"的线，会一路延伸下去。</p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">⑤ 一个贯穿全教程的用法：比例</div>
+    <p><b>比例</b>就是除法的一种用法（"谁是谁的几倍""占多少"）。别小看它——后面的 <b>概率、期望、学习率</b>本质全是比例。<span class="dep">依赖：除法</span></p>
+  </div>
+
+  <div class="chain">
+数数(ℕ) <span class="ar">—"减不动"→</span> <span class="a">0 与负数(ℤ)</span> <span class="ar">—"分不匀"→</span> <span class="a">分数(ℚ)</span> <span class="ar">—"量不尽"→</span> <span class="a">无理数→实数(ℝ)</span> <span class="ar">—"开不出"→</span> <span class="z">虚数(ℂ)</span>
+  </div>
+
+  <div class="drill">
+    <div class="t">练习 · 第 0 层（做完再往上爬）</div>
+    <div class="item"><span class="lv l1">手算</span> 不用"负数"这个词，只用"欠债"解释 <code>3 − 5 = −2</code> 是什么意思；再算 <code>(−3) + 5</code> 和 <code>(−3) × 4</code>。
+      <details class="ans"><summary></summary><div class="body"><b>3−5：</b>你有 3 块却要还 5 块，还完还欠 2 块 → 欠债 2 = <code>−2</code>。<b>(−3)+5：</b>先欠 3 块，又拿到 5 块，还清后剩 2 块 = <code>+2</code>。<b>(−3)×4：</b>"欠 3 块"这件事发生 4 次 = 欠 12 块 = <code>−12</code>。<br>关键：负数不是"神秘符号"，就是<b>带方向的数量</b>。</div></details>
+    </div>
+    <div class="item"><span class="lv l2">反问</span> 既然"乘法只是重复加法的偷懒"，那 <code>3 × 0.5</code> 该怎么理解？"重复加 0.5 次"说得通吗？
+      <details class="ans"><summary></summary><div class="body">"重复加半次"确实讲不通——这正说明：<b>把新概念硬套旧直觉，迟早会崩</b>。<code>3×0.5</code> 要换个角度："取 3 的一半" = <code>1.5</code>，即乘法从"重复加"升级成了"<b>缩放</b>"（乘 0.5 = 缩到一半，乘 2 = 放大一倍）。<br>这个"缩放"直觉，正是第 2 层<b>向量数乘</b>、第 6 层<b>学习率×梯度</b>的种子。<b>知所以然的意义就在这</b>：知道一个直觉在哪失效、被什么取代。</div></details>
+    </div>
+    <div class="item"><span class="lv l3">思考</span> 用"被逼扩张"的逻辑猜一下：为什么人类需要 <code>0</code> 这个数？如果没有 0，会有什么算不下去？
+      <details class="ans"><summary></summary><div class="body">至少两处会卡：① <code>3−3</code> 没有结果可写（"什么都不剩"也得有个数表示）；② 记数时没法区分 <code>25</code> 和 <code>205</code>（0 占位）。所以 0 是被"减法要封闭"和"位值记数"两件事一起逼出来的。<br>冷知识：0 被当成"一个正经的数"接受得非常晚（古希腊甚至没有 0），这也印证了本层主线——<b>越是看起来天经地义的东西，历史上越是挣扎着才被逼出来</b>。</div></details>
+    </div>
+  </div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">每一种数都不是天上掉的，是某个"算不下去"的问题逼出来的</span>；而乘除只是加减的偷懒。记住这条"被逼扩张"的主线，你就有了"知所以然"的钥匙——上面每一层，我们都会先问"上一套在哪卡住了"。</div>
 </section>
 
 <!-- ============ 第1层 ============ -->
 <section id="c1">
-  <div class="yr">第一次抽象 · 操纵"还不知道的数"</div>
+  <div class="yr">第一次抽象 · 从"算一个数"到"研究一种关系"</div>
   <h2>第 1 层：代数与函数</h2>
-  <div class="sub">AI 的一切都是"未知的旋钮"——先学会用字母思考</div>
+  <div class="sub">上一层卡在哪 → 只会算"具体的数"，没法表达"任意数都成立的规律"，也没法"倒推未知"</div>
 
-  <div class="concept"><dl>
-    <dt>变量 x</dt><dd>= 装任意数的<b>盒子</b>。从 <code>3+□=7</code> 升级到 <code>3+x=7</code>，第一次操纵"未知"。</dd>
-    <dt>函数 f(x)</dt><dd>= 输入→输出的<b>机器</b>：给一个数，还你一个数。<span class="star">★</span> <b>整个 AI 模型就是一个巨大的 f</b>，全教程的核心比喻。<span class="dep">依赖：变量</span></dd>
-    <dt>y = w·x + b</dt><dd>一条<b>直线</b>：<code>w</code> 控多陡、<code>b</code> 控上下移。<span class="star">★</span> <b>这就是"一个神经元"的骨架</b>，记死。<span class="dep">依赖：乘法、加法</span></dd>
-    <dt>指数</dt><dd>= <b>重复乘</b>。<code>2³=2×2×2</code>，翻倍再翻倍。<span class="dep">依赖：乘法</span></dd>
-    <dt>对数 log</dt><dd>= 指数的<b>逆</b>，问"翻了几次"。<code>log₂8=3</code>。<span class="star">★</span> <b>损失函数里的 log 就是"数量级/翻倍次数"</b>。<span class="dep">依赖：指数</span></dd>
-  </dl></div>
+  <div class="teach">
+    <div class="lead">① 什么问题逼出"用字母"？——想表达"任意"和"未知"</div>
+    <p>算术只能算<b>具体</b>的数：3+5=8。但人类想说两种它说不出的话：<br>
+    ① <b>规律</b>："任何数加 0 还是它自己"——这个"任何数"怎么写？<br>
+    ② <b>未知</b>："我不知道买了几个，但知道每个 3 元、总共花了 21 元"——那个"几个"怎么算？<br>
+    于是给"任意/未知的数"一个把手：<b>字母 x</b>。<code>3x=21</code> 一解，倒推出 <code>x=7</code>。<span class="key">代数 = 给还不知道的数一个名字，然后照样对它做运算。</span><span class="dep">依赖：四则运算</span></p>
+  </div>
 
-  <div class="fix"><b>本层顿悟：</b><span class="key">万物皆可写成 f(x)</span>；最简单的 f 就是直线 <code>w·x+b</code>——AI 的几十亿参数，本质就是无数个 w 和 b。</div>
+  <div class="teach">
+    <div class="lead">② 什么问题逼出"函数"？——科学要描述"一个量随另一个量怎么变"</div>
+    <p>物理、天文要说"路程随时间怎么变""温度随高度怎么变"。这不是算某一个数，而是描述一整套<b>对应关系</b>：给个时间，就有个路程。这套"输入→输出"的机器，就叫 <b>函数 <code>y=f(x)</code></b>。<span class="star">★</span> <b>整个 AI 模型，就是一个巨大的 f</b>：喂一串数进去，吐一串数出来。<span class="dep">依赖：变量</span></p>
+    <div class="formula">y = w·x + b　<span class="c">（最简单的函数：一条直线。w 控制多陡，b 控制上下平移）</span></div>
+    <p><span class="star">★</span> 记死这条直线——<b>它就是"一个神经元"的骨架</b>。AI 的几十亿参数，本质就是无数个 <code>w</code> 和 <code>b</code>。</p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">③ 什么问题逼出"对数"？——把"大数相乘"变成"相加"来手算</div>
+    <p><b>指数</b>好懂：重复乘（<code>2³=2×2×2</code>），描述"翻倍增长"（利息、繁殖）。<span class="dep">依赖：乘法</span></p>
+    <p><b>对数</b>才是重点，而它的"所以然"极其实在：16 世纪天文航海要把一堆大数<b>相乘</b>，手算能算哭。纳皮尔发明<b>对数</b>，把 <code>乘法变成加法</code>（<code>log(a×b)=log a+log b</code>），大大简化计算——这是对数被逼出来的真实原因。它的含义是"翻了几次"（<code>log₂8=3</code>）。<span class="star">★</span> <b>损失函数里到处是 log，就是因为它能把"翻倍的稀有度"压成"可相加的数量级"</b>（第 5 层用得上）。<span class="dep">依赖：指数</span></p>
+  </div>
+
+  <div class="chain">
+"想表达任意/未知" <span class="ar">→</span> <span class="a">字母 x</span> <span class="ar">→</span> "想描述量与量的关系" <span class="ar">→</span> <span class="a">函数 f(x)</span> <span class="ar">→</span> 最简单的 f <span class="ar">→</span> <span class="z">直线 wx+b（神经元骨架）</span>
+  </div>
+
+  <div class="drill">
+    <div class="t">练习 · 第 1 层</div>
+    <div class="item"><span class="lv l1">手算</span> 某商品买 <code>x</code> 个、每个 3 元、又付了 5 元包装费，总价 <code>y</code>。写出 <code>y</code> 和 <code>x</code> 的函数；再求总价 20 元时买了几个。
+      <details class="ans"><summary></summary><div class="body"><code>y = 3x + 5</code>（正是 <code>wx+b</code>，这里 w=3、b=5）。总价 20：<code>20=3x+5 → x=5</code>。<br>体会：<b>w=3 是"每多买一个多花多少"（斜率）</b>，<b>b=5 是"一个都不买也要付的底价"（截距）</b>——这两个词第 3 层会变成"梯度"和"偏置"。</div></details>
+    </div>
+    <div class="item"><span class="lv l2">反问</span> 为什么说"AI 模型就是一个函数 f"？它和 <code>y=3x+5</code> 到底是不是一回事？
+      <details class="ans"><summary></summary><div class="body">是一回事，只是<b>规模天差地别</b>。<code>y=3x+5</code> 是 1 个输入、2 个参数的迷你函数；GPT 是"几千个数进 → 几千个数出、里面几千亿个 w 和 b"的巨型函数。<b>结构一样：输入→（一堆 wx+b 和掰弯）→输出。</b>所以你只要真懂 <code>wx+b</code>，就抓住了 AI 的骨架。</div></details>
+    </div>
+    <div class="item"><span class="lv l3">思考</span> 对数把乘法变成加法（<code>log(ab)=log a+log b</code>）。猜猜：为什么"把乘变加"在计算机/AI 里特别值钱？
+      <details class="ans"><summary></summary><div class="body">两个原因：① <b>数值稳定</b>——一堆很小的概率连乘（如 0.001×0.002×…）会小到计算机存不下（下溢），取 log 变成相加就稳了，所以 AI 算概率几乎全在"对数空间"里做。② <b>把"指数级差距"压平</b>成"线性差距"，好比较、好求导。这正是第 5 层"信息量=−log(概率)"的伏笔。</div></details>
+    </div>
+  </div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">代数是给"未知/任意"一个把手，函数是把"关系"当成研究对象</span>；最简单的函数 <code>wx+b</code> 就是神经元。你已经握住了 AI 的骨架。</div>
 </section>
 
 <!-- ============ 第2层 ============ -->
 <section id="c2">
   <div class="yr">AI 的骨架 · 一个操作撑起半个 AI</div>
   <h2>第 2 层：线性代数（向量 · 点积 · 矩阵乘）</h2>
-  <div class="sub">AI 的数据不是一个数，而是"一串数"和"一表数"</div>
+  <div class="sub">上一层卡在哪 → 函数只处理"一个数进、一个数出"，可现实里的东西往往是"一组数"</div>
 
-  <div class="concept"><dl>
-    <dt>向量</dt><dd>= <b>一串数</b> <code>[1.2,-0.3,0.8]</code>。可看成"一个词的编码"，也可看成"空间里的箭头"。<span class="dep">依赖：数</span></dd>
-    <dt>点积</dt><dd>= 对应相乘再相加，得<b>一个数</b>：<code>[a,b]·[c,d]=ac+bd</code>。<b>方向越一致，点积越大 → 它就是"相似度打分"</b>。<span class="star">★</span> 注意力的核心。<span class="dep">依赖：乘法、加法</span></dd>
-    <dt>矩阵</dt><dd>= <b>一表数 / 一批向量</b>，也可看成"对空间的一个变换"（旋转/拉伸/投影）。<span class="dep">依赖：向量</span></dd>
-    <dt>矩阵 × 向量</dt><dd>= <b>一次做很多个点积</b>。<span class="star">★</span> <b>神经网络"一层"的计算，就是一次矩阵乘</b>。<span class="dep">依赖：点积</span></dd>
-    <dt>shape 形状</dt><dd>= 行数×列数。<b>AI 报错一大半是 shape 对不上</b>，所以要会数。</dd>
-  </dl></div>
+  <div class="teach">
+    <div class="lead">① 什么问题逼出"向量"？——很多东西天生就是"一串数"</div>
+    <p>一个数描述不了的东西太多了：力有"大小+方向"、一个学生有"语数英三科分"、一个词要用一串数来编码。把<b>一串数当成一个整体</b>来算，就是 <b>向量</b> <code>[1.2, −0.3, 0.8]</code>。它有两副面孔：<b>一串特征</b>（一个词的编码），或<b>空间里的一支箭头</b>。<span class="dep">依赖：数</span></p>
+    <p><b>向量加法</b>=两支箭头首尾相接（合成两个力）；<b>数乘</b>=把箭头整体拉长缩短（就是第 1 层练习里的"缩放"直觉）。</p>
+  </div>
 
-  <div class="fix"><b>本层顿悟：</b><span class="key">神经网络的每一层 = 一次矩阵乘法</span>；而点积同时又是"相似度"。这一个操作，撑起半个 AI。</div>
+  <div class="teach">
+    <div class="lead">② 什么问题逼出"点积"？——想量"两个方向像不像"</div>
+    <p>你有两个向量，想问"它们方向一致吗、有多像？"于是定义 <b>点积</b>：对应位置相乘、再全部相加，得<b>一个数</b>。</p>
+    <div class="formula">[a, b] · [c, d] = a·c + b·d<span class="c">　（对应相乘，再相加）</span></div>
+    <p>它的几何含义：<b>两支箭头方向越一致，点积越大；垂直时为 0；相反时为负</b>。所以点积 = <b>相似度打分</b>。<span class="star">★</span> <b>这就是注意力的核心</b>——"这个词该关注那个词吗"，就用它俩向量的点积来打分。<span class="dep">依赖：乘法、加法</span></p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">③ 什么问题逼出"矩阵"？——想一次性对一整批向量做同样的变换</div>
+    <p>你不想一个一个地算，想"把一整层神经元一次算完""把整幅图一次旋转"。把一堆数排成表，就是 <b>矩阵</b>；它的真身是<b>"对空间的一个动作"</b>（旋转/拉伸/投影），不是死数表。</p>
+    <p><b>矩阵 × 向量 = 一次做很多个点积</b>：输出的每个数，都是矩阵某一行和输入向量的点积。<span class="star">★★</span> <b>神经网络"一层"的计算，就是一次矩阵乘</b>——把上一层的向量，用一堆权重做一批点积，变成下一层的向量。<span class="dep">依赖：点积</span></p>
+    <p class="hint"><b>shape（形状）</b>=行数×列数。AI 报错一大半是"shape 对不上"（前一个的列数 ≠ 后一个的行数就没法乘），所以要会数。</p>
+  </div>
+
+  <div class="chain">
+"东西是一串数" <span class="ar">→</span> <span class="a">向量</span> <span class="ar">→</span> "想量方向像不像" <span class="ar">→</span> <span class="a">点积=相似度</span> <span class="ar">→</span> "想一次变换一批" <span class="ar">→</span> <span class="z">矩阵乘 = 神经网络一层</span>
+  </div>
+
+  <div class="drill">
+    <div class="t">练习 · 第 2 层</div>
+    <div class="item"><span class="lv l1">手算</span> 求 <code>[2, 1]·[3, 4]</code> 和 <code>[1, 0]·[0, 1]</code>，并说说后者为什么是 0。
+      <details class="ans"><summary></summary><div class="body"><code>[2,1]·[3,4]=2×3+1×4=10</code>。<code>[1,0]·[0,1]=1×0+0×1=0</code>。后者为 0 是因为这两支箭头<b>互相垂直</b>（一个朝右、一个朝上），"方向毫无重合" → 相似度 0。<b>点积=0 记成"正交/不相关"</b>，后面很有用。</div></details>
+    </div>
+    <div class="item"><span class="lv l2">反问</span> 都说"神经网络一层就是一次矩阵乘"，可矩阵乘不就是一堆乘加吗？凭什么它能"学复杂东西"？
+      <details class="ans"><summary></summary><div class="body">单靠矩阵乘<b>确实不行</b>——矩阵乘是"线性"的，一层接一层叠起来还是等价于一条直线，学不了弯弯绕绕。所以每层矩阵乘后面要接一个<b>"掰弯"的激活函数</b>（第 7 层）。<b>矩阵乘负责"批量线性组合"，激活负责"掰弯"，两者交替才有威力。</b>这道反问正好逼出第 7 层的关键。</div></details>
+    </div>
+    <div class="item"><span class="lv l3">思考</span> 词向量让"语义相近的词，向量也相近"。若 <code>国王</code>、<code>女王</code>、<code>男人</code>、<code>女人</code> 各是一个向量，你觉得 <code>国王−男人+女人</code> 大概会落在谁附近？为什么？
+      <details class="ans"><summary></summary><div class="body">落在 <code>女王</code> 附近。因为"国王→男人"这段向量差，大致等于"从王室里抽掉男性属性"；再加"女人"就补上女性属性 → 得到"女王"。这说明<b>向量的加减真能对应"语义的加减"</b>，是词向量最惊艳的性质。<br>（注：你那份 Transformer 文档里把这个经典例子写成了"皇冠−男人+女人"，其实原版是"<b>国王</b>(king)"，别记错。）</div></details>
+    </div>
+  </div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">向量=一串数，点积=相似度，矩阵乘=神经网络一层</span>。就这三样，撑起半个 AI；注意力、每一层的计算，全落在这。</div>
 </section>
 
 <!-- ============ 第3层 ============ -->
 <section id="c3">
   <div class="yr">学习的引擎 · 回答"旋钮往哪拧"</div>
   <h2>第 3 层：微积分（导数 · 链式法则 · 梯度）</h2>
-  <div class="sub">训练 = "往哪个方向调旋钮能让误差变小"，回答"方向"的数学就是导数</div>
+  <div class="sub">上一层卡在哪 → 会用矩阵乘搭出函数了，但"怎么调 w、b 才能让它吐得更对"还不知道</div>
 
-  <div class="concept"><dl>
-    <dt>斜率</dt><dd>= <b>Δy / Δx</b>："x 动一点，y 动多少"——就是除法的一个用法。<span class="dep">依赖：除法</span></dd>
-    <dt>导数</dt><dd>= <b>瞬时斜率</b>：把 Δx 缩到无穷小。<b>它告诉你旋钮往哪拧能让误差降</b>。<span class="dep">依赖：斜率</span></dd>
-    <dt>链式法则</dt><dd>= 一环套一环求导：<code>dy/dx = dy/du × du/dx</code>。<span class="star">★★</span> <b>这一条就是反向传播的全部数学</b>：误差从最后一层，一环环乘回第一层。<span class="dep">依赖：导数</span></dd>
-    <dt>偏导数</dt><dd>= 多个旋钮时，<b>固定其它、只动一个</b>的导数。几十亿旋钮就有几十亿偏导。<span class="dep">依赖：导数</span></dd>
-    <dt>梯度</dt><dd>= 所有偏导<b>打包成的向量</b>，指向"误差上升最快"的方向；<b>反过来走就是下降最快</b>。<span class="dep">依赖：偏导、向量</span></dd>
-  </dl></div>
+  <div class="teach">
+    <div class="lead">① 什么问题逼出"导数"？——想知道"此刻变化有多快"</div>
+    <p>17 世纪牛顿研究运动（"这一瞬间速度多少"）、莱布尼茨研究曲线切线，都撞到同一个需求：<b>某一点上，x 动一丁点，y 变多少？</b> 先看"一段"的平均变化：<b>斜率 = Δy/Δx</b>（就是除法）。再把这段缩到无穷小，得到"就这一刻"的变化率——<b>导数</b>。<span class="dep">依赖：斜率←除法</span></p>
+    <p><span class="star">★</span> 对 AI 来说，导数回答的正是那句核心问题：<b>"这个旋钮往上拧一点，误差是变大还是变小、变多少？"</b> 知道了这个，就知道该往哪拧。</p>
+    <div class="note"><b>顺带印证第 0 层讲的历史张力：</b>牛顿/莱布尼茨 1680 年代就在用微积分，但"无穷小到底是不是 0"含糊不清，被贝克莱主教讥讽为"<span class="en">逝去量的幽灵</span>"。直到 1820s 柯西、魏尔斯特拉斯用极限把它讲严格，中间<b>整整两百年"先算得对、后证得了"</b>。</div>
+  </div>
 
-  <div class="fix"><b>本层顿悟：</b><span class="key">反向传播不神秘，就是链式法则批量算梯度</span>；训练每一步 = "算出梯度 → 往反方向挪一小步"。</div>
+  <div class="teach">
+    <div class="lead">② 什么问题逼出"链式法则"？——一环套一环的变化怎么算</div>
+    <p>神经网络是"函数套函数套函数"：输入经第 1 层变成 <code>u</code>，<code>u</code> 经第 2 层变成 <code>v</code>……最后算出误差。要问"最前面的旋钮动一下，最后的误差变多少"，就得<b>一环环把变化率乘起来</b>：</p>
+    <div class="formula">dy/dx = (dy/du) × (du/dx)<span class="c">　（y 随 u 变，u 随 x 变 → 两段变化率相乘）</span></div>
+    <p><span class="star">★★</span> <b>这一条，就是反向传播的全部数学</b>：误差从最后一层，顺着链式法则一环环<b>乘回</b>第一层，算出每个旋钮"该为这次错误负多少责"。你那份 Transformer 文档里神乎其神的"反向传播"，拆到底就是这个乘法链。<span class="dep">依赖：导数</span></p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">③ 从"一个旋钮"到"几十亿旋钮"：偏导与梯度</div>
+    <p>模型有几十亿个旋钮。<b>偏导数</b> = 固定其它、<b>只动一个</b>旋钮看误差怎么变（几十亿个旋钮就有几十亿个偏导）。把它们<b>全部打包成一个向量</b>，就是 <b>梯度</b>。<span class="dep">依赖：偏导、向量</span></p>
+    <p>梯度指向"误差<b>上升</b>最快"的方向 → <b>反过来走，就是误差下降最快的方向</b>。训练每一步就干一件事：<span class="key">算出梯度，往它的反方向挪一小步</span>（下一层细讲）。</p>
+  </div>
+
+  <div class="chain">
+"想知道此刻变多快" <span class="ar">→</span> <span class="a">导数</span> <span class="ar">→</span> "函数套函数" <span class="ar">→</span> <span class="a">链式法则 = 反向传播</span> <span class="ar">→</span> "几十亿旋钮" <span class="ar">→</span> <span class="z">梯度 = 最陡下坡的指南针</span>
+  </div>
+
+  <div class="drill">
+    <div class="t">练习 · 第 3 层</div>
+    <div class="item"><span class="lv l1">手算</span> <code>f(x)=x²</code>，用 <code>Δy/Δx</code> 估计它在 <code>x=3</code> 处的变化率：取 <code>Δx=0.001</code> 算一遍，看它接近多少。
+      <details class="ans"><summary></summary><div class="body"><code>f(3)=9，f(3.001)=9.006001</code>。<code>Δy/Δx=(9.006001−9)/0.001=6.001</code> ≈ <b>6</b>。<br>（<code>x²</code> 的导数是 <code>2x</code>，在 x=3 处正是 <code>6</code>。）体会：把 Δx 缩得越小，这个比值越贴近"瞬时"的 6——这就是导数的"极限"含义。</div></details>
+    </div>
+    <div class="item"><span class="lv l2">反问</span> 为什么反向传播非要"从后往前"算？从前往后一层层算梯度不行吗？
+      <details class="ans"><summary></summary><div class="body">数学上都能算，但<b>从后往前极其省力</b>。误差在最后一层，链式法则是把"后面的变化率"乘给"前面的"；<b>从后往前走，每一层能把已算好的结果直接传给下一层复用</b>（一次扫完就得到所有梯度）。从前往后则要为每个旋钮重复算整条链，浪费到不可行。所以叫"<b>反向</b>传播"——不是必须，而是<b>因为快得多</b>。</div></details>
+    </div>
+    <div class="item"><span class="lv l3">思考</span> 梯度指向"上升最快"的方向。为什么训练要往<b>反</b>方向走？如果沿梯度<b>正</b>方向走会怎样？
+      <details class="ans"><summary></summary><div class="body">训练目标是让<b>误差（损失）变小</b>，而梯度指向误差<b>变大</b>最快的方向，所以要往反方向走才是"下山"。若沿正方向走 = 拼命"上山"，损失越来越大，模型越练越蠢。<br>这也解释了那行核心公式里的<b>减号</b>：<code>新旋钮 = 旧旋钮 − 学习率×梯度</code>（第 6 层）。</div></details>
+    </div>
+  </div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">反向传播不神秘，就是链式法则从后往前批量算梯度</span>；训练每一步 = "算梯度 → 往反方向挪一小步"。至此，AI 的"学习引擎"你已看穿。</div>
 </section>
 
 <!-- ============ 第4层 ============ -->

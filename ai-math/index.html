@@ -531,15 +531,20 @@
 <section id="c6">
   <div class="yr">怎么调到最好 · 训练的心脏</div>
   <h2>第 6 层：优化（梯度下降 · SGD · 动量 · Adam）</h2>
-  <div class="sub">有了"损失"(第5层)和"梯度"(第3层)，这层讲怎么一步步把损失调到最小</div>
+  <div class="sub">上一层卡在哪 → 有了能求导的损失、有了梯度（往哪走），只差最后一步：真的挪、挪多少</div>
 
-  <div class="concept"><dl>
-    <dt>梯度下降</dt><dd>= 沿梯度<b>反方向</b>走一小步：<code>新旋钮 = 旧旋钮 − 学习率 × 梯度</code>。<span class="star">★</span> <b>这一行就是训练的心脏</b>。<span class="dep">依赖：梯度</span></dd>
-    <dt>学习率</dt><dd>= <b>每步迈多大</b>。太大跨过最低点甚至飞出去，太小走到天荒地老。它是"比例"，在优化器里、不在模型里。<span class="dep">依赖：比例</span></dd>
-    <dt>SGD</dt><dd>= 随机梯度下降：<b>抽一小批数据估计梯度</b>，快且带噪声（噪声还能帮忙逃出小坑）。<span class="dep">依赖：梯度下降、期望</span></dd>
-    <dt>动量</dt><dd>= 给下山<b>加惯性</b>：把过去几步方向做加权平均，冲过小坑、加速直道。<span class="dep">依赖：移动平均</span></dd>
-    <dt>Adam</dt><dd>= 每个旋钮<b>有自己的步长</b>：一阶矩(方向惯性) + 二阶矩(最近抖得凶就自动减速)。<span class="dep">依赖：动量、方差</span></dd>
-  </dl></div>
+  <div class="teach">
+    <div class="lead">① 前面全串起来了：梯度下降 = 训练的心脏</div>
+    <p>第 5 层给了能求导的<b>损失</b>，第 3 层给了<b>梯度</b>（指向损失上升最快的方向）。我们要让损失<b>下降</b>，所以往梯度的<b>反方向</b>挪一小步：</p>
+    <div class="formula">新旋钮 = 旧旋钮 − 学习率 × 梯度<span class="c">　←这一行，就是训练的心脏</span></div>
+    <p><span class="star">★</span> 几十亿个旋钮，每一步都这么更新。那个<b>减号</b>正是第 3 层思考题的答案：往反方向走才是下山。<span class="dep">依赖：梯度</span></p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">② 学习率 = 每步迈多大（成也它、败也它）</div>
+    <p>梯度只告诉你"往哪个方向"，没说"迈多大"。<b>学习率</b>就是那个步长（一个比例）：太小 → 挪到天荒地老；太大 → 一步跨过谷底反复横跳、甚至直接飞出去发散。它在优化器里、<b>不在模型里</b>（这正是你文档反复强调的"学习率是外挂"）。<span class="dep">依赖：比例</span></p>
+    <p>光说没用——<b>下面这个"下山"动画，把学习率滑块从 0.3 拉到 0.9 以上，亲眼看它怎么从"稳稳到谷底"变成"飞出去"：</b></p>
+  </div>
 
   <div class="demo">
     <div class="hd">动画 · 梯度下降"下山"（拖学习率滑块，看它是稳稳到谷底、还是飞出去）</div>
@@ -556,8 +561,44 @@
     <div class="hint" id="gd-tip">小球在"损失山谷"里。每走一步 = <code>x ← x − 学习率 × 斜率</code>。试试把学习率拉到 0.9 以上，看它怎么"跨过谷底反复横跳甚至飞走"。</div>
   </div>
 
-  <div class="warnbox"><b>纠个常见错：</b>Adam 的二阶矩是<b>"梯度平方的移动平均"</b>（谁最近抖得凶就给谁减速），不是你文档里说的"历史加速度"，Adam 也和物理"动量定理"无关（它叫<b>自适应矩估计</b>）。</div>
-  <div class="fix"><b>本层顿悟：</b><span class="key">训练 = 反复执行「算损失 → 反向传播求梯度 → 旋钮 −= 学习率×梯度」</span>；Adam 只是让这一步更聪明。</div>
+  <div class="teach">
+    <div class="lead">③ 什么问题逼出 SGD？——数据太多，每步算全量梯度算不起</div>
+    <p>真实训练几千亿 token，每走一步都用<b>全部</b>数据算梯度 = 算到天荒地老。于是每步只<b>抽一小批（mini-batch）</b>估计梯度，就是<b>随机梯度下降 SGD</b>。副产物很妙：小批带来的<b>噪声</b>，反而能帮球从浅坑、鞍点里"抖"出来。<span class="dep">依赖：梯度下降、期望</span></p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">④ 什么问题逼出"动量"？——狭长山谷里来回震荡、走得慢</div>
+    <p>纯 SGD 在狭长山谷里容易左右横跳、进展慢。<b>动量</b>把过去几步的方向做<b>加权平均（移动平均）</b>，给下山加"惯性"：同方向持续推就加速，来回震荡就互相抵消——像一颗真的滚下山的球。<span class="dep">依赖：移动平均</span></p>
+  </div>
+
+  <div class="teach">
+    <div class="lead">⑤ 什么问题逼出 Adam？——每个旋钮该用不同的步长</div>
+    <p>有的旋钮梯度一直很大、有的很小，全用同一个学习率不公平。<b>Adam</b> 给<b>每个旋钮各自的步长</b>，靠两样东西（都是移动平均）：<br>
+    · <b>一阶矩</b> = 梯度的移动平均（方向惯性，就是动量）；<br>
+    · <b>二阶矩</b> = 梯度<b>平方</b>的移动平均（谁最近抖得凶，就把谁的步长自动调小、减速）。<br>
+    合起来：稳、快、还不太需要手调学习率——所以它是深度学习的默认优化器。<span class="dep">依赖：动量、方差</span></p>
+  </div>
+
+  <div class="warnbox"><b>纠正你那份 Transformer 文档：</b>它把 Adam 的二阶矩说成"历史<b>加速度</b>"、把 Adam 归为"<b>动量定理</b>"——都错。二阶矩是<b>"梯度平方的移动平均"</b>（用来给抖得凶的旋钮减速），跟"加速度"无关；Adam 的全名是 <b>Adaptive Moment Estimation（自适应矩估计）</b>，和物理动量定理没关系。</div>
+
+  <div class="chain">
+"有方向没步长" <span class="ar">→</span> <span class="a">学习率</span> <span class="ar">→</span> "数据太多" <span class="ar">→</span> <span class="a">SGD(抽小批)</span> <span class="ar">→</span> "震荡走得慢" <span class="ar">→</span> <span class="a">动量(加惯性)</span> <span class="ar">→</span> "每个旋钮该不同步长" <span class="ar">→</span> <span class="z">Adam</span>
+  </div>
+
+  <div class="drill">
+    <div class="t">练习 · 第 6 层</div>
+    <div class="item"><span class="lv l1">手算</span> 某旋钮当前 = 2.0，这一步算出的梯度 = +0.5，学习率 = 0.1。求更新后的值；再看学习率 = 10 会发生什么。
+      <details class="ans"><summary></summary><div class="body">学习率 0.1：<code>2.0 − 0.1×0.5 = 1.95</code>，往损失减小的方向挪了一小步，稳。<br>学习率 10：<code>2.0 − 10×0.5 = −3.0</code>，一步从 2 跨到 −3，直接越过谷底冲到对面老远 → 下一步梯度更大、弹得更远 → <b>发散（loss 爆炸/NaN）</b>。这就是动画里"飞出去"的数值版。</div></details>
+    </div>
+    <div class="item"><span class="lv l2">反问</span> 梯度下降只保证"往下坡走一小步"，那它会不会卡在一个"小坑"（局部最优）里出不来，永远到不了真正的最低谷？
+      <details class="ans"><summary></summary><div class="body">低维里确实有这风险；但<b>高维神经网络里"四面八方都朝上的真局部最优"极其罕见</b>，绝大多数"平的地方"是<b>鞍点</b>（有的方向上坡、有的下坡）。SGD 的噪声 + 动量的惯性，通常能把球从鞍点/浅坑里带出来。所以"卡死在坏局部最优"实践中没想象中严重。<br>⚠️注意这是<b>经验规律不是保证</b>——你文档里"小批一定能到全局最优"讲得太绝对，别当铁律。</div></details>
+    </div>
+    <div class="item"><span class="lv l3">思考</span> 大模型训练学习率常"先小、再大、再慢慢变小"（warmup + 衰减）。为什么一开始反而要<b>小</b>、不能一上来就大步冲？
+      <details class="ans"><summary></summary><div class="body">训练最开始旋钮是<b>随机</b>的，梯度方向很不靠谱，这时大步走极易朝错误方向猛冲一下就崩（loss 爆炸/NaN）。先用小步"<b>预热（warmup）</b>"让方向稳定，再加大步加速；接近谷底时再把步长<b>衰减</b>调小，精细收敛。所以 warmup 不是玄学，就是"起步路况差，先慢点开"。<br>（你文档里编造的"Loss>10 就 sys.exit、连续10轮不降早停"那套具体阈值不是真的；真实是这种按预定曲线走的学习率调度。）</div></details>
+    </div>
+  </div>
+
+  <div class="fix"><b>本层顿悟：</b><span class="key">训练 = 反复执行「算损失(5层) → 反向传播求梯度(3层) → 旋钮 −= 学习率×梯度」</span>；SGD 让它算得起、动量让它走得稳、Adam 让每个旋钮各有各的步长。至此，"训练"这台机器的每个零件你都见过了——下一层就把它们拼成完整的神经网络。</div>
 </section>
 
 <!-- ============ 第7层 ============ -->

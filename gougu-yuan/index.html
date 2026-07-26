@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数学创世记 · 试点：勾股定理 → 圆的方程（每一步都不跳）</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2d333b;
+    --tx:#e6edf3; --tx2:#9da7b3; --tx3:#6e7681;
+    --acc:#58a6ff; --acc2:#bc8cff; --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+    --teal:#39c5cf; --gold:#e3b341;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--tx);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.85; font-size:16px;}
+  .app{display:flex; align-items:flex-start}
+  .sidebar{position:sticky; top:0; height:100vh; flex:0 0 270px; width:270px;
+    border-right:1px solid var(--line); background:var(--panel);
+    overflow-y:auto; padding:18px 0 40px; scrollbar-width:thin;}
+  .sidebar::-webkit-scrollbar{width:8px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
+  .brand{padding:4px 20px 16px; border-bottom:1px solid var(--line); margin-bottom:8px}
+  .brand .logo{font-size:16px; font-weight:700}
+  .brand .logo .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .sb{font-size:12px; color:var(--tx3); margin-top:5px}
+  nav.toc{padding:0 10px}
+  .toc .grp{font-size:11px; letter-spacing:1.5px; color:var(--tx3); padding:16px 12px 6px; font-weight:700}
+  .toc a{display:flex; align-items:center; gap:9px; color:var(--tx2); text-decoration:none; font-size:13.5px;
+    padding:7px 10px 7px 14px; border-radius:8px; margin:1px 0 1px 8px; border-left:2px solid var(--line); transition:.12s;}
+  .toc a i{flex:0 0 auto; width:20px; height:20px; border-radius:6px; font-style:normal;
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+    background:var(--panel2); color:var(--tx3); border:1px solid var(--line);}
+  .toc a:hover{color:var(--tx); background:var(--panel2)}
+  .toc a.on{color:var(--acc); background:rgba(88,166,255,.1); border-left-color:var(--acc)}
+  .toc a.on i{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:700}
+  .main{flex:1 1 auto; min-width:0}
+  .wrap{max-width:840px; margin:0 auto; padding:0 30px 140px}
+  header{padding:56px 30px 42px; text-align:center;
+    background:radial-gradient(900px 400px at 50% -120px,rgba(188,140,255,.20),transparent 70%);
+    border-bottom:1px solid var(--line);}
+  header h1{font-size:31px; margin:0 0 14px; letter-spacing:.5px}
+  header h1 .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--tx2); max-width:680px; margin:0 auto; font-size:16px}
+  .tags{margin-top:18px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+  .tag{display:inline-block;padding:5px 14px;border:1px solid var(--line);border-radius:30px;color:var(--tx2);font-size:13px}
+  .menu-btn{display:none; position:fixed; top:14px; left:14px; z-index:120; width:42px; height:42px; border-radius:10px; font-size:18px;
+    background:var(--panel); border:1px solid var(--line); color:var(--tx);}
+  .scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99}
+  @media(max-width:880px){
+    .sidebar{position:fixed; left:0; top:0; z-index:100; transform:translateX(-100%); transition:.25s; box-shadow:6px 0 30px rgba(0,0,0,.5)}
+    .sidebar.open{transform:none}
+    .scrim.open{display:block}
+    .menu-btn{display:flex; align-items:center; justify-content:center}
+    header{padding-top:64px}
+  }
+  section{padding:46px 0 10px; border-bottom:1px solid var(--line)}
+  .yr{font-size:13px; color:var(--acc2); letter-spacing:1.2px; font-weight:600}
+  h2{font-size:25px; margin:6px 0 4px}
+  .sub{color:var(--tx3); font-size:14px; margin-bottom:18px}
+  h3{font-size:18px; margin:28px 0 8px}
+  p{margin:12px 0}
+  b,strong{color:#fff}
+  code{background:var(--panel2); padding:2px 6px; border-radius:5px; font-size:14px; color:#ffd9a0; font-family:"Cascadia Code",Consolas,monospace}
+  ul,ol{margin:12px 0; padding-left:22px}
+  li{margin:6px 0}
+  .term{color:var(--acc2); font-weight:600; border-bottom:1px dashed rgba(188,140,255,.5)}
+  .en{color:var(--tx3); font-size:.86em; font-family:"Cascadia Code",Consolas,monospace}
+  .key{background:linear-gradient(transparent 62%,rgba(188,140,255,.35) 0); padding:0 2px}
+  .ask{border-left:3px solid var(--gold); background:rgba(227,179,65,.08); padding:10px 16px; border-radius:0 8px 8px 0; margin:18px 0; font-size:15px}
+  .ask b{color:var(--gold)}
+  .pain{border-left:3px solid var(--bad); background:rgba(248,81,73,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .pain b{color:var(--bad)}
+  .fix{border-left:3px solid var(--ok); background:rgba(63,185,80,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .fix b{color:var(--ok)}
+  .note{border-left:3px solid var(--acc); background:rgba(88,166,255,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .formula{font-family:"Cascadia Code",Consolas,monospace; background:#0b0f14; border:1px solid var(--line);
+    border-radius:10px; padding:13px 15px; margin:14px 0; font-size:16px; overflow-x:auto; color:#cfe3ff; text-align:center}
+  .formula .c{color:var(--tx3); font-size:13px}
+  .deriv{counter-reset:d; margin:16px 0; padding:0}
+  .deriv .s{position:relative; list-style:none; padding:10px 0 10px 46px; border-left:2px solid var(--line); margin-left:16px}
+  .deriv .s::before{counter-increment:d; content:counter(d); position:absolute; left:-15px; top:8px;
+    width:28px; height:28px; border-radius:50%; background:var(--panel2); border:1px solid var(--acc); color:var(--acc);
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700}
+  .deriv .s b{color:#fff}
+  /* 元层 */
+  .meta{border:1px solid rgba(188,140,255,.4); background:linear-gradient(180deg,rgba(188,140,255,.09),rgba(188,140,255,.02));
+    border-radius:10px; padding:12px 16px; margin:18px 0}
+  .meta .t{font-size:13px; color:var(--acc2); font-weight:700; letter-spacing:.4px; margin-bottom:6px}
+  .meta .t::before{content:"🧭 元层 · "}
+  /* 挖到底 */
+  details.dig{margin:14px 0; border:1px solid var(--line); border-radius:10px; background:var(--panel); overflow:hidden}
+  details.dig>summary{cursor:pointer; list-style:none; padding:11px 15px; font-size:14.5px; color:var(--teal); font-weight:600; user-select:none; background:rgba(57,197,207,.06)}
+  details.dig>summary::-webkit-details-marker{display:none}
+  details.dig>summary::before{content:"⛏ 挖到底："; color:var(--teal)}
+  details.dig[open]>summary{border-bottom:1px solid var(--line)}
+  details.dig .body{padding:6px 16px 12px; font-size:14.5px; color:var(--tx2)}
+  details.dig .body b{color:#fff}
+  /* demo */
+  .demo{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; margin:22px 0}
+  .demo .hd{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--tx2); margin-bottom:14px}
+  .demo .hd::before{content:"▶"; color:var(--acc2); font-size:10px}
+  .ctrl{display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:12px 0 4px}
+  .ctrl label{font-size:13px; color:var(--tx2); display:flex; align-items:center; gap:6px}
+  input[type=range]{accent-color:var(--acc2); width:120px; vertical-align:middle}
+  .ro{font-family:"Cascadia Code",Consolas,monospace; color:var(--gold)}
+  canvas{display:block; max-width:100%; border-radius:10px; background:#0b0f14; margin:0 auto}
+  .hint{color:var(--tx3); font-size:13px; margin-top:10px}
+  .drill{border:1px solid rgba(57,197,207,.4); background:linear-gradient(180deg,rgba(57,197,207,.09),rgba(57,197,207,.02));
+    border-radius:10px; padding:14px 16px 12px; margin:20px 0}
+  .drill .t{font-size:13px; color:var(--teal); font-weight:700; margin-bottom:10px}
+  .drill .t::before{content:"✏️ "}
+  .drill .item{margin:12px 0}
+  details.ans{margin:7px 0 0; border-top:1px dashed var(--line); padding-top:7px}
+  details.ans summary{cursor:pointer; color:var(--acc); font-size:13px; list-style:none; user-select:none}
+  details.ans summary::-webkit-details-marker{display:none}
+  details.ans summary::before{content:"▸ 看答案 / 点拨"}
+  details.ans[open] summary::before{content:"▾ 收起"}
+  details.ans .body{font-size:14px; color:var(--tx2); margin-top:8px; line-height:1.8}
+  details.ans .body b{color:#fff}
+  .foot{text-align:center; color:var(--tx3); font-size:13px; padding:40px 0}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">数学<span class="g">创世记</span> · 试点</div>
+    <div class="sb">勾股定理 → 圆的方程 · 每步不跳</div>
+  </div>
+  <nav class="toc" id="nav">
+    <div class="grp">怎么读</div>
+    <a href="#c0"><i>0</i>三条承诺（元层导言）</a>
+    <div class="grp">公元前 · 绳子与土地</div>
+    <a href="#c1"><i>1</i>绝境：怎么造出直角</a>
+    <a href="#c2"><i>2</i>★平方是怎么来的</a>
+    <a href="#c3"><i>3</i>图能算证明吗</a>
+    <div class="grp">1637 · 笛卡尔焊接数与形</div>
+    <a href="#c4"><i>4</i>坐标系（一个约定）</a>
+    <a href="#c5"><i>5</i>距离为什么开根号</a>
+    <div class="grp">圆 · 换身衣服的勾股</div>
+    <a href="#c6"><i>6</i>★圆=勾股定理</a>
+    <a href="#c7"><i>7</i>圆的"搬家"(x−a)²</a>
+    <div class="grp">收尾</div>
+    <a href="#c8"><i>8</i>发现/约定/证明 总账</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<header>
+  <h1>试点：<span class="g">勾股定理 → 圆的方程</span></h1>
+  <p>这是"数学创世记"课程的<b>一页样章</b>，专治你那句"<b class="key">课本仿佛突然跳了一节，就变成了那个公式</b>"。这里<b>一步都不跳</b>：每个公式怎么被逼出生、为什么长这样、挖到最底是什么、这一步算不算证明——全给你摊开。</p>
+  <div class="tags">
+    <span class="tag">🪜 每步不跳</span>
+    <span class="tag">⛏ 挖到基岩</span>
+    <span class="tag">🧭 发现/约定/证明</span>
+    <span class="tag">🎛 可拖动交互图</span>
+    <span class="tag">🕰 按历史顺序</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- 0 -->
+<section id="c0">
+  <div class="yr">怎么读这页 · 元层导言</div>
+  <h2>第 0 章：给你三条承诺</h2>
+  <div class="sub">你反复追问的三件事，这页当规矩来守</div>
+
+  <p>你在那份长对话里，其实一直在要三样东西。这页对你立三条军令状：</p>
+  <ol>
+    <li><b>绝不跳步</b>：从"简单概念"到"复杂公式"之间，每一步一个人是怎么想到的，全部补上——这就是你说的"缺的那一节"。</li>
+    <li><b>挖到基岩</b>：任何一步用到的更底层东西（比如"平方""距离"），都能点开 <span style="color:var(--teal)">⛏ 挖到底</span> 继续挖，直到最原始的图形/约定。</li>
+    <li><b>标清身份</b>：每一步我都告诉你它是 <b style="color:var(--acc2)">🧭 发现（宇宙逼的）/ 约定（人规定的）/ 证明（逻辑推的）</b> 中的哪一种——这正是你追问"谁认可这种证明""是不是先写后补证明"的答案。</li>
+  </ol>
+  <div class="note"><b>顺序说明：</b>这页<b>按历史真实顺序</b>走：先有公元前的勾股定理（图形），过了两千年才有笛卡尔坐标系（1637），圆的方程是坐标系出现<b>之后</b>才可能被写出来的。你会看到——<span class="key">圆的方程根本不是天降，它就是勾股定理换了身衣服。</span></div>
+</section>
+
+<!-- 1 -->
+<section id="c1">
+  <div class="yr">公元前 · 绳子与土地</div>
+  <h2>第 1 章：绝境——怎么在地上造出一个准确的直角？</h2>
+  <div class="sub">勾股定理不是从公式来的，是从"盖房子要垂直"这个活命需求来的</div>
+
+  <p>先忘掉一切公式。公元前的埃及人、中国人面对一个<b>真实的活儿</b>：分田、盖屋、修金字塔，都需要<b>标准的直角</b>。可地上没有量角器，怎么保证两条边"正好垂直"？</p>
+
+  <div class="fix"><b>他们发现的土办法：</b>拿一根绳子，打上等距的结，量出 <b>3 段、4 段、5 段</b> 三条边，围成一个三角形——<span class="key">那个对着最长边（5）的角，必然是标准直角</span>。这就是"结绳成直角"，埃及拉绳人靠它盖金字塔。</p>
+
+  <p>反复用下来，人们发现这不是巧合：<b>只要三角形有一个直角</b>，三条边（两条直角边 a、b 和斜边 c）之间就锁死了一个关系。古中国《周髀算经》把它记成"<b>勾三股四弦五</b>"。<span class="key">注意——此刻它还不是公式 <code>a²+b²=c²</code>，只是一句话、一张图、一组能用的数。</span></p>
+
+  <div class="ask"><b>你问过：</b>"勾股定理的公式怎么出现的？从没有公式变成公式这一步我很不懂。" —— <b>答：那一步跨了两千年。</b>公元前它是"图形+口诀"；直到 16–17 世纪欧洲发明了<b>代数符号</b>（用字母代表数、用 <code>²</code> 记平方），人们才把这张老图<b>翻译</b>成 <code>a²+b²=c²</code>。<span class="key">公式是后来的"翻译稿"，不是原件。</span>你觉得"突然变成公式"，是因为课本把这两千年的翻译过程删了。</div>
+
+  <div class="meta"><div class="t">这一步是"发现"</div>勾股关系是<b>宇宙（平直空间）逼出来的</b>，不是谁规定的——你把直角画歪一点，关系就不成立。人类只是<b>发现</b>了它。（能不能改成别的？在弯曲空间里它真的会变——这是后话，但足见它是"发现"不是"约定"。）</div>
+</section>
+
+<!-- 2 -->
+<section id="c2">
+  <div class="yr">挖到基岩 · 你最较真的一问</div>
+  <h2>第 2 章：★"平方"到底是怎么来的？怎么就刚好用平方？</h2>
+  <div class="sub">你问："勾股定理是不是依赖面积？正方形面积自然叫平方？平方怎么来的？不然怎么刚好用平方"——这一章专门回答</div>
+
+  <p>你的直觉<b>完全正确</b>。<code>a²</code> 里那个"²"不是凭空的符号，它的本义就是——<b>以 a 为边长的正方形，它的面积</b>。</p>
+
+  <div class="deriv">
+    <li class="s"><b>先挖"平方 = 面积"：</b>一个边长 a 的正方形，切成 a 行 a 列的小方格，一共 <code>a×a</code> 个。所以"a 乘 a"最原始的含义就是"边长 a 的正方形装了多少个单位方格" = 面积。<b>先有正方形面积，才有"平方"这个词。</b></li>
+    <li class="s"><b>再看勾股定理的真身：</b>在直角三角形<b>三条边上各向外画一个正方形</b>。勾股定理说的其实是一句面积的话：<span class="key">两条直角边上的正方形面积之和（a² + b²）= 斜边上的正方形面积（c²）</span>。</li>
+    <li class="s"><b>所以"刚好用平方"一点不刚好：</b>因为它本来就是<b>正方形面积之间的关系</b>，写出来自然是平方。如果当年人们比的是别的东西，就不会是平方。平方是"面积"逼出来的，不是硬凑的。</li>
+  </div>
+
+  <div class="demo">
+    <div class="hd">交互图 · 亲眼看到 a² + b² 拼成 c²（拖滑块换三角形，看两种拼法剩下的面积必相等）</div>
+    <canvas id="cv-py" width="800" height="330"></canvas>
+    <div class="ctrl">
+      <label>直角边 a <input type="range" id="py-a" min="1" max="4" step="0.1" value="3"><span class="ro" id="py-av">3.0</span></label>
+      <label>直角边 b <input type="range" id="py-b" min="1" max="4" step="0.1" value="4"><span class="ro" id="py-bv">4.0</span></label>
+    </div>
+    <div class="hint" id="py-tip"></div>
+  </div>
+
+  <div class="note"><b>看懂这张图，你就看懂了"图形证明"：</b>左右两个<b>一样大</b>的大正方形（边长都是 a+b），里面都塞了<b>4 个完全相同</b>的直角三角形。把这 4 个三角形拿走，<b>剩下的面积必然相等</b>——左边剩的是中间那个斜正方形 <code>c²</code>，右边剩的是 <code>a²</code> 和 <code>b²</code> 两块。所以 <span class="key">c² = a² + b²</span>。全程没写一个代数公式，纯靠"面积不会凭空多也不会凭空少"。</div>
+
+  <details class="dig"><summary>正方形面积为什么是"边长×边长"？再往下挖一层</summary>
+    <div class="body">因为我们<b>约定</b>了"面积"用"单位小方格的个数"来量（这是<b>约定/定义</b>，不是发现）。边长 a 的正方形，横着能放 a 个、竖着能放 a 行，所以是 a×a 个方格。再往下，"a×a"里的乘法，又能挖到第 1 层的"重复加法"（a×a = a 个 a 相加）。<b>一直挖到底，是"数数"和"面积怎么定义"这两块基岩。</b></div>
+  </details>
+
+  <div class="ask"><b>你问过：</b>"勾股定理是不是已经是最底层的公式了，没有更底层的推导它了，只能联系图形？" —— <b>答：接近对，但更准确地说</b>：它不能靠"更底层的公式"推，只能靠<b>图形（面积）</b>加<b>几何公理</b>来立。它是"接近地基"的一块砖，下面垫着的是"面积的定义"和"欧几里得几何公理"，不是别的公式。</div>
+</section>
+
+<!-- 3 -->
+<section id="c3">
+  <div class="yr">元层 · 你追问的"证明合法性"</div>
+  <h2>第 3 章：图形能算"严谨证明"吗？万一是特例呢？</h2>
+  <div class="sub">你问："由图得出公式，在数学上是能接受的严谨证明吗？万一是特例呢？谁认可这种证明方式？"</div>
+
+  <p>这是全篇最"数学哲学"的一问，也是你反复戳的点。分三层回答：</p>
+
+  <div class="deriv">
+    <li class="s"><b>图形证明是合法的——只要它没偷用"特殊数值"。</b>上一章那张拼图，我全程用的是<b>字母 a、b</b>（任意直角边），没说"a 必须等于 3"。所以它对<b>一切</b>直角三角形都成立，不是特例。<span class="key">"万一是特例"的担心，只在你用了具体数字（如 3、4、5）去"验证"时才成立；用字母做一般性论证，就堵死了特例。</span></li>
+    <li class="s"><b>但图形也确实会骗人</b>——历史上有很多"看图想当然"翻车的例子（比如画歪一点就得出荒谬结论）。所以从欧几里得开始，数学界<b>约定</b>了一套规矩：图只能用来"提示思路"，真正算数的是"每一步依据哪条公理/已证结论"。</li>
+    <li class="s"><b>"谁认可这种证明方式"？——是一套两千年沉淀下来的社区约定。</b>不是某个人拍板，而是欧几里得《几何原本》立了范式（公理→定理→证明），后世数学家共同沿用、不断加严。<span class="key">所以"证明"本质是一种"约定的游戏规则"</span>：从大家都接受的公理出发、每步合规、不自相矛盾，就被承认。你直觉到的"是不是定了个标准/格式"——<b>完全正确</b>。</li>
+  </div>
+
+  <div class="meta"><div class="t">"证明"这件事本身，是"约定"</div>什么算证明、什么图能用、什么符号能创造——这些是<b>数学共同体的约定</b>（可以演化，比如后来加了代数证明、形式化证明）。但被证明的<b>结论</b>（如勾股定理）一旦立住，就是<b>发现</b>的真理。<span class="key">规则是约定的，规则下推出的真理是发现的。</span>这句你记住，后面全通。</div>
+
+  <div class="ask"><b>你后来自己悟出一句很漂亮的话：</b>"从图形翻译成代数才需要证明，从代数换回图形不需要。" —— 这个直觉<b>方向很对</b>，第 6、8 章我们会把它精修成准确版本。你已经在用数学家的方式思考了。</div>
+</section>
+
+<!-- 4 -->
+<section id="c4">
+  <div class="yr">1637 · 笛卡尔 · 隔了两千年</div>
+  <h2>第 4 章：笛卡尔的约定——用两个数锁定一个点</h2>
+  <div class="sub">圆的方程为什么公元前写不出来？因为还差一个发明：坐标系</div>
+
+  <p>勾股定理有了，但它是"图形里的关系"。要写出"圆的<b>方程</b>"，还缺一样东西——<b>把"图上的点"变成"一对数"的办法</b>。这一步 1637 年才由笛卡尔迈出。</p>
+
+  <div class="deriv">
+    <li class="s"><b>绝境：</b>几何（图）和代数（数、方程）长期是<b>两个互不相通的世界</b>。图形不好算，代数看不见。笛卡尔想把它俩焊在一起。</li>
+    <li class="s"><b>他的约定：</b>在平面上画两条互相垂直的数轴（x 轴、y 轴），交点叫原点。这样<b>平面上每一个点，都对应唯一一对数 (x, y)</b>——x 是它离 y 轴多远，y 是它离 x 轴多远。</li>
+    <li class="s"><b>威力：</b>从此"图形"能翻译成"方程"，"方程"能画成"图形"。这就是<b>解析几何</b>的诞生。</li>
+  </div>
+
+  <div class="meta"><div class="t">坐标系是纯粹的"约定/发明"</div>它不需要证明——你没法"证明"该用垂直的两条轴，这是笛卡尔<b>规定</b>的游戏场地（换成斜的轴、极坐标也行，只是没这么方便）。<span class="key">这正好回答你问的"笛卡尔坐标系有定义规定才出现了圆"——对，圆的方程站在这个约定的地基上。</span></div>
+</section>
+
+<!-- 5 -->
+<section id="c5">
+  <div class="yr">1637 · 距离公式</div>
+  <h2>第 5 章：两点间距离为什么要"开根号"？（你说这里很莫名其妙）</h2>
+  <div class="sub">你问："这里又怎么涉及到开根号？也是莫名其妙。"——它一点不莫名，就是勾股定理</div>
+
+  <p>有了坐标，第一个要算的就是：平面上两点 <code>A(x₁,y₁)</code> 和 <code>B(x₂,y₂)</code>，它俩<b>离多远</b>？</p>
+
+  <div class="deriv">
+    <li class="s"><b>造一个直角三角形：</b>从 A 横着走到 B 的正下/正上方，横向走了 <code>Δx = x₂−x₁</code>；再竖着走到 B，竖向走了 <code>Δy = y₂−y₁</code>。这两段<b>正好垂直</b>（一横一竖），而 A 到 B 的直线距离，就是这个直角三角形的<b>斜边</b>。</li>
+    <li class="s"><b>套勾股定理：</b>斜边² = 横边² + 竖边²，即 <code>距离² = Δx² + Δy²</code>。</li>
+    <li class="s"><b>要"距离"本身，就得把"距离²"还原回去——开根号：</b></li>
+  </div>
+
+  <div class="formula">距离 = √( (x₂−x₁)² + (y₂−y₁)² )<span class="c">　←它整个就是勾股定理 c=√(a²+b²) 穿了坐标的衣服</span></div>
+
+  <div class="fix"><b>所以"开根号"一点不莫名：</b>勾股定理给你的是"距离的<b>平方</b>"（因为它本质是面积关系），而你要的是"距离"本身。<span class="key">开根号 = 从"正方形面积"退回"正方形边长"的那一步逆操作</span>。平方是"边长→面积"，开根号就是"面积→边长"，一来一回而已。</div>
+
+  <details class="dig"><summary>开根号（√）这个运算是怎么来的？</summary>
+    <div class="body">它就是"平方的逆问题"：已知一个正方形的面积，反求它的边长。就像减法是加法的逆、除法是乘法的逆，<b>开根号是平方的逆</b>。√ 这个符号是 16 世纪才发明的记号（又是"约定"），但"已知面积求边长"这个需求，古人早就有了。</div>
+  </details>
+</section>
+
+<!-- 6 -->
+<section id="c6">
+  <div class="yr">★ 高潮 · 圆的方程诞生</div>
+  <h2>第 6 章：圆的方程，其实和勾股定理一模一样</h2>
+  <div class="sub">你惊呼过："圆的公式和勾股定理一模一样？？？"——是的，下面一步步给你逼出来</div>
+
+  <p>圆是什么？先说<b>定义</b>（这是圆的"物理定义"，公元前就有）：<span class="key">到某个定点（圆心）距离<b>都相等</b>（等于半径 r）的所有点，连起来就是圆。</span></p>
+
+  <p>现在把这句话，用第 4、5 章的工具<b>翻译成方程</b>。为简单起见，先把圆心放在原点 (0,0)：</p>
+
+  <div class="deriv">
+    <li class="s"><b>设圆上任意一点是 (x, y)。</b>"它在圆上" 这句话，翻译过来就是："它到圆心 (0,0) 的距离 = r"。</li>
+    <li class="s"><b>用第 5 章的距离公式：</b>它到原点的距离 = <code>√(x² + y²)</code>。于是"在圆上"就是：<code>√(x² + y²) = r</code>。</li>
+    <li class="s"><b>两边平方，把根号去掉</b>（因为带根号难算，平方更清爽）：得到 <code>x² + y² = r²</code>。<b>圆的方程，出生了。</b></li>
+  </div>
+
+  <div class="formula">x² + y² = r²　<span class="c">←把 x 看成 a、y 看成 b、r 看成 c，它就是 a²+b²=c²</span></div>
+
+  <div class="fix"><b>回答你的惊呼：对，一模一样！</b> <code>x²+y²=r²</code> 就是勾股定理 <code>a²+b²=c²</code>。因为圆上每个点 (x,y) 到圆心，正好张出一个直角三角形（横边 x、竖边 y、斜边 r=半径），而"半径永远是 r"（圆的定义）就锁死了 <code>x²+y²=r²</code>。<span class="key">圆的方程 = 勾股定理 + "所有点半径都相等"这一句定义。</span>一点都不莫名其妙。</div>
+
+  <div class="demo">
+    <div class="hd">交互图 · 拖动圆上的点，看那个"勾股直角三角形"始终满足 x²+y²=r²</div>
+    <canvas id="cv-circle" width="800" height="440"></canvas>
+    <div class="ctrl">
+      <label>点的位置(角度) <input type="range" id="cc-ang" min="0" max="360" step="1" value="35"></label>
+      <label>圆心 a <input type="range" id="cc-a" min="-4" max="4" step="0.1" value="0"><span class="ro" id="cc-av">0.0</span></label>
+      <label>圆心 b <input type="range" id="cc-b" min="-3" max="3" step="0.1" value="0"><span class="ro" id="cc-bv">0.0</span></label>
+      <label>半径 r <input type="range" id="cc-r" min="1" max="4" step="0.1" value="3"><span class="ro" id="cc-rv">3.0</span></label>
+    </div>
+    <div class="hint" id="cc-tip"></div>
+  </div>
+
+  <div class="meta"><div class="t">这是"翻译 + 推导"，不是"先写后补证明"</div>你问过："圆的公式到底是先推导证明出来，还是直接写出来后面才补证明？"——<b>答：是从定义一步步等价推导出来的。</b>上面每一步（"在圆上" ⟺ "距离=r" ⟺ "√(x²+y²)=r" ⟺ "x²+y²=r²"）都是<b>等价变形</b>，所以推完就等于证完了，不需要"事后补证明"。这跟"乱写一个公式再去找它对应什么"是两回事。</div>
+</section>
+
+<!-- 7 -->
+<section id="c7">
+  <div class="yr">圆的变体 · 你追问的 a,b 从哪来</div>
+  <h2>第 7 章：圆的"搬家"——(x−a)² + (y−b)² = r²</h2>
+  <div class="sub">你问："a、b 莫名其妙出现？是新发现？谁论证的？为什么是 x−a 不是 x+a？"</div>
+
+  <p>上一章圆心在原点。可现实里圆心哪都能放。<b>圆心搬到 (a, b) 会怎样？</b> 别慌，一步都不用新发明——还是同一个距离公式。</p>
+
+  <div class="deriv">
+    <li class="s"><b>圆的定义没变：</b>圆上点 (x,y) 到<b>圆心 (a,b)</b> 的距离仍然 = r。</li>
+    <li class="s"><b>套第 5 章的距离公式</b>（两点是 (x,y) 和 (a,b)）：<code>√( (x−a)² + (y−b)² ) = r</code>。</li>
+    <li class="s"><b>两边平方：</b><code>(x−a)² + (y−b)² = r²</code>。搬家版出生。</li>
+  </div>
+
+  <div class="fix"><b>回答你三连问：</b><br>
+  · <b>"a、b 是新发现吗？"</b> 不是。a、b 只是<b>圆心的坐标</b>，是俩代号，不是新数学。用的还是原来那个距离公式。<br>
+  · <b>"要不要重新严格论证？"</b> 不用。距离公式对<b>任意</b>两点都成立（第 5 章已立），圆心从 (0,0) 换成 (a,b) 只是代入不同的数，无需新证明。<br>
+  · <b>"为什么是 x−a 不是 x+a？"</b> 因为距离公式量的是<b>两点坐标的差</b>：横向差 = 点的 x 减圆心的 a = <code>x−a</code>。差，当然是减法。若写 x+a，量的就不是"点到圆心"的距离了。</div>
+
+  <div class="ask"><b>你还问过："为什么不是 新坐标 = 旧坐标 + 平移量？"</b> —— 好问题，这是两个不同视角：<b>你说的是"移动图形"（平移变换）</b>，我这里是"<b>量距离</b>"。量距离只关心"点和圆心横竖各差多少"，那个差就是 x−a、y−b。两个视角最后都能得到同一个方程，殊途同归。（"平移变换"那条线，属于后面章节，这里先按下。）</div>
+
+  <div class="note"><b>上面那张交互图，现在拖"圆心 a / b"两个滑块：</b>你会看到圆整体搬家，方程里的 a、b 实时变，而那个"勾股直角三角形"的两条边永远是 <code>x−a</code> 和 <code>y−b</code>，斜边永远是 r。<span class="key">搬到哪，都还是勾股定理。</span></div>
+</section>
+
+<!-- 8 -->
+<section id="c8">
+  <div class="yr">收尾 · 你最想要的元层总账</div>
+  <h2>第 8 章：这一路，哪些是发现、哪些是约定、哪些要证明</h2>
+  <div class="sub">把你反复追问的"数学本质"，在这条具体的线上结个总账</div>
+
+  <table style="width:100%;border-collapse:collapse;font-size:14.5px;margin:10px 0">
+    <tr style="background:var(--panel2)"><th style="border:1px solid var(--line);padding:8px 10px;text-align:left">这一步</th><th style="border:1px solid var(--line);padding:8px 10px;text-align:left">身份</th><th style="border:1px solid var(--line);padding:8px 10px;text-align:left">为什么</th></tr>
+    <tr><td style="border:1px solid var(--line);padding:8px 10px">勾股定理 a²+b²=c²</td><td style="border:1px solid var(--line);padding:8px 10px;color:var(--gold)">发现（要证明）</td><td style="border:1px solid var(--line);padding:8px 10px">平直空间逼出来的真理，靠图形/面积证明</td></tr>
+    <tr><td style="border:1px solid var(--line);padding:8px 10px">面积=边长×边长、√ 记号</td><td style="border:1px solid var(--line);padding:8px 10px;color:var(--acc2)">约定</td><td style="border:1px solid var(--line);padding:8px 10px">怎么量面积、用什么符号，是人规定的</td></tr>
+    <tr><td style="border:1px solid var(--line);padding:8px 10px">坐标系 (x,y)</td><td style="border:1px solid var(--line);padding:8px 10px;color:var(--acc2)">约定/发明</td><td style="border:1px solid var(--line);padding:8px 10px">笛卡尔规定的游戏场地，不需证明</td></tr>
+    <tr><td style="border:1px solid var(--line);padding:8px 10px">距离公式 √(Δx²+Δy²)</td><td style="border:1px solid var(--line);padding:8px 10px;color:var(--ok)">推导（要证明）</td><td style="border:1px solid var(--line);padding:8px 10px">从坐标约定 + 勾股定理推出来，已证</td></tr>
+    <tr><td style="border:1px solid var(--line);padding:8px 10px">圆方程 x²+y²=r²、(x−a)²+(y−b)²=r²</td><td style="border:1px solid var(--line);padding:8px 10px;color:var(--ok)">推导（等价变形即证明）</td><td style="border:1px solid var(--line);padding:8px 10px">从圆的定义一步步等价翻译，推完即证完</td></tr>
+  </table>
+
+  <div class="fix"><b>把你那句原创洞察精修一下：</b>你说"从图形翻译成代数才要证明，从代数换回图形不需要"。<b>更准确的版本是：</b>——把一个<b>几何定义</b>（圆=距离都等于r）翻译成代数方程时，每一步等价变形<b>本身就是证明</b>；而把一个代数方程<b>画</b>成图形，只是"描点连线"，不产生新命题，所以不需要额外证明。<span class="key">你的方向完全对，只需要把"证明"理解成"每步等价"就严丝合缝了。</span></div>
+
+  <div class="drill">
+    <div class="t">练习 · 检验你真的看穿了</div>
+    <div class="item">① <b>手算</b>：圆心在 (2, −1)、半径 5 的圆，方程怎么写？点 (5, 3) 在这个圆上吗？
+      <details class="ans"><summary></summary><div class="body">方程：<code>(x−2)²+(y+1)²=25</code>（注意 y−(−1)=y+1）。代入 (5,3)：<code>(5−2)²+(3+1)²=9+16=25</code> ✓，正好等于 25，<b>在圆上</b>。你看，"在不在圆上"就是"到圆心距离是不是 r"，还是勾股。</div></details>
+    </div>
+    <div class="item">② <b>反问</b>：为什么圆的方程要"两边平方"把根号去掉？不平方（保留 √(x²+y²)=r）不行吗？
+      <details class="ans"><summary></summary><div class="body">保留根号<b>也完全对</b>，只是带根号的式子难变形、难和别的方程联立。平方后 <code>x²+y²=r²</code> 是纯多项式，好算得多。而且因为 r>0、距离≥0，两边平方是<b>等价</b>的（没引入假根），所以放心平方。<b>这是"为了好算而做的等价整理"，不是新数学。</b></div></details>
+    </div>
+    <div class="item">③ <b>思考</b>：如果空间不是平的（比如在地球表面这种弯曲面上），勾股定理还成立吗？这对"圆的方程"意味着什么？
+      <details class="ans"><summary></summary><div class="body">不成立。弯曲空间里 <code>a²+b²=c²</code> 会失效（这正是为什么它是"发现"——依赖空间是平的）。既然圆方程 = 勾股定理换衣服，那么<b>弯曲空间里"圆"的方程也会变样</b>。这一步已经踩到大学"微分几何/非欧几何"的门口了——你追问到底，自然就走到了研究生的地界。</div></details>
+    </div>
+  </div>
+
+  <p style="text-align:center;color:var(--acc2);font-size:17px;margin:28px 0 6px"><b>🎯 从"结绳造直角"到"圆的方程"，中间那"跳掉的一节"，这页一步没跳地给你补回来了。</b></p>
+  <p style="text-align:center;color:var(--tx3);font-size:14px">这只是一页样章。你若觉得"就是这个感觉"，整门《数学创世记》就照这个模板铺开。</p>
+</section>
+
+</div><!-- /wrap -->
+
+<div class="foot">
+  数学创世记 · 试点样章 · 勾股定理 → 圆的方程<br>
+  <span style="color:var(--tx3)">规则是约定的，规则下推出的真理是发现的 · 每一步都不跳</span>
+</div>
+
+</main>
+</div><!-- /app -->
+
+<script>
+const $ = s => document.querySelector(s);
+const navLinks=[...document.querySelectorAll('#nav a')];
+const secs=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+function syncNav(){
+  let i=secs.findIndex((s,k)=>{
+    const r=s.getBoundingClientRect();
+    return r.top<=140 && (k===secs.length-1 || secs[k+1].getBoundingClientRect().top>140);
+  });
+  if(i<0)i=0;
+  navLinks.forEach((a,k)=>a.classList.toggle('on',k===i));
+}
+addEventListener('scroll',syncNav,{passive:true}); syncNav();
+const sidebar=$('#sidebar'), scrim=$('#scrim');
+function closeMenu(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+$('#menuBtn').onclick=()=>{ sidebar.classList.toggle('open'); scrim.classList.toggle('open'); };
+scrim.onclick=closeMenu;
+navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMenu(); }));
+
+/* ===== 交互图1：勾股拼图（两种拼法，剩余面积相等） ===== */
+(function(){
+  const cv=$('#cv-py'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  function draw(){
+    const a=parseFloat($('#py-a').value), b=parseFloat($('#py-b').value);
+    $('#py-av').textContent=a.toFixed(1); $('#py-bv').textContent=b.toFixed(1);
+    const L=a+b;
+    const su=200/8;               // 每单位像素（Lmax=8）
+    const side=L*su;
+    const topY=40;
+    const gap=60;
+    const totalW=side*2+gap;
+    const leftX=(W-totalW)/2, rightX=leftX+side+gap;
+    ctx.clearRect(0,0,W,H);
+    const yb=topY+side;           // 底边像素y
+    const X=(x0,x)=>x0+x*su, Y=(y)=>yb-y*su;
+    function tri(x0,pts,fill){
+      ctx.beginPath(); ctx.moveTo(X(x0,pts[0][0]),Y(pts[0][1]));
+      for(let i=1;i<pts.length;i++)ctx.lineTo(X(x0,pts[i][0]),Y(pts[i][1]));
+      ctx.closePath(); ctx.fillStyle=fill; ctx.fill(); ctx.strokeStyle='#2d333b'; ctx.lineWidth=1; ctx.stroke();
+    }
+    function bigsq(x0){ ctx.strokeStyle='#3a4351'; ctx.lineWidth=1.5; ctx.strokeRect(x0,topY,side,side); }
+    const triFill='rgba(88,166,255,.18)';
+    // 左：斜正方形 c²
+    bigsq(leftX);
+    // 4个角三角形（腿 a,b）
+    tri(leftX,[[0,0],[a,0],[0,b]],triFill);
+    tri(leftX,[[a,0],[L,0],[L,a]],triFill);
+    tri(leftX,[[L,a],[L,L],[b,L]],triFill);
+    tri(leftX,[[b,L],[0,L],[0,b]],triFill);
+    // 中间斜正方形
+    ctx.beginPath();
+    ctx.moveTo(X(leftX,a),Y(0)); ctx.lineTo(X(leftX,L),Y(a)); ctx.lineTo(X(leftX,b),Y(L)); ctx.lineTo(X(leftX,0),Y(b)); ctx.closePath();
+    ctx.fillStyle='rgba(188,140,255,.30)'; ctx.fill(); ctx.strokeStyle='#bc8cff'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#e6edf3'; ctx.font='bold 16px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('c²', X(leftX,L/2), Y(L/2));
+    ctx.fillStyle='var(--tx3)'; ctx.fillStyle='#9da7b3'; ctx.font='13px sans-serif';
+    ctx.fillText('拼法一：4个三角形 + 中间 c²', leftX+side/2, yb+22);
+
+    // 右：a² + b²
+    bigsq(rightX);
+    const R=(x)=>rightX+x*su;
+    // a² 方块（左下）
+    ctx.fillStyle='rgba(63,185,80,.28)'; ctx.fillRect(R(0),Y(a),a*su,a*su);
+    ctx.strokeStyle='#3fb950'; ctx.lineWidth=2; ctx.strokeRect(R(0),Y(a),a*su,a*su);
+    // b² 方块（右上）
+    ctx.fillStyle='rgba(227,179,65,.26)'; ctx.fillRect(R(a),Y(L),b*su,b*su);
+    ctx.strokeStyle='#e3b341'; ctx.lineWidth=2; ctx.strokeRect(R(a),Y(L),b*su,b*su);
+    // 4个三角形填两个 a×b 矩形（右下 & 左上）
+    tri(rightX,[[a,0],[L,0],[a,a]],triFill);       // 右下矩形下三角
+    tri(rightX,[[L,0],[L,a],[a,a]],triFill);       // 右下矩形上三角
+    tri(rightX,[[0,a],[a,a],[0,L]],triFill);       // 左上矩形下三角
+    tri(rightX,[[a,a],[a,L],[0,L]],triFill);       // 左上矩形上三角
+    ctx.fillStyle='#e6edf3'; ctx.font='bold 15px sans-serif';
+    ctx.fillText('a²', R(a/2), Y(a/2));
+    ctx.fillText('b²', R(a+b/2), Y(a+b/2));
+    ctx.fillStyle='#9da7b3'; ctx.font='13px sans-serif'; ctx.textBaseline='middle';
+    ctx.fillText('拼法二：4个三角形 + a² + b²', rightX+side/2, yb+22);
+    $('#py-tip').innerHTML='大正方形边长都是 a+b='+L.toFixed(1)+'，两边各塞 <b>4 个相同</b>的直角三角形（腿 '+a.toFixed(1)+'、'+b.toFixed(1)+'）。拿走三角形，剩下的必然相等：<span style="color:#bc8cff">c²</span> = <span style="color:#3fb950">a²</span>+<span style="color:#e3b341">b²</span> → '+(a*a+b*b).toFixed(2)+' = '+(a*a).toFixed(2)+'+'+(b*b).toFixed(2);
+  }
+  ['py-a','py-b'].forEach(id=>$('#'+id).addEventListener('input',draw));
+  draw();
+})();
+
+/* ===== 交互图2：圆 = 勾股定理（拖点/圆心/半径，三角形恒满足 (x−a)²+(y−b)²=r²） ===== */
+(function(){
+  const cv=$('#cv-circle'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const ox=W/2, oy=H/2+6, su=42;
+  const PX=(x)=>ox+x*su, PY=(y)=>oy-y*su;
+  function draw(){
+    const ang=parseFloat($('#cc-ang').value)*Math.PI/180;
+    const a=parseFloat($('#cc-a').value), b=parseFloat($('#cc-b').value), r=parseFloat($('#cc-r').value);
+    $('#cc-av').textContent=a.toFixed(1); $('#cc-bv').textContent=b.toFixed(1); $('#cc-rv').textContent=r.toFixed(1);
+    ctx.clearRect(0,0,W,H);
+    // 网格
+    ctx.strokeStyle='#161b22'; ctx.lineWidth=1;
+    for(let gx=-9;gx<=9;gx++){ctx.beginPath();ctx.moveTo(PX(gx),0);ctx.lineTo(PX(gx),H);ctx.stroke();}
+    for(let gy=-5;gy<=5;gy++){ctx.beginPath();ctx.moveTo(0,PY(gy));ctx.lineTo(W,PY(gy));ctx.stroke();}
+    // 坐标轴
+    ctx.strokeStyle='#3a4351'; ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(0,PY(0));ctx.lineTo(W,PY(0));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(PX(0),0);ctx.lineTo(PX(0),H);ctx.stroke();
+    // 圆
+    ctx.strokeStyle='#39c5cf'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.arc(PX(a),PY(b), r*su, 0, Math.PI*2); ctx.stroke();
+    // 圆心
+    ctx.fillStyle='#e3b341'; ctx.beginPath(); ctx.arc(PX(a),PY(b),4,0,7); ctx.fill();
+    ctx.fillStyle='#e3b341'; ctx.font='12px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText('圆心('+a.toFixed(1)+','+b.toFixed(1)+')', PX(a)+7, PY(b)+5);
+    // 点 P
+    const px=a+r*Math.cos(ang), py=b+r*Math.sin(ang);
+    const dx=px-a, dy=py-b;
+    // 直角边
+    ctx.strokeStyle='#bc8cff'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(PX(a),PY(b)); ctx.lineTo(PX(px),PY(b)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(PX(px),PY(b)); ctx.lineTo(PX(px),PY(py)); ctx.stroke();
+    // 斜边 = 半径
+    ctx.strokeStyle='#58a6ff'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(PX(a),PY(b)); ctx.lineTo(PX(px),PY(py)); ctx.stroke();
+    // 点
+    ctx.fillStyle='#f85149'; ctx.beginPath(); ctx.arc(PX(px),PY(py),5,0,7); ctx.fill();
+    ctx.fillStyle='#f85149'; ctx.textAlign='left'; ctx.textBaseline='bottom';
+    ctx.fillText('P('+px.toFixed(1)+','+py.toFixed(1)+')', PX(px)+8, PY(py)-6);
+    // 标注
+    ctx.fillStyle='#bc8cff'; ctx.font='13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('x−a', (PX(a)+PX(px))/2, PY(b)+(dy>=0?16:-14));
+    ctx.textAlign='left';
+    ctx.fillText('y−b', PX(px)+(dx>=0?8:-40), (PY(b)+PY(py))/2);
+    ctx.fillStyle='#58a6ff'; ctx.textAlign='center';
+    ctx.fillText('r', (PX(a)+PX(px))/2+(dx>=0?-14:14), (PY(b)+PY(py))/2-8);
+    // 读数
+    $('#cc-tip').innerHTML='直角三角形：横边 <span style="color:#bc8cff">x−a='+dx.toFixed(2)+'</span>，竖边 <span style="color:#bc8cff">y−b='+dy.toFixed(2)+'</span>，斜边 <span style="color:#58a6ff">r='+r.toFixed(1)+'</span>。'+
+      '<br>验证：(x−a)²+(y−b)² = '+(dx*dx).toFixed(2)+'+'+(dy*dy).toFixed(2)+' = <b>'+(dx*dx+dy*dy).toFixed(2)+'</b> = r² = <b>'+(r*r).toFixed(2)+'</b> ✓ 无论点转到哪、圆心搬到哪，永远相等——这就是圆的方程。';
+  }
+  ['cc-ang','cc-a','cc-b','cc-r'].forEach(id=>$('#'+id).addEventListener('input',draw));
+  draw();
+})();
+</script>
+</body>
+</html>

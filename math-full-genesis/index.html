@@ -119,14 +119,16 @@
     <a href="#c3"><i>3</i>第一次危机：√2 量不尽</a>
     <a href="#c4"><i>4</i>证明的诞生：欧几里得</a>
     <a href="#c5"><i>5</i>圆锥曲线登场（纯几何）</a>
-    <div class="grp">第二篇 · 代数时代（建设中）</div>
-    <a class="todo" href="#wip"><i>6</i>解方程 / 符号革命 / 虚数</a>
+    <div class="grp">第二篇 · 代数时代（9~16世纪）</div>
+    <a href="#c6"><i>6</i>代数诞生·配方解方程</a>
+    <a href="#c7"><i>7</i>符号革命：一行式子</a>
+    <a href="#c8"><i>8</i>三次方程逼出虚数</a>
     <div class="grp">第三篇 · 17世纪大综合（建设中）</div>
-    <a class="todo" href="#wip"><i>7</i>坐标·三角·对数·微积分·概率</a>
+    <a class="todo" href="#wip"><i>三</i>坐标·三角·对数·微积分·概率</a>
     <div class="grp">第四篇 · 严格化 19世纪（建设中）</div>
-    <a class="todo" href="#wip"><i>8</i>极限·实数·群论·非欧·无穷</a>
+    <a class="todo" href="#wip"><i>四</i>极限·实数·群论·非欧·无穷</a>
     <div class="grp">第五篇 · 现代（建设中）</div>
-    <a class="todo" href="#wip"><i>9</i>公理化·测度·拓扑·哥德尔</a>
+    <a class="todo" href="#wip"><i>五</i>公理化·测度·拓扑·哥德尔</a>
   </nav>
 </aside>
 
@@ -283,14 +285,98 @@
   <div class="meta"><div class="t">古代圆锥曲线：纯"发现"，靠几何"证明"，但没有"方程"</div>阿波罗尼奥斯全靠图形和比例做论证，没有一个代数方程——因为代数符号和坐标系都还没发明。<span class="key">"难"的根源就在这：用没有坐标的纯几何去驾驭这些曲线，比后来的代数方法难上十倍。</span>这也是为什么这门课要按历史顺序走——你会亲眼看到同一个东西，在"有没有坐标"前后难度天差地别。</div>
 </section>
 
+<!-- 6 -->
+<section id="c6">
+  <div class="yr">第二篇 · 代数时代 · 约公元 820 年 · 巴格达</div>
+  <h2>第 6 章：代数的诞生——用"配方"解方程（求根公式从哪来）</h2>
+  <div class="sub">上一篇卡在哪 → 几何很强，但"求一个未知数"靠文字绕来绕去；而高中那个求根公式，到底怎么冒出来的？</div>
+
+  <p>古人算分遗产、算利息，本质是"已知一些关系，求那个未知数"。花拉子米（约 820 年，巴格达）第一个把这类问题<b>系统化</b>，写成一本书。书名里有个词 <b>al-jabr</b>（意思是"移项、还原"）——后来演变成 <b>algebra（代数）</b>。<span class="key">"代数"这个词，字面意思就是"把式子搬来搬去"。</span></p>
+
+  <p>但他<b>没有符号</b>，全用文字（叫"修辞代数"），一道题写一大段话。他的核心武器是<b>配方</b>（凑成一个完全平方）。我们用今天的符号把他的思路走一遍——解 <code>x² + bx = c</code>：</p>
+
+  <div class="deriv">
+    <li class="s"><b>几何地看 x² + bx：</b><code>x²</code> 是边长 x 的正方形，<code>bx</code> 是一个 b×x 的长条。把长条<b>对半切开</b>成两个 <code>(b/2)×x</code>，贴到正方形相邻的两条边上——拼出一个<b>缺了一个角</b>的大正方形。</li>
+    <li class="s"><b>把缺角补上：</b>缺的正是一个 <code>(b/2)×(b/2)</code> 的小方块。补上它，就凑成完整的大正方形，边长 <code>x+b/2</code>：<br><code>x² + bx + (b/2)² = (x + b/2)²</code>。这就是"配方"——<b>硬补一块，凑成完全平方</b>。</li>
+    <li class="s"><b>代回方程：</b><code>(x+b/2)² − (b/2)² = c</code> → <code>(x+b/2)² = c + (b/2)²</code> → 开根号 → <code>x = −b/2 ± √((b/2)²+c)</code>。</li>
+  </div>
+
+  <p>对一般的 <code>ax²+bx+c=0</code>，同样配方，就逼出了你背了三年的那个求根公式：</p>
+  <div class="formula">x = ( −b ± √(b²−4ac) ) / (2a)<span class="c">　←不是天降，是"把 ax²+bx+c 配成完全平方"配出来的</span></div>
+
+  <div class="fix"><b>那个根号里的 <code>b²−4ac</code> 叫"判别式"</b>，它决定根的个数：>0 有两个、=0 有一个、<b>&lt;0 在实数里没有</b>。<span class="key">这个"&lt;0 开不出根"，就是下一章"虚数"的引信。</span></div>
+
+  <div class="demo">
+    <div class="hd">交互图 · 抛物线 y=ax²+bx+c（拖 a/b/c，看它和 x 轴的交点=求根公式算的根；判别式变号时交点从 2→1→0）</div>
+    <canvas id="cv-quad" width="800" height="380"></canvas>
+    <div class="ctrl">
+      <label>a <input type="range" id="q-a" min="-2" max="2" step="0.1" value="1"><span class="ro" id="q-av">1.0</span></label>
+      <label>b <input type="range" id="q-b" min="-6" max="6" step="0.1" value="-1"><span class="ro" id="q-bv">-1.0</span></label>
+      <label>c <input type="range" id="q-c" min="-6" max="6" step="0.1" value="-6"><span class="ro" id="q-cv">-6.0</span></label>
+    </div>
+    <div class="hint" id="q-tip"></div>
+  </div>
+
+  <div class="meta"><div class="t">配方是"证明"，求根公式是被逼出的"必然"</div>配方的每一步都是等价变形（推导=证明），所以求根公式不是猜的、也不需要事后补证明——它是<b>被"凑完全平方"这条唯一的路逼出来的</b>。</div>
+
+  <details class="dig"><summary>为什么 (x+b/2)² = x²+bx+(b/2)²？</summary>
+    <div class="body">就是乘法分配律展开：<code>(x+b/2)(x+b/2) = x·x + x·(b/2) + (b/2)·x + (b/2)·(b/2) = x² + bx + (b/2)²</code>。<b>挖到底，垫着的是分配律</b>（第一篇的乘法/面积那一套）。</div>
+  </details>
+</section>
+
+<!-- 7 -->
+<section id="c7">
+  <div class="yr">第二篇 · 1591 ~ 1637</div>
+  <h2>第 7 章：符号革命——把"一段话"压成"一行式子"</h2>
+  <div class="sub">你反复追问"从没有公式变成公式这一步"——它就发生在这两百年</div>
+
+  <p>花拉子米解方程全是文字，一道题一大段话，<b>看不出结构、没法机械操作</b>。真正的飞跃，是有人发明了"符号"。</p>
+
+  <div class="deriv">
+    <li class="s"><b>韦达（1591）</b>第一个系统用<b>字母</b>：拿字母同时代表"已知量"和"未知量"。于是人类第一次能写出"<b>一般的</b>方程"（对任意系数成立），而不只是某道具体数字题。</li>
+    <li class="s"><b>笛卡尔（1637）</b>定下了我们今天的全部习惯：<b>x, y, z 表未知，a, b, c 表已知，右上角标记指数（x³），用等号 =</b>。至此"修辞代数"变成"符号代数"。</li>
+    <li class="s"><b>威力爆发：</b>一段话被压成一行式子后，<b>移项、配方、因式分解</b>都变成了"符号搬家"，一眼看出结构。数学从此能像下棋一样——<b>按规则机械地操作符号</b>，不必每步都回到文字含义。</li>
+  </div>
+
+  <div class="fix"><b>这就是你要的答案：</b>公式不是某天"突然出现"，而是<b>符号系统被发明后，把老早就有的"文字方法"翻译成了"式子"</b>。你觉得课本公式突兀，是因为它把"这套 x/=/指数记号是几百年才发明的"这段背景删了——留给你一个没有来历的成品。</p></div>
+
+  <div class="meta"><div class="t">符号是纯粹的"约定/发明"——但威力最大</div>用什么字母、什么记号，都是人<b>约定</b>的（换一套也行）。但它是数学史上最有威力的发明之一：<span class="key">它把"抽象"变成了"可操作"。</span>没有它，后面的坐标系、微积分全都写不出来。</div>
+
+  <div class="note"><b>承上启下：</b>有了"符号" + 下一篇笛卡尔的"坐标系"，图形第一次能写成方程——圆、椭圆的<b>方程</b>才终于成为可能（第三篇）。你在试点里看到的 <code>x²+y²=r²</code>，就站在这一章的肩膀上。</div>
+</section>
+
+<!-- 8 -->
+<section id="c8">
+  <div class="yr">第二篇 · 1545 ~ 1572</div>
+  <h2>第 8 章：三次方程，逼出了"虚数"</h2>
+  <div class="sub">虚数不是为了解 x²=−1 发明的，是解三次方程时"绕不过去"逼出来的</div>
+
+  <p>二次方程判别式 &lt;0 时，古人一句"无解"就打发了。但<b>三次方程</b>不肯放过他们。</p>
+
+  <p>卡尔达诺在《大术》（1545）里公布了三次方程的求根公式（背后还有和塔尔塔利亚抢发现权的著名撕逼）。用它解方程时，出了一件邪门的事：</p>
+
+  <div class="deriv">
+    <li class="s"><b>邪门现象：</b>有些三次方程<b>明明有实数解</b>（图像实实在在穿过 x 轴），可套用求根公式，<b>中间步骤却必须经过 √(负数)</b>——绕都绕不开。</li>
+    <li class="s"><b>邦贝利的硬着头皮（1572）：</b>他假装 <code>√(−1)</code> 是个能参与加减乘除的正常东西，照着规则算下去。结果——那些 <code>√(−1)</code> 在最后<b>成对抵消</b>了，吐出完全正确的实数解！</li>
+    <li class="s"><b>被迫承认：</b>存在一种"过渡用的数"，它平方是负的、看不见摸不着，但让它参与运算能得到正确答案。于是规定一个新符号：<code>i² = −1</code>，即 <code>i = √(−1)</code>。笛卡尔轻蔑地叫它 <b>imaginary（虚假的）数</b>——这个带贬义的名字，一直用到今天。</li>
+  </div>
+
+  <div class="fix"><b>正面回答你追问过的"能不能随便定义一个数/公式"：</b><span class="key">不能随便，但"被逼出来的"可以。</span>虚数不是谁拍脑袋造的，是"三次方程的中间步骤绕不开它"硬逼出来的；后来高斯给了它几何意义（复平面里的旋转），它成了物理、电学、信号、乃至 AI 里都离不开的工具。<b>被绝境逼出来的新数，往往最有生命力。</b></div>
+
+  <div class="meta"><div class="t"><code>i=√(−1)</code> 是"约定"，它的"合法性"是被证明的</div>规定一个新符号 + 一条规则（i²=−1）是<b>约定/发明</b>。但它凭什么被接受？靠两条<b>证明/检验</b>：① 用它算出的实数解是对的；② 它和已有的运算律不打架，能自洽地扩成一套完整的"复数"。<span class="key">又一次：规则是约定的，能不能自洽、有没有用，是被检验出来的。</span></div>
+
+  <details class="dig"><summary>那些 √(−1) 凭什么会"成对抵消"？</summary>
+    <div class="body">因为 <code>i×i = −1</code>、<code>i×(−i) = 1</code>：当计算里 <code>+i…</code> 和 <code>−i…</code> 成对出现时，虚部正好相消，只剩实数。完整的几何解释——把 <code>i</code> 看成"逆时针转 90°"，转两次（i²）正好朝反方向（−1）——要等第四篇高斯的复平面才讲透。这里先埋下伏笔。</div>
+  </details>
+</section>
+
 <!-- 建设中 -->
 <section id="wip">
   <div class="yr">后续</div>
   <h2>第二～五篇 · 建设中</h2>
   <div class="wip">
-    <p>第一篇（古代）已成型。接下来按历史顺序继续推进：</p>
-    <p style="color:var(--tx2)"><b>第二篇 代数时代</b>：花拉子米解方程 → 韦达/笛卡尔的符号革命 → 三次方程逼出"虚数"<br>
-    <b>第三篇 17 世纪大综合</b>：笛卡尔坐标系 → 用方程重写圆锥曲线 → 对数 → 三角函数 → 微积分(导数/积分) → 概率<br>
+    <p>第一篇（古代）、第二篇（代数时代）已成型。接下来按历史顺序继续推进：</p>
+    <p style="color:var(--tx2)"><b>第三篇 17 世纪大综合</b>：笛卡尔坐标系 → 用方程重写圆锥曲线（补上"缺的一节"）→ 对数 → 三角函数 → 微积分(导数/积分) → 概率<br>
     <b>第四篇 19 世纪严格化</b>：ε-δ 极限 → 实数的构造 → 群论(五次方程) → 非欧几何 → 集合论与无穷<br>
     <b>第五篇 现代</b>：公理化 → 测度论与概率地基 → 拓扑/抽象代数/泛函 → 哥德尔不完备</p>
     <p class="hint">每篇都按"绝境→工具→逐步推导→为什么长这样→挖到底→发现/约定/证明→交互图"来写。看到不懂的，随时截图给我。</p>
@@ -362,6 +448,38 @@ navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMe
     $('#s2-tip').innerHTML='分母越大，能逼得越近，但平方<b>永远不等于正好 2</b>——因为 √2 根本不是任何分数。这就是"量不尽"。';
   }
   $('#s2-q').addEventListener('input',draw); draw();
+})();
+
+/* ===== 二次方程：抛物线与根 ===== */
+(function(){
+  const cv=$('#cv-quad'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height; const ox=W/2, oy=H*0.60, sx=34, sy=17;
+  const PX=x=>ox+x*sx, PY=y=>oy-y*sy;
+  function draw(){
+    const a=parseFloat($('#q-a').value), b=parseFloat($('#q-b').value), c=parseFloat($('#q-c').value);
+    $('#q-av').textContent=a.toFixed(1);$('#q-bv').textContent=b.toFixed(1);$('#q-cv').textContent=c.toFixed(1);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#161b22';ctx.lineWidth=1;
+    for(let gx=-11;gx<=11;gx++){ctx.beginPath();ctx.moveTo(PX(gx),0);ctx.lineTo(PX(gx),H);ctx.stroke();}
+    for(let gy=-8;gy<=14;gy++){ctx.beginPath();ctx.moveTo(0,PY(gy));ctx.lineTo(W,PY(gy));ctx.stroke();}
+    ctx.strokeStyle='#3a4351';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(0,PY(0));ctx.lineTo(W,PY(0));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(PX(0),0);ctx.lineTo(PX(0),H);ctx.stroke();
+    ctx.strokeStyle='#39c5cf';ctx.lineWidth=2.5;ctx.beginPath();let first=true;
+    for(let px=0;px<=W;px+=2){const x=(px-ox)/sx;const y=a*x*x+b*x+c;const py=PY(y);
+      if(py<-50||py>H+50){first=true;continue;} if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);}
+    ctx.stroke();
+    const disc=b*b-4*a*c; let info;
+    if(Math.abs(a)<1e-6){ info='a=0 时它退化成直线，不再是二次方程'; }
+    else if(disc>1e-9){const r1=(-b-Math.sqrt(disc))/(2*a),r2=(-b+Math.sqrt(disc))/(2*a);
+      [r1,r2].forEach(r=>{ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(PX(r),PY(0),5,0,7);ctx.fill();});
+      info='判别式 b²−4ac = <b>'+disc.toFixed(2)+' &gt; 0</b> → 两个实根 x = '+r1.toFixed(2)+' 和 '+r2.toFixed(2)+'（就是曲线穿过 x 轴的两点）';}
+    else if(disc>-1e-9){const r=-b/(2*a);ctx.fillStyle='#e3b341';ctx.beginPath();ctx.arc(PX(r),PY(0),5,0,7);ctx.fill();
+      info='判别式 = <b>0</b> → 一个实根（重根）x = '+r.toFixed(2)+'（曲线正好相切于 x 轴）';}
+    else{ info='判别式 = <b>'+disc.toFixed(2)+' &lt; 0</b> → 实数里无根（曲线不碰 x 轴）——这个"负数开根号"，正是第 8 章虚数的引信'; }
+    $('#q-tip').innerHTML=info;
+  }
+  ['q-a','q-b','q-c'].forEach(id=>$('#'+id).addEventListener('input',draw));draw();
 })();
 </script>
 </body>

@@ -144,7 +144,9 @@
     <a href="#c10"><i>10</i>★椭圆方程从焦点定义推出</a>
     <a href="#c11"><i>11</i>双曲线（和→差）</a>
     <a href="#c12"><i>12</i>抛物线（焦点+准线）</a>
-    <a class="todo" href="#wip"><i>…</i>对数/三角/微积分/概率</a>
+    <a href="#c13"><i>13</i>对数（乘→加）</a>
+    <a href="#c14"><i>14</i>三角函数（3D/2D图）</a>
+    <a class="todo" href="#wip"><i>…</i>微积分/概率</a>
     <div class="grp">第四篇 · 严格化 19世纪（建设中）</div>
     <a class="todo" href="#wip"><i>四</i>极限·实数·群论·非欧·无穷</a>
     <div class="grp">第五篇 · 现代（建设中）</div>
@@ -581,6 +583,60 @@
   <div class="note"><b>圆锥曲线的代数篇到此告一段落。</b>下面继续第三篇：对数 → 三角函数（重点配 3D+2D 图）→ 微积分 → 概率。高考里圆锥曲线的"压轴难题"，本质就是把这几章的方程和"直线联立、求交点、算面积"搅在一起——地基就是这三章。</div>
 </section>
 
+<!-- 13 -->
+<section id="c13">
+  <div class="yr">第三篇 · 1614 · 纳皮尔</div>
+  <h2>第 13 章：对数——把"乘法"变成"加法"的救命发明</h2>
+  <div class="sub">它是被"手算大数乘法算到崩溃"逼出来的，不是数学家闲着造的</div>
+
+  <p>16–17 世纪，天文和航海要把一堆<b>大数相乘</b>（算行星位置、船只经纬），手算乘法又慢又错，算到天文学家"折寿"。纳皮尔（1614）想了二十年，就为解决一件事：<b>能不能把讨厌的乘法，变成好算的加法？</b></p>
+
+  <div class="deriv">
+    <li class="s"><b>先看一条已有规律（指数律）：</b><code>b^m · b^n = b^(m+n)</code>——底数相乘，指数<b>相加</b>。这里已藏着"乘变加"的种子。</li>
+    <li class="s"><b>倒过来用它：</b>如果每个数都写成"b 的多少次方"，那两个数相乘，只需把它们的<b>指数相加</b>。于是给每个数配一个"它是 b 的几次方"的标签——这个标签就叫 <b>对数</b>。</li>
+    <li class="s"><b>定义（先概念后符号）：</b><code>log_b(x)</code> = "b 要几次方才等于 x"，即"求指数"的逆运算；符号 log 是后来约定的记号。</li>
+    <li class="s"><b>核心性质（救命的那条）：</b><code>log(a·b) = log a + log b</code>。<b>乘法真的变成了加法。</b></li>
+  </div>
+
+  <div class="fix"><b>为什么 log(ab)=log a+log b？就是指数律倒过来。</b>点开看完整倒推 + 证明（就地弹窗）：
+    <div style="margin-top:8px"><button class="proofbtn" data-src="src-log" data-title="log(ab)=log a+log b · 倒推 + 证明">log(ab)=log a+log b 从哪来</button></div>
+  </div>
+
+  <div class="note"><b>它有多救命：</b>有了对数，人们造出<b>对数表</b>和<b>计算尺</b>（把数按 log 刻在尺上，两段长度一拼=相加=相乘）——这是电子计算器出现前三百年工程师手里的"乘法神器"。今天的 <b>分贝、pH 值、里氏地震等级</b>都是对数刻度（它把"差几个数量级"压成"差几个单位"）。<span class="key">AI 里的对数（信息量、交叉熵）也是同一个它</span>——把连乘的概率变成可相加、不下溢的数。</div>
+
+  <div class="meta"><div class="t">对数是"发明"，它的性质是"被指数律逼出的定理"</div>定义一个逆运算 + 造个符号 log，是<b>约定/发明</b>；但 <code>log(ab)=log a+log b</code> 不是随便规定的，是<b>被指数律逼出来、可证明的定理</b>。逆向动机很纯粹：想把乘变加 → 发现指数律天生就是"乘→加" → 于是给数贴"指数标签"。</div>
+</section>
+
+<!-- 14 -->
+<section id="c14">
+  <div class="yr">第三篇 · 从古代弦表到欧拉 · 重点配图</div>
+  <h2>第 14 章：三角函数——给"角度"配上"边长"（配 3D/2D 图）</h2>
+  <div class="sub">这是"先观察现实(圆周、影子、周期)、后补公式"的头号典范，光看公式绝对想不出，必须看图</div>
+
+  <p>勾股定理管"三条边"，但不管"<b>角</b>"。可古代天文、测量满是角度问题：<b>星星的高度角、山有多高、地球多大</b>。人类需要一张"<b>角度 ↔ 边长比</b>"的对照表。</p>
+
+  <div class="deriv">
+    <li class="s"><b>最初是"弦表"：</b>托勒密（约公元 150 年）在圆里，把<b>圆心角</b>对应的<b>弦长</b>一个个量出来列成表。印度数学家改用"<b>半弦</b>"（半根弦），这就是 <b>sin（正弦）</b>的前身（sin 词源正是"弦"）。</li>
+    <li class="s"><b>现代干净定义（单位圆）：</b>画半径=1 的圆，从 x 轴正向逆时针转角 θ，落点坐标就定义为 <code>(cos θ, sin θ)</code>——<b>sin θ = 点的高度（纵坐标），cos θ = 横坐标，tan θ = sin/cos（那条半径的斜率）</b>。</li>
+    <li class="s"><b>为什么这么定义？</b>因为它和直角三角形对得上：直角三角形里 <code>sin θ = 对边/斜边</code>；把斜边缩成 1（单位圆），对边就正好=纵坐标=sin θ。<span class="key">"角度→边长比"和"圆上转动"在这里合二为一。</span></li>
+  </div>
+
+  <p><b>光看文字绝对想象不出——必须看这个图：</b>拖"转角"，左边看单位圆上的点转动、它的高度就是 sin；右边同步把这个高度随角度画出来，<b>你会亲眼看到"转圈"怎么变成"正弦波"</b>。</p>
+
+  <div class="demo">
+    <div class="hd">交互图 · 单位圆 → 正弦波（左：转动的点 · 右：它的高度随角度展开成波）</div>
+    <canvas id="cv-trig" width="800" height="360"></canvas>
+    <div class="ctrl">
+      <label>转角 θ <input type="range" id="t-ang" min="0" max="720" step="1" value="60"><span class="ro" id="t-angv">60°</span></label>
+    </div>
+    <div class="hint" id="t-tip"></div>
+  </div>
+
+  <div class="fix"><b>为什么三角函数无处不在？</b>因为<b>一切"转圈"和"来回振动"——声音、交流电、光波、潮汐、弹簧、心跳——本质都是这个单位圆上的点在转，投影出来就是正弦波</b>。人类先观察到这些周期现象，才用 sin/cos 去描述它们。这就是它比数列"更贴近现实"的原因（你之前敏锐地区分过这两类知识）。</div>
+
+  <div class="meta"><div class="t">哪些是约定、哪些是发现</div>选"单位圆、sin=纵坐标、逆时针为正"是<b>约定</b>（换个约定也能自洽）。但一旦定下，很多性质就是<b>被逼出的定理</b>，最重要的一条：<div class="formula" style="margin:8px 0">sin²θ + cos²θ = 1</div>它<b>就是勾股定理</b>——单位圆上点 (cos θ, sin θ) 到圆心距离=1，即 <code>cos²θ+sin²θ=1²</code>。（标注：单位圆定义是【现代整理版】；历史真实路径是"弦表 → 半弦 → 欧拉才正式称它为‘函数’"。）</div>
+</section>
+
 <!-- 建设中 -->
 <section id="wip">
   <div class="yr">后续</div>
@@ -696,6 +752,19 @@
       </div>
     </div>
     <p class="hint">它就是勾股定理换了坐标的衣服（勾股定理本身的证明见"勾股定理"那个按钮）。</p>
+  </div>
+
+  <div id="src-log">
+    <p><b>命题：</b><code>log_b(a·c) = log_b(a) + log_b(c)</code>。</p>
+    <div class="rev"><div class="t">🔎 逆向倒推</div><p>我们<b>想要</b>"乘变加"。已知指数律 <code>b^m·b^n=b^(m+n)</code> 天生就是"底数相乘 = 指数相加"。所以只要把 a、c 各写成 b 的某次方，它们乘积的"指数"自然就是两个指数之和——而"指数"正是对数。顺着这个念头就能写出证明。</p></div>
+    <div class="fwd"><div class="t">📐 正向证明</div>
+      <div class="deriv">
+        <li class="s">设 <code>log_b a = m</code>、<code>log_b c = n</code>，即 <code>a=b^m</code>、<code>c=b^n</code>（对数的定义）。</li>
+        <li class="s">相乘：<code>a·c = b^m·b^n = b^(m+n)</code>（指数律）。</li>
+        <li class="s">对 <code>a·c=b^(m+n)</code> 取对数：<code>log_b(ac)=m+n=log_b a+log_b c</code>。∎</li>
+      </div>
+    </div>
+    <p class="hint">底层只垫一条：指数律 <code>b^m·b^n=b^(m+n)</code>（它本身来自"指数=重复乘"，见第 1 章）。</p>
   </div>
 
 </div>
@@ -943,6 +1012,36 @@ navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMe
     $('#p-tip').innerHTML='|PF| = <b>'+dF.toFixed(2)+'</b>，P 到准线距离 = <b>'+dD.toFixed(2)+'</b>，两者<b>永远相等</b>。拖 P 上下动，「到焦点」和「到准线」始终一样长——这就是抛物线的定义。';
   }
   ['p-p','p-y'].forEach(id=>$('#'+id).addEventListener('input',draw));draw();
+})();
+
+/* ===== 单位圆 → 正弦波 ===== */
+(function(){
+  const cv=$('#cv-trig'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const c1x=160,c1y=H/2,R=95, ax0=300, amp=95, aScale=(W-ax0-30)/(2*Math.PI);
+  function draw(){
+    const deg=parseFloat($('#t-ang').value), th=deg*Math.PI/180;
+    $('#t-angv').textContent=deg.toFixed(0)+'°';
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#2d3f57';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(c1x,c1y,R,0,7);ctx.stroke();
+    ctx.strokeStyle='#3a4351';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(c1x-R-12,c1y);ctx.lineTo(c1x+R+12,c1y);ctx.stroke();ctx.beginPath();ctx.moveTo(c1x,c1y-R-12);ctx.lineTo(c1x,c1y+R+12);ctx.stroke();
+    const pxx=c1x+R*Math.cos(th), pyy=c1y-R*Math.sin(th);
+    ctx.strokeStyle='#58a6ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(c1x,c1y);ctx.lineTo(pxx,pyy);ctx.stroke();
+    ctx.strokeStyle='#bc8cff';ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(pxx,pyy);ctx.lineTo(pxx,c1y);ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle='#e3b341';ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(pxx,c1y);ctx.lineTo(c1x,c1y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(pxx,pyy,5,0,7);ctx.fill();
+    ctx.fillStyle='#bc8cff';ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText('sin',pxx+16,(pyy+c1y)/2);
+    ctx.fillStyle='#e3b341';ctx.fillText('cos',(pxx+c1x)/2,c1y+14);
+    ctx.strokeStyle='#3a4351';ctx.beginPath();ctx.moveTo(ax0,c1y);ctx.lineTo(W-20,c1y);ctx.stroke();
+    ctx.strokeStyle='#39c5cf';ctx.lineWidth=2.4;ctx.beginPath();
+    for(let a=0;a<=Math.PI*2;a+=0.02){const sx=ax0+a*aScale, sy=c1y-amp*Math.sin(a); a===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);}ctx.stroke();
+    const tm=((th%(2*Math.PI))+2*Math.PI)%(2*Math.PI), mx=ax0+tm*aScale, my=c1y-amp*Math.sin(tm);
+    ctx.strokeStyle='#bc8cff';ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(pxx,pyy);ctx.lineTo(mx,my);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(mx,my,5,0,7);ctx.fill();
+    ctx.fillStyle='#9da7b3';ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText('sin θ 的波形（角度 → 高度）',(ax0+W-20)/2,c1y+amp+26);
+    $('#t-tip').innerHTML='转角 θ = '+deg.toFixed(0)+'°：单位圆上点坐标 = (cos θ, sin θ) = ('+Math.cos(th).toFixed(2)+', '+Math.sin(th).toFixed(2)+')。<b>sin θ 就是点的高度</b>——把这个高度随角度画出来，就是右边那条正弦波。声、电、光、潮汐全长这样。';
+  }
+  $('#t-ang').addEventListener('input',draw);draw();
 })();
 </script>
 </body>

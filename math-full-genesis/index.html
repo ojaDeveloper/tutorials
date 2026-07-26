@@ -142,7 +142,9 @@
     <div class="grp">第三篇 · 17世纪大综合</div>
     <a href="#c9"><i>9</i>笛卡尔坐标系·数形焊接</a>
     <a href="#c10"><i>10</i>★椭圆方程从焦点定义推出</a>
-    <a class="todo" href="#wip"><i>…</i>双曲线/抛物线/对数/三角/微积分/概率</a>
+    <a href="#c11"><i>11</i>双曲线（和→差）</a>
+    <a href="#c12"><i>12</i>抛物线（焦点+准线）</a>
+    <a class="todo" href="#wip"><i>…</i>对数/三角/微积分/概率</a>
     <div class="grp">第四篇 · 严格化 19世纪（建设中）</div>
     <a class="todo" href="#wip"><i>四</i>极限·实数·群论·非欧·无穷</a>
     <div class="grp">第五篇 · 现代（建设中）</div>
@@ -503,13 +505,89 @@
   <div class="note"><b>这一节就是你追了整份文档的"缺的一节"。</b>课本直接甩给你 <code>x²/a²+y²/b²=1</code>，把"从绳子定义 → 两次平方消根号"这 8 步全删了，你当然觉得它天降。补上这 8 步，它就成了你能亲手复现的东西。下一章用<b>同一套路</b>（把"和"换成"差"）推双曲线。</div>
 </section>
 
+<!-- 11 -->
+<section id="c11">
+  <div class="yr">第三篇 · 双曲线</div>
+  <h2>第 11 章：双曲线 x²/a²−y²/b²=1 —— 把"和"改成"差"</h2>
+  <div class="sub">你在原来的对话里问过"距离之差为定值是什么、距离之积呢"——这一章正面回答</div>
+
+  <p>椭圆是"到两焦点距离之<b>和</b> = 定值"。数学家最爱干的事，就是<b>改一个字试试</b>：那"到两焦点距离之<b>差</b> = 定值"会长成什么？答案就是<b>双曲线</b>。</p>
+
+  <div class="fix"><b>双曲线的焦点定义：</b>到两个定点（焦点）距离之<b>差的绝对值</b> = 定值（记作 2a）的所有点。<span class="key">椭圆管"和"，双曲线管"差"——同一个模具，换个运算。</span></div>
+
+  <p><b>先看图：</b>拖 P 沿曲线动，<b>|PF₁|−|PF₂| 的绝对值永远=2a</b>；两条斜虚线是它越贴越近、却永远够不到的"渐近线"。</p>
+
+  <div class="demo">
+    <div class="hd">交互图 · 双曲线的焦点定义（||PF₁|−|PF₂|| 恒等于 2a）</div>
+    <canvas id="cv-hyper" width="800" height="420"></canvas>
+    <div class="ctrl">
+      <label>实半轴 a <input type="range" id="h-a" min="1" max="3" step="0.1" value="1.6"><span class="ro" id="h-av">1.6</span></label>
+      <label>焦距 c <input type="range" id="h-c" min="1.5" max="5" step="0.1" value="3"><span class="ro" id="h-cv">3.0</span></label>
+      <label>点 P <input type="range" id="h-t" min="-2.3" max="2.3" step="0.05" value="0.8"></label>
+      <label>分支 <input type="range" id="h-br" min="-1" max="1" step="2" value="1"></label>
+    </div>
+    <div class="hint" id="h-tip"></div>
+  </div>
+
+  <p>推导<b>和椭圆一模一样</b>（消根号平方两次），只是最后符号变了：</p>
+  <div class="deriv">
+    <li class="s">建系 F₁=(−c,0)、F₂=(c,0)，P=(x,y)，照定义：<code>√((x+c)²+y²) − √((x−c)²+y²) = ±2a</code>。</li>
+    <li class="s">同椭圆那样<b>移项、平方两次消根号</b>（步骤完全一致，此处从略），整理得 <code>(c²−a²)x² − a²y² = a²(c²−a²)</code>。</li>
+    <li class="s"><b>关键差别：</b>双曲线里 <b>c>a</b>（差比两焦点间距小），所以 <code>c²−a²>0</code>，记 <code>b²=c²−a²</code>（注意椭圆是 a²−c²，正好反过来）。除以 a²b²：</li>
+  </div>
+  <div class="formula">x²/a² − y²/b² = 1　∎<span class="c">　←和椭圆只差一个减号，根源就是"和→差"</span></div>
+
+  <div class="fix"><b>回答你当年的两个追问：</b><br>
+  · <b>"距离之差为定值是什么"</b> → 就是双曲线（上面已推）。<br>
+  · <b>"距离之积为定值呢？有人试过吗"</b> → 试过！那叫 <b>卡西尼卵形线</b>（到两定点距离之<b>积</b>为定值）；当定值特殊时还会缩成"∞"形的伯努利双纽线。<span class="key">你当年"能不能随便改定义去试"的直觉，数学家早就系统地试过了</span>——改一个运算，就得到一族新曲线。</div>
+
+  <div class="meta"><div class="t">渐近线是哪来的？（b/a 的几何意义）</div>当 x 很大时，<code>x²/a²−y²/b²=1</code> 里那个"1"相对可忽略，方程趋近 <code>x²/a²=y²/b²</code> → <code>y=±(b/a)x</code>，这两条直线就是<b>渐近线</b>——双曲线越跑越贴近它、却永不相交。图里的虚线就是它。（标注：【现代整理版】，与椭圆同一套"消根号"逆向思路。）</div>
+</section>
+
+<!-- 12 -->
+<section id="c12">
+  <div class="yr">第三篇 · 抛物线</div>
+  <h2>第 12 章：抛物线 y²=2px —— 一个焦点 + 一条线的平衡</h2>
+  <div class="sub">椭圆双曲线都用"两个焦点"；抛物线换成"一个焦点 + 一条准线"，而且它有个惊人的现实用途</div>
+
+  <p>椭圆、双曲线都靠<b>两个</b>焦点。抛物线换了个玩法：<b>一个焦点 F + 一条定直线（准线）</b>，比谁离得近。</p>
+
+  <div class="fix"><b>抛物线的定义：</b>到<b>定点（焦点 F）</b>的距离 = 到<b>定直线（准线）</b>的距离，这样的所有点。<span class="key">"到点"和"到线"两个距离恰好平衡。</span></div>
+
+  <div class="note"><b>它的现实用途，正是"先观察现实、后有公式"的典范：</b>把抛物线绕轴转一圈成"抛物面"，它有个神奇性质——<b>所有平行射进来的光/电波，反射后全汇聚到焦点</b>（反过来，焦点发出的光反射后变成平行光）。所以<b>卫星锅、雷达、车灯反射面、太阳灶</b>全是抛物面。人类先发现这个反射现象，才反推出抛物线。</div>
+
+  <p><b>先看图：</b>拖 P 上下动，红色准线、黄色焦点固定，<b>P 到焦点</b>和 <b>P 到准线</b>两段永远一样长。</p>
+
+  <div class="demo">
+    <div class="hd">交互图 · 抛物线（|PF| 恒等于 P 到准线的距离）</div>
+    <canvas id="cv-para" width="800" height="420"></canvas>
+    <div class="ctrl">
+      <label>焦准距 p <input type="range" id="p-p" min="1" max="5" step="0.1" value="2"><span class="ro" id="p-pv">2.0</span></label>
+      <label>点 P（上下） <input type="range" id="p-y" min="-5.2" max="5.2" step="0.1" value="2.5"></label>
+    </div>
+    <div class="hint" id="p-tip"></div>
+  </div>
+
+  <p>推导比椭圆还简单——只需<b>平方一次</b>（因为只有一个根号）：</p>
+  <div class="deriv">
+    <li class="s">建系：焦点 <code>F=(p/2, 0)</code>，准线是竖直线 <code>x=−p/2</code>。设 P=(x,y)。</li>
+    <li class="s">照定义：<b>|PF| = P 到准线的距离</b>。左边距离公式 <code>√((x−p/2)²+y²)</code>；右边"到竖直线 x=−p/2 的距离"就是横坐标差 <code>x+p/2</code>。得 <code>√((x−p/2)²+y²) = x+p/2</code>。</li>
+    <li class="s">两边平方：<code>(x−p/2)²+y² = (x+p/2)²</code>。展开，两边 <code>x²+p²/4</code> 抵消，<code>−px</code> 与 <code>+px</code> 合并 → <code>y² = 2px</code>。∎</li>
+  </div>
+  <div class="formula">y² = 2px　∎</div>
+
+  <div class="meta"><div class="t">三条圆锥曲线，其实是同一台机器</div>圆、椭圆、双曲线、抛物线，方程看着五花八门，其实都出自<b>同一台机器</b>：写下"距离满足某条件" → 用距离公式（勾股） → 平方消根号 → 整理。<span class="key">你当年觉得它们"莫名其妙、各不相干"，是因为课本把这台共用的机器藏了。</span>连回第 5 章——它们在几何上本是"同一个圆锥的不同切法"，在代数上又是"同一套推导的不同条件"，两头都统一。</div>
+
+  <div class="note"><b>圆锥曲线的代数篇到此告一段落。</b>下面继续第三篇：对数 → 三角函数（重点配 3D+2D 图）→ 微积分 → 概率。高考里圆锥曲线的"压轴难题"，本质就是把这几章的方程和"直线联立、求交点、算面积"搅在一起——地基就是这三章。</div>
+</section>
+
 <!-- 建设中 -->
 <section id="wip">
   <div class="yr">后续</div>
   <h2>第二～五篇 · 建设中</h2>
   <div class="wip">
-    <p>第一、二篇已成型；第三篇已开写（坐标系、椭圆方程）。接着继续：</p>
-    <p style="color:var(--tx2)"><b>第三篇 余下</b>：双曲线/抛物线方程 → 对数 → 三角函数（配 3D+2D 图）→ 微积分(导数/积分) → 概率<br>
+    <p>第一、二篇完成；第三篇圆锥曲线代数篇完成（坐标系/椭圆/双曲线/抛物线，全配交互图）。接着继续：</p>
+    <p style="color:var(--tx2)"><b>第三篇 余下</b>：对数 → 三角函数（配 3D+2D 图）→ 微积分(导数/积分) → 概率<br>
     <b>第四篇 19 世纪严格化</b>：ε-δ 极限 → 实数的构造 → 群论(五次方程) → 非欧几何 → 集合论与无穷<br>
     <b>第五篇 现代</b>：公理化 → 测度论与概率地基 → 拓扑/抽象代数/泛函 → 哥德尔不完备</p>
     <p class="hint">每篇都按"绝境→工具→逐步推导→为什么长这样→挖到底→发现/约定/证明→交互图"来写。看到不懂的，随时截图给我。</p>
@@ -805,6 +883,66 @@ navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMe
       '　（b²=a²−c²：'+b.toFixed(2)+'² = '+a.toFixed(1)+'² − '+c.toFixed(1)+'²）';
   }
   ['e-a','e-c','e-t'].forEach(id=>$('#'+id).addEventListener('input',draw));draw();
+})();
+
+/* ===== 双曲线焦点定义（||PF₁|−|PF₂||=2a） ===== */
+(function(){
+  const cv=$('#cv-hyper'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height, ox=W/2, oy=H/2, s=44;
+  const X=x=>ox+x*s, Y=y=>oy-y*s;
+  function draw(){
+    let a=parseFloat($('#h-a').value), c=parseFloat($('#h-c').value), t=parseFloat($('#h-t').value), br=parseFloat($('#h-br').value);
+    if(c<a+0.3) c=a+0.3; const b=Math.sqrt(c*c-a*a);
+    $('#h-av').textContent=a.toFixed(1); $('#h-cv').textContent=c.toFixed(1);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#161b22';ctx.lineWidth=1;
+    for(let g=-8;g<=8;g++){ctx.beginPath();ctx.moveTo(X(g),0);ctx.lineTo(X(g),H);ctx.stroke();ctx.beginPath();ctx.moveTo(0,Y(g));ctx.lineTo(W,Y(g));ctx.stroke();}
+    ctx.strokeStyle='#3a4351';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,Y(0));ctx.lineTo(W,Y(0));ctx.stroke();ctx.beginPath();ctx.moveTo(X(0),0);ctx.lineTo(X(0),H);ctx.stroke();
+    ctx.strokeStyle='rgba(110,118,129,.55)';ctx.setLineDash([5,4]);ctx.lineWidth=1;
+    [1,-1].forEach(sg=>{ctx.beginPath();ctx.moveTo(X(-8),Y(sg*b/a*-8));ctx.lineTo(X(8),Y(sg*b/a*8));ctx.stroke();});
+    ctx.setLineDash([]);
+    ctx.strokeStyle='#39c5cf';ctx.lineWidth=2.6;
+    [1,-1].forEach(sg=>{ctx.beginPath();let f=true;for(let u=-2.4;u<=2.4;u+=0.05){const x=sg*a*Math.cosh(u),y=b*Math.sinh(u);f?ctx.moveTo(X(x),Y(y)):ctx.lineTo(X(x),Y(y));f=false;}ctx.stroke();});
+    ctx.font='13px sans-serif';ctx.textAlign='center';
+    [[-c,'F₁'],[c,'F₂']].forEach(ff=>{ctx.fillStyle='#e3b341';ctx.beginPath();ctx.arc(X(ff[0]),Y(0),5,0,7);ctx.fill();ctx.fillText(ff[1],X(ff[0]),Y(0)+20);});
+    const px=br*a*Math.cosh(t),py=b*Math.sinh(t);
+    ctx.strokeStyle='#bc8cff';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(X(-c),Y(0));ctx.lineTo(X(px),Y(py));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(X(c),Y(0));ctx.lineTo(X(px),Y(py));ctx.stroke();
+    ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(X(px),Y(py),5,0,7);ctx.fill();
+    const d1=Math.hypot(px+c,py),d2=Math.hypot(px-c,py);
+    $('#h-tip').innerHTML='|PF₁| = '+d1.toFixed(2)+'，|PF₂| = '+d2.toFixed(2)+'，<b>差的绝对值 = '+Math.abs(d1-d2).toFixed(2)+' = 2a = '+(2*a).toFixed(2)+'</b>。拖 P 沿曲线动，<b>两段距离之差永远=2a</b>；虚线是渐近线 y=±(b/a)x。';
+  }
+  ['h-a','h-c','h-t','h-br'].forEach(id=>$('#'+id).addEventListener('input',draw));draw();
+})();
+
+/* ===== 抛物线（|PF|=到准线距离） ===== */
+(function(){
+  const cv=$('#cv-para'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height, ox=W*0.32, oy=H/2, s=40;
+  const X=x=>ox+x*s, Y=y=>oy-y*s;
+  function draw(){
+    const p=parseFloat($('#p-p').value), yv=parseFloat($('#p-y').value);
+    $('#p-pv').textContent=p.toFixed(1);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#161b22';ctx.lineWidth=1;
+    for(let g=-8;g<=12;g++){ctx.beginPath();ctx.moveTo(X(g),0);ctx.lineTo(X(g),H);ctx.stroke();}
+    for(let g=-6;g<=6;g++){ctx.beginPath();ctx.moveTo(0,Y(g));ctx.lineTo(W,Y(g));ctx.stroke();}
+    ctx.strokeStyle='#3a4351';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,Y(0));ctx.lineTo(W,Y(0));ctx.stroke();ctx.beginPath();ctx.moveTo(X(0),0);ctx.lineTo(X(0),H);ctx.stroke();
+    ctx.strokeStyle='#f85149';ctx.setLineDash([6,4]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(-p/2),0);ctx.lineTo(X(-p/2),H);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#f85149';ctx.font='12px sans-serif';ctx.textAlign='left';ctx.fillText('准线 x=−p/2',X(-p/2)+4,18);
+    ctx.strokeStyle='#39c5cf';ctx.lineWidth=2.6;ctx.beginPath();let f=true;
+    for(let y=-5.5;y<=5.5;y+=0.05){const x=y*y/(2*p);f?ctx.moveTo(X(x),Y(y)):ctx.lineTo(X(x),Y(y));f=false;}ctx.stroke();
+    ctx.fillStyle='#e3b341';ctx.beginPath();ctx.arc(X(p/2),Y(0),5,0,7);ctx.fill();ctx.textAlign='center';ctx.fillText('焦点F',X(p/2),Y(0)+18);
+    const px=yv*yv/(2*p), py=yv;
+    ctx.strokeStyle='#bc8cff';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(X(px),Y(py));ctx.lineTo(X(p/2),Y(0));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(X(px),Y(py));ctx.lineTo(X(-p/2),Y(py));ctx.stroke();
+    ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(X(px),Y(py),5,0,7);ctx.fill();
+    const dF=Math.hypot(px-p/2,py), dD=px+p/2;
+    $('#p-tip').innerHTML='|PF| = <b>'+dF.toFixed(2)+'</b>，P 到准线距离 = <b>'+dD.toFixed(2)+'</b>，两者<b>永远相等</b>。拖 P 上下动，「到焦点」和「到准线」始终一样长——这就是抛物线的定义。';
+  }
+  ['p-p','p-y'].forEach(id=>$('#'+id).addEventListener('input',draw));draw();
 })();
 </script>
 </body>

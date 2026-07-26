@@ -96,6 +96,22 @@
   .xref:hover{background:rgba(88,166,255,.22)}
   .foot{text-align:center; color:var(--tx3); font-size:13px; padding:40px 0}
   .wip{border:1px dashed var(--line); border-radius:12px; padding:20px; margin:24px 0; text-align:center; color:var(--tx3)}
+  /* 就地弹窗（回溯证明） */
+  .proofbtn{display:inline-flex; align-items:center; gap:6px; cursor:pointer; background:rgba(88,166,255,.12); border:1px solid rgba(88,166,255,.45); color:var(--acc); border-radius:8px; padding:7px 13px; font-size:14px; font-family:inherit}
+  .proofbtn:hover{background:rgba(88,166,255,.24)}
+  .proofbtn::before{content:"🔎"}
+  .mscrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.62); z-index:200}
+  .mscrim.open{display:flex; align-items:flex-start; justify-content:center; padding:38px 16px; overflow-y:auto}
+  .modal{background:var(--panel); border:1px solid var(--line); border-radius:14px; max-width:760px; width:100%; box-shadow:0 24px 70px rgba(0,0,0,.55); margin:auto}
+  .modal .mhd{position:sticky; top:0; background:var(--panel2); border-bottom:1px solid var(--line); padding:13px 20px; display:flex; justify-content:space-between; align-items:center; border-radius:14px 14px 0 0}
+  .modal .mt{font-size:16px; font-weight:700; color:#fff}
+  .modal .mclose{cursor:pointer; background:none; border:1px solid var(--line); color:var(--tx2); border-radius:8px; width:32px; height:32px; font-size:15px}
+  .modal .mclose:hover{color:#fff; border-color:var(--acc)}
+  .modal .mbody{padding:18px 22px 26px; font-size:15px}
+  .rev{border-left:3px solid var(--gold); background:rgba(227,179,65,.07); padding:10px 15px; border-radius:0 8px 8px 0; margin:14px 0}
+  .rev .t{color:var(--gold); font-weight:700; font-size:13.5px; margin-bottom:4px}
+  .fwd{border-left:3px solid var(--ok); background:rgba(63,185,80,.07); padding:10px 15px; border-radius:0 8px 8px 0; margin:14px 0}
+  .fwd .t{color:var(--ok); font-weight:700; font-size:13.5px; margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -277,14 +293,14 @@
   <div class="meta"><div class="t">但别被《几何原本》骗了：正向证明是"整理稿"，逆向摸索才是真实发现</div>
   《几何原本》把一切都写成<b>正向</b>的（公理 → 定理 → 证明），完美得像天生如此。<b>可欧几里得不是从公理"发现"这些定理的</b>——那些结论早就被前人用图形、用试错、用直觉找到了，欧几里得干的是<b>把它们倒过来、重新整理成"从公理出发"的样子</b>。<span class="key">你觉得证明"突然写出来、莫名其妙"，正是因为课本只给了这份整理稿，把"当初怎么逆向摸到的"藏了起来。</span>本课的每个证明，都会尽量先讲那个逆向过程（比如上一章 √2，就先讲了"为什么会想到反证 + 设最简 + 看奇偶"）。</div>
 
-  <div class="fix"><b>说到做到——"任何定理都能回溯到底"不是空话：</b>本课凡用到的定理，都当场给了推导或回溯链接，例如：
-    <ul>
-      <li><b>负负得正</b> → 回溯到"不想和分配律矛盾"（<a class="xref" href="#c1">第 1 章 ⛏挖到底</a>）</li>
-      <li><b>√2 是无理数</b> → 反证法逐步推导 + 讲清怎么想到的（<a class="xref" href="#c3">第 3 章</a>）</li>
-      <li><b>勾股定理本身</b> → 面积拼图证明（<a class="xref" href="../gougu-yuan/">试点第 2 章</a>）</li>
-      <li><b>奇/偶数的平方</b> → 用整除定义 + 分配律（<a class="xref" href="#c3">第 3 章 ⛏</a>）</li>
-    </ul>
-    往后每出现一个新定理，都照此附证明或跳转，<b>绝不留"这个成立"的黑箱</b>。</div>
+  <div class="fix"><b>说到做到——"任何定理都能回溯到底"不是空话，而且不用跳转：</b>点下面任一个，<b>就地弹出完整推导</b>，含 <b style="color:var(--gold)">🔎 逆向倒推（当初怎么摸到的）</b> ＋ <b style="color:var(--ok)">📐 整理成正向标准证明</b> 两段。看完关掉，<b>焦点不丢，不用跳走</b>：
+    <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px">
+      <button class="proofbtn" data-src="src-gougu" data-title="勾股定理 a²+b²=c² · 完整倒推 + 证明">勾股定理 a²+b²=c²</button>
+      <button class="proofbtn" data-src="src-negneg" data-title="负负得正 (−1)(−1)=1 · 完整倒推 + 证明">负负得正 (−1)(−1)=1</button>
+      <button class="proofbtn" data-src="src-sqrt2" data-title="√2 是无理数 · 倒推 + 证明">√2 是无理数</button>
+      <button class="proofbtn" data-src="src-parity" data-title="奇/偶数的平方 · 证明">奇/偶数的平方</button>
+    </div>
+    <p style="margin-top:12px">往后每出现一个新定理，都配一个这样的<b>就地弹窗</b>：既不留"这个成立"的黑箱，也不让你跳走丢焦点。</p></div>
 
   <div class="ask"><b>回答"图能不能算证明"：</b>能，但有前提。欧几里得的证明<b>大量用图</b>，但图只能"提示"，真正算数的是"每一步依据哪条公理"。后来数学界发现"看图想当然"会翻车，才越来越倚重代数/形式化证明。所以图形证明<b>合法但需谨慎</b>——用字母做一般论证（像第 2 章拼图）就稳，用具体图形"目测"就危险。</div>
 
@@ -421,6 +437,90 @@
 </div>
 
 </main>
+
+<!-- ===== 就地弹窗 ===== -->
+<div class="mscrim" id="mscrim">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="mhd"><span class="mt" id="modalTitle">完整推导</span><button class="mclose" id="mclose" title="关闭 (Esc)">✕</button></div>
+    <div class="mbody" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- 弹窗内容源（隐藏；每个都自足，含逆向倒推+正向证明） -->
+<div id="proofsources" style="display:none">
+
+  <div id="src-gougu">
+    <p><b>命题：</b>直角三角形两条直角边 a、b，斜边 c，满足 <code>a² + b² = c²</code>。</p>
+    <div class="rev"><div class="t">🔎 逆向倒推（当初怎么摸到这个证法）</div>
+      <ol>
+        <li>目标是证"两块面积之和 <code>a²+b²</code> 等于另一块面积 <code>c²</code>"（回忆：平方=正方形面积）。</li>
+        <li>证"面积相等"最稳的一招：<b>找同一块面积，用两种方式去数，一种数出 a²+b²，另一种数出 c²</b>。</li>
+        <li>什么图形能同时牵扯 a、b、c？→ 想到用 <b>4 个完全相同的直角三角形</b>（腿 a、b，斜边 c）去拼。它们恰好能塞进一个边长 <code>a+b</code> 的大正方形，而且有<b>两种摆法</b>。</li>
+        <li>两种摆法用的是<b>同一个大正方形、同样的 4 个三角形</b> → 拿走三角形后剩下的面积必然相等。一种摆法剩中间一个斜正方形 <code>c²</code>，另一种剩 <code>a²</code>、<code>b²</code> 两块。倒推到此，证法自己浮现出来。</li>
+      </ol>
+    </div>
+    <div class="fwd"><div class="t">📐 整理成正向标准证明</div>
+      <p>作边长 <code>a+b</code> 的大正方形，面积 <code>(a+b)²</code>。</p>
+      <ul>
+        <li><b>摆法一：</b>4 个三角形斜放四角，中间围出一个边长 c 的正方形。<br>总面积 = 4×(½ab) + c² = <b>2ab + c²</b>。</li>
+        <li><b>摆法二：</b>4 个三角形两两拼成矩形，角落剩边长 a 和 b 的两个正方形。<br>总面积 = 4×(½ab) + a² + b² = <b>2ab + a² + b²</b>。</li>
+      </ul>
+      <p>两者都等于同一个 <code>(a+b)²</code>，于是 <code>2ab + c² = 2ab + a² + b²</code>，两边消去 2ab：</p>
+      <div class="formula">c² = a² + b²　∎</div>
+    </div>
+    <p class="hint">这是现代常见的"面积拼图"整理版，与中国古代<b>赵爽弦图</b>同源。（试点教程里有一张可拖动的这张图：拖 a、b 看两块面积始终相等。）</p>
+  </div>
+
+  <div id="src-negneg">
+    <p><b>命题：</b><code>(−1)×(−1) = +1</code>（更一般：负负得正）。它<b>不是硬规定</b>，是被运算律逼出来的。</p>
+    <div class="rev"><div class="t">🔎 逆向倒推（为什么会这么证）</div>
+      <ol>
+        <li>我们新引入了负数，<b>希望它别破坏已有的规律</b>——尤其"分配律 <code>a(b+c)=ab+ac</code>"和"任何数 ×0 = 0"。</li>
+        <li>问：在"不破坏这些规律"的前提下，<code>(−1)(−1)</code> 有没有被<b>逼定</b>的值？</li>
+        <li>盯住一个<b>一定等于 0</b> 的式子：<code>(−1)×[1+(−1)]</code>——因为 <code>1+(−1)=0</code>，整个是 <code>(−1)×0 = 0</code>。</li>
+        <li>再用分配律把它展开成 <code>(−1)×1 + (−1)×(−1)</code>。它必须 = 0 → 于是 <code>(−1)(−1)</code> 被逼成 <code>+1</code>。倒推完成——不是规定，是"不想和分配律打架"的<b>唯一</b>选择。</li>
+      </ol>
+    </div>
+    <div class="fwd"><div class="t">📐 整理成正向标准证明</div>
+      <div class="deriv">
+        <li class="s"><code>0 = (−1)·0</code>　（任何数乘 0 得 0）</li>
+        <li class="s"><code>= (−1)·(1+(−1))</code>　（因为 1+(−1)=0）</li>
+        <li class="s"><code>= (−1)·1 + (−1)·(−1)</code>　（分配律）</li>
+        <li class="s"><code>= −1 + (−1)(−1)</code></li>
+        <li class="s">整个等于 0，两边加 1：<code>(−1)(−1) = 1</code>。∎（一般的 <code>(−a)(−b)=ab</code> 同理）</li>
+      </div>
+    </div>
+    <div class="meta"><div class="t">发现 还是 约定？</div>负数本身是<b>约定/发明</b>（数系扩张）；但"负负得正"是<b>被分配律逼出来的定理</b>——只要你想让新旧规律不打架，它就<b>只能</b>是 +1，没得选。</div>
+  </div>
+
+  <div id="src-sqrt2">
+    <p><b>命题：</b><code>√2</code> 不是任何分数（它是无理数）。</p>
+    <div class="rev"><div class="t">🔎 逆向倒推</div>
+      <p>证"它<b>不是</b>分数"是个否定命题，没法逐个分数去试 → <b>用反证法</b>：假设它<b>是</b>最简分数 <code>p/q</code>，再设法证出 p、q 其实<b>都是偶数</b>（有公因数 2），这就和"最简"当场矛盾。为什么盯奇偶？因为 <code>p²=2q²</code> 一眼看出 p² 是偶数，好顺藤摸瓜。</p>
+    </div>
+    <div class="fwd"><div class="t">📐 整理成正向标准证明</div>
+      <div class="deriv">
+        <li class="s">设 <code>√2 = p/q</code> 且已最简 → 平方得 <code>p² = 2q²</code> → p² 偶 → <b>p 偶</b>，设 <code>p=2k</code>。</li>
+        <li class="s">代入：<code>4k² = 2q²</code> → <code>q² = 2k²</code> → q² 偶 → <b>q 偶</b>。</li>
+        <li class="s">p、q 都偶 → 有公因数 2，与"最简"矛盾。故 √2 写不成分数。∎</li>
+      </div>
+    </div>
+    <p class="hint">这是【现代整理版】；毕达哥拉斯当初的发现更可能是几何式的"量不尽"（不可公度）。本页第 3 章有完整展开 + 可拖动交互图。</p>
+  </div>
+
+  <div id="src-parity">
+    <p><b>命题：</b>偶数的平方是偶数，奇数的平方是奇数。（第 3 章证 √2 时用到）</p>
+    <div class="rev"><div class="t">🔎 逆向倒推</div><p>要判断 <code>p²</code> 的奇偶，最直接就是<b>把 p 按奇/偶写成通式</b>（偶=2m、奇=2m+1），平方后看末尾能不能被 2 整除。</p></div>
+    <div class="fwd"><div class="t">📐 正向证明</div>
+      <ul>
+        <li><b>偶数：</b>设 <code>p=2m</code>，则 <code>p² = 4m² = 2·(2m²)</code>，能被 2 整除 → 偶数。</li>
+        <li><b>奇数：</b>设 <code>p=2m+1</code>，则 <code>p² = 4m²+4m+1 = 2·(2m²+2m)+1</code>，末尾余 1 → 奇数。</li>
+      </ul>
+      <p>依据只有两条：<b>"偶=能被 2 整除"的定义</b>（约定）＋ <b>分配律</b>。∎</p>
+    </div>
+  </div>
+
+</div>
 </div><!-- /app -->
 
 <script>
@@ -441,6 +541,21 @@ function closeMenu(){ sidebar.classList.remove('open'); scrim.classList.remove('
 $('#menuBtn').onclick=()=>{ sidebar.classList.toggle('open'); scrim.classList.toggle('open'); };
 scrim.onclick=closeMenu;
 navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMenu(); }));
+
+/* ===== 就地弹窗：完整倒推 + 正向证明 ===== */
+(function(){
+  const scrim=$('#mscrim'); if(!scrim)return;
+  document.querySelectorAll('.proofbtn').forEach(btn=>btn.addEventListener('click',()=>{
+    const src=document.getElementById(btn.dataset.src); if(!src)return;
+    $('#modalTitle').textContent=btn.dataset.title||'完整推导';
+    $('#modalBody').innerHTML=src.innerHTML;
+    scrim.classList.add('open'); document.body.style.overflow='hidden'; scrim.scrollTop=0;
+  }));
+  function close(){ scrim.classList.remove('open'); document.body.style.overflow=''; }
+  $('#mclose').onclick=close;
+  scrim.addEventListener('click',e=>{ if(e.target===scrim) close(); });
+  addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
+})();
 
 /* ===== √2 量不尽 ===== */
 (function(){

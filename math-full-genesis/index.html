@@ -151,8 +151,12 @@
     <a href="#c15"><i>15</i>导数（瞬时变化率）</a>
     <a href="#c16"><i>16</i>积分（面积+基本定理）</a>
     <a href="#c17"><i>17</i>概率（从赌桌开始）</a>
-    <div class="grp">第四篇 · 严格化 19世纪（建设中）</div>
-    <a class="todo" href="#wip"><i>四</i>极限·实数·群论·非欧·无穷</a>
+    <div class="grp">第四篇 · 严格化 19世纪</div>
+    <a href="#c18"><i>18</i>ε-δ：驯服"无穷小"</a>
+    <a href="#c19"><i>19</i>实数是什么（戴德金）</a>
+    <a href="#c20"><i>20</i>群论（五次方程）</a>
+    <a href="#c21"><i>21</i>非欧几何（勾股失效）</a>
+    <a href="#c22"><i>22</i>无穷有大小（康托尔）</a>
     <div class="grp">第五篇 · 现代（建设中）</div>
     <a class="todo" href="#wip"><i>五</i>公理化·测度·拓扑·哥德尔</a>
   </nav>
@@ -742,14 +746,121 @@
   <div class="note"><b>🎉 第三篇（17 世纪大综合）到此完成。</b>坐标系把数与形焊在一起，圆锥曲线、对数、三角、微积分、概率全在这个世纪被"数形合一 + 符号"的东风催生。下面进入 <b>第四篇 · 19 世纪严格化</b>：把前面这些"能用但不严谨"的东西（尤其微积分的"无穷小幽灵"），用 ε-δ 彻底重建地基。</div>
 </section>
 
+<!-- 18 -->
+<section id="c18">
+  <div class="yr">第四篇 · 1820s–1870s · 柯西 & 魏尔斯特拉斯</div>
+  <h2>第 18 章：ε-δ——终于驯服了那只"无穷小的幽灵"</h2>
+  <div class="sub">微积分被用了两百年，可它的地基一直含糊。这一章把"趋近、无穷小"变成谁也挑不出毛病的精确定义</div>
+
+  <p>第 15 章留了个尾巴：贝克莱主教嘲笑微积分的无穷小是"<b>逝去量的幽灵</b>"——一会儿说 Δx 不是 0（能当分母），一会儿又说它是 0（可以扔掉）。这不严谨。19 世纪的柯西、魏尔斯特拉斯要一劳永逸地解决："<b>x 趋近 a 时 f(x) 趋近 L</b>"到底是什么意思？</p>
+
+  <div class="deriv">
+    <li class="s"><b>把含糊的"趋近"换成一场"挑战-应答"：</b>不再说"无穷小"，改说——"<b>无论你要求 f(x) 离 L 有多近</b>（你给一个小正数 ε），<b>我总能找到一个范围 δ</b>，只要 x 离 a 在 δ 之内，f(x) 就保证离 L 在 ε 之内"。</li>
+    <li class="s"><b>只要"谁都刁难不倒我"，就说极限 = L：</b>你把 ε 收得再小，我都能回一个 δ 顶住——这就是极限的精确定义。<b>整段没有"无穷小"这个词，全是能验证的不等式。</b></li>
+  </div>
+
+  <p><b>看图：</b>你把黄色的 ε 带收窄（要求多近），程序就回一个蓝色的 δ 带；只要 x 在蓝带里，f(x) 必在黄带里。<b>ε 再小都有 δ 顶上</b>。</p>
+  <div class="demo">
+    <div class="hd">交互图 · ε-δ 挑战应答（你收窄 ε，我回一个 δ）</div>
+    <canvas id="cv-eps" width="800" height="360"></canvas>
+    <div class="ctrl">
+      <label>你要求的接近度 ε <input type="range" id="eps-e" min="0.1" max="1.6" step="0.05" value="1"><span class="ro" id="eps-ev">1.00</span></label>
+    </div>
+    <div class="hint" id="eps-tip"></div>
+  </div>
+
+  <div class="meta"><div class="t">逆向：怎么想到"挑战-应答"的？</div>要刻画"要多近有多近"，最靠谱的办法是<b>让怀疑者先出招</b>：你(怀疑者)说一个"多近"(ε)，我(证明者)必须给出一个"多窄的 x 范围"(δ)兑现它。谁都难不倒 = 极限成立。<span class="key">这是把"动态的趋近"翻译成"静态的、可检验的不等式游戏"</span>——微积分从此有了铁一般的地基，"分析学"正式诞生，第 15、16 章那些"直觉证明"这下能严格证了。全课主线再次印证：<b>能用两百年，才等来能严格证。</b></div>
+</section>
+
+<!-- 19 -->
+<section id="c19">
+  <div class="yr">第四篇 · 1872 · 戴德金</div>
+  <h2>第 19 章：实数到底是什么？——给数轴填满"缝"</h2>
+  <div class="sub">√2 补了一个洞（第 3 章），但整条"实数轴"凭什么保证连续、没缝？微积分全靠这个"没缝"</div>
+
+  <p>有理数（分数）看着密密麻麻，其实<b>到处是缝</b>——比如 √2 那个位置，就没有任何有理数正好落在那儿。可微积分处处依赖"连续、不断裂"。于是必须先严格回答：<b>实数是什么？怎么保证它填满整条数轴、一条缝都没有？</b></p>
+
+  <div class="deriv">
+    <li class="s"><b>戴德金的绝招——用有理数"切一刀"：</b>把所有有理数分成左右两堆：左堆的数都小、右堆的数都大。这个"<b>切口</b>"本身，就定义为<b>一个实数</b>。</li>
+    <li class="s"><b>√2 就是这样一个切口：</b>左堆 = "平方 &lt; 2 的有理数"，右堆 = "平方 &gt; 2 的有理数"。这两堆之间那个"没有有理数的缝"，就<b>被定义成</b> √2。<span class="key">缝，反过来成了数。</span></li>
+    <li class="s"><b>结论：</b>每个实数 = 有理数的一个分割。这样构造出的实数轴<b>再没有缝</b>（数学上叫"完备"）——微积分要的"连续"地基，稳了。</li>
+  </div>
+
+  <div class="meta"><div class="t">又一个"逻辑地基倒着建"的典范</div>你不能凭空喊"√2 存在"，得<b>用已经有的东西（有理数）把它搭出来</b>——切口就是这个构造。<span class="key">实数是被"定义/构造"出来的，不是天上掉的。</span>人类用了实数几千年，直到 1872 年戴德金才把它的地基严格浇好——正是全课那条"先用后证"暗线最锋利的一刀。（戴德金分割是【现代构造】；柯西用"有理数的收敛序列"给了另一套等价构造。）</div>
+</section>
+
+<!-- 20 -->
+<section id="c20">
+  <div class="yr">第四篇 · 1830 前后 · 阿贝尔 & 伽罗瓦</div>
+  <h2>第 20 章：群论——为什么五次方程没有求根公式</h2>
+  <div class="sub">二次有求根公式(第6章)、三四次也有(第8章)，五次呢？找了几百年，答案惊人：根本没有</div>
+
+  <p>有了二、三、四次方程的求根公式，数学家自然去找<b>五次方程</b>的。找了几百年，找不到。直到阿贝尔、伽罗瓦证明了一件颠覆的事：<b>五次及以上的一般方程，根本不存在"根式解"（用加减乘除和开方写出的公式）。</b>不是没找到，是<b>不可能</b>。</p>
+
+  <div class="deriv">
+    <li class="s"><b>伽罗瓦的视角转换（天才所在）：</b>不去硬解方程，而去研究方程的<b>几个根之间的"对称性"</b>——把根互相调换、看哪些调换保持方程关系不变。</li>
+    <li class="s"><b>这些"对称调换"自成一套结构，叫"群"：</b><span class="term">群</span> = 研究"对称/变换"本身的数学对象（旋转魔方、翻转图形、置换根……凡是"一组能复合、能撤销的操作"都是群）。</li>
+    <li class="s"><b>用群的结构判生死：</b>伽罗瓦证明——方程<b>能不能根式解，取决于它的"对称群"是不是某种特殊结构</b>。五次方程的对称群不满足，所以无解。<b>"解不出"被"对称性的结构"精确解释了。</b></li>
+  </div>
+
+  <div class="meta"><div class="t">这是"结构 &gt; 对象"的开端，抽象代数由此诞生</div>伽罗瓦不再盯着"具体的方程和数"，而盯着"它们背后的对称结构"。<span class="key">一次证明，通吃所有具有相同对称结构的方程。</span>群是被"为什么解不出"逼出来的<b>发现</b>；后来发现对称无处不在——<b>物理里"对称=守恒律"（诺特定理）、晶体结构、粒子物理、密码学</b>全靠群。（伽罗瓦 20 岁死于决斗，前夜赶写的手稿开创了这门学问。）这也正是 AI 数学教程里"结构比对象重要"那个顿悟的老祖宗。</div>
+</section>
+
+<!-- 21 -->
+<section id="c21">
+  <div class="yr">第四篇 · 1830 前后 · 高斯/罗巴切夫斯基/鲍耶</div>
+  <h2>第 21 章：非欧几何——原来勾股定理也会"失效"</h2>
+  <div class="sub">第 4 章挖到底时埋过伏笔："换一条公理会怎样？"这一章引爆它</div>
+
+  <p>欧几里得的<b>第五公设（平行公理）</b>："过直线外一点，恰有一条平行线。"两千年里无数人觉得它"不够自明"，想<b>从其他公理把它证出来</b>——全都失败。</p>
+
+  <div class="deriv">
+    <li class="s"><b>换个思路：干脆改掉它。</b>高斯、罗巴切夫斯基、鲍耶大胆假设"过一点有<b>多条</b>平行线"（或一条都没有），照样往下推理。</li>
+    <li class="s"><b>惊人结果：</b>推出来的<b>不是矛盾，而是一套完全自洽的新几何</b>——非欧几何。它描述的是<b>弯曲空间</b>。</li>
+    <li class="s"><b>在弯曲空间里，很多"常识"变了：</b>三角形内角和<b>不再是 180°</b>；<b>勾股定理 a²+b²=c² 失效</b>（第 2 章早说过它"依赖空间是平的"）。</li>
+  </div>
+
+  <div class="fix"><b>一个你能亲手验证的例子：</b>在<b>地球表面</b>（球面）上，从北极出发画两条经线直下到赤道，再沿赤道连起来——得到一个三角形，它<b>三个角都是 90°</b>，内角和 = <b>270°</b>！平面上绝不可能。<span class="key">"直线""角度""三角形"在弯曲面上全变了味。</span></div>
+
+  <div class="meta"><div class="t">公理是"选择"，不是"唯一真理"——数学观的地震</div>非欧几何证明了：<b>换一条公理，就通向另一个自洽的数学宇宙</b>。所以公理是<b>约定/选择</b>，不是天定真理（第 4 章元层的正式引爆）。<span class="key">这彻底打破了"欧氏几何是宇宙唯一真相"的两千年信念。</span>后来黎曼把它推广成"任意弯曲空间的几何"，正好成了<b>爱因斯坦广义相对论</b>的数学语言——引力就是时空的弯曲。你追问到底的那句"是不是定了个标准约定"，深到了这里。</div>
+</section>
+
+<!-- 22 -->
+<section id="c22">
+  <div class="yr">第四篇 · 1874–1891 · 康托尔</div>
+  <h2>第 22 章：无穷也有大小——康托尔的对角线</h2>
+  <div class="sub">"无穷"一直是含糊的禁忌。康托尔第一个严格问：无穷有大小之分吗？答案震惊了整个数学界</div>
+
+  <p>康托尔问了个疯狂的问题：<b>自然数（1,2,3…）的无穷，和实数（0 到 1 之间所有小数）的无穷，一样多吗？</b>怎么比较两个无穷谁大？他的办法很朴素：<b>能一一配对，就一样多</b>（就像不数数，只要每个左手配一个右手，就知道两手一样多）。</p>
+
+  <div class="deriv">
+    <li class="s"><b>自然数能配上很多"看着更多"的集合：</b>比如全体分数（有理数），居然能和自然数一一配对——<b>一样多</b>（都叫"可数无穷"）。</li>
+    <li class="s"><b>但实数配不上——对角线论证：</b>假设你<b>真能</b>把 0~1 的所有实数排成一张无穷长的清单。康托尔说：我造一个新数，它的<b>第 1 位</b>跟清单第 1 个数的第 1 位不同、<b>第 2 位</b>跟第 2 个数的第 2 位不同……（专挑对角线上的数字改掉）。</li>
+    <li class="s"><b>这个新数和清单里"每一个"都至少差一位 → 它不在清单里 → 清单没排全 → 矛盾。</b>所以实数<b>根本没法排成清单</b>，它的无穷<b>严格大于</b>自然数的无穷（叫"不可数无穷"）。</li>
+  </div>
+
+  <div class="note" style="overflow-x:auto"><b>对角线论证长这样（改掉斜对角上的每一位）：</b>
+    <table style="border-collapse:collapse;font-family:Consolas,monospace;font-size:14px;margin:10px 0">
+      <tr><td style="padding:2px 8px;color:var(--tx3)">第1个</td><td style="padding:2px 6px">0.<b style="color:var(--bad)">3</b>1415…</td></tr>
+      <tr><td style="padding:2px 8px;color:var(--tx3)">第2个</td><td style="padding:2px 6px">0.2<b style="color:var(--bad)">7</b>182…</td></tr>
+      <tr><td style="padding:2px 8px;color:var(--tx3)">第3个</td><td style="padding:2px 6px">0.14<b style="color:var(--bad)">1</b>42…</td></tr>
+      <tr><td style="padding:2px 8px;color:var(--tx3)">第4个</td><td style="padding:2px 6px">0.999<b style="color:var(--bad)">9</b>9…</td></tr>
+      <tr><td style="padding:6px 8px;color:var(--gold)">新造</td><td style="padding:6px 6px;color:var(--gold)">0.<b>4</b>&nbsp;<b>8</b>&nbsp;<b>2</b>&nbsp;<b>0</b>… ← 每位都跟斜对角那位不一样，故跟上面每个都不同</td></tr>
+    </table>
+  </div>
+
+  <div class="meta"><div class="t">无穷有层级——这是"发现"，且改写了整个数学的地基</div><b>可数无穷 &lt; 不可数无穷</b>，无穷竟然分大小，这是纯粹的<b>发现</b>（逻辑逼出来的，没法拒绝）。康托尔的集合论后来成了<b>整个现代数学的通用语言</b>（一切对象都用集合定义）。<span class="key">又一个"离经叛道被围攻"的故事</span>：他被同行克罗内克骂"败坏青年"，一生数次精神崩溃——和第 3 章泄露 √2 被扔进海的希帕索斯遥相呼应。<b>突破常识的人，常常先挨骂。</b></div>
+
+  <div class="note"><b>🎉 第四篇（19 世纪严格化）完成。</b>极限有了 ε-δ、实数被构造出来、方程可解性归于群的对称、几何不再唯一、无穷分出层级——数学的地基在这个世纪被彻底浇实。最后进入 <b>第五篇 · 现代</b>：公理化的巅峰、概率的严格地基、抽象结构的三大支柱，以及哥德尔揭示的"数学的边界"。</div>
+</section>
+
 <!-- 建设中 -->
 <section id="wip">
   <div class="yr">后续</div>
   <h2>第二～五篇 · 建设中</h2>
   <div class="wip">
-    <p>第一、二、三篇完成（数系 → 代数 → 17 世纪大综合，全配交互图）。接着继续：</p>
-    <p style="color:var(--tx2)"><b>第四篇 19 世纪严格化</b>：ε-δ 极限 → 实数的构造 → 群论(五次方程) → 非欧几何 → 集合论与无穷<br>
-    <b>第五篇 现代</b>：公理化 → 测度论与概率地基 → 拓扑/抽象代数/泛函 → 哥德尔不完备</p>
+    <p>第一~四篇完成（数系 → 代数 → 17 世纪大综合 → 19 世纪严格化）。最后一篇：</p>
+    <p style="color:var(--tx2)"><b>第五篇 现代</b>：公理化(希尔伯特) → 测度论与概率地基(勒贝格/柯尔莫哥洛夫) → 抽象结构三支柱(拓扑/抽象代数/泛函) → 哥德尔不完备</p>
     <p class="hint">每篇都按"绝境→工具→逐步推导→为什么长这样→挖到底→发现/约定/证明→交互图"来写。看到不懂的，随时截图给我。</p>
   </div>
 </section>
@@ -1191,6 +1302,32 @@ navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMe
     $('#i-tip').innerHTML='用 <b>'+n+'</b> 个矩形逼近曲线下面积：矩形面积之和 = <b>'+sum.toFixed(3)+'</b>；精确值（积分）= <b>'+exact.toFixed(3)+'</b>。矩形越多误差越小 → 宽度趋近 0 时，和 = 精确面积，这个"无穷细分再求和"就是积分 ∫。';
   }
   $('#i-n').addEventListener('input',draw);draw();
+})();
+
+/* ===== ε-δ 挑战应答 ===== */
+(function(){
+  const cv=$('#cv-eps'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height, ox=W*0.5, oy=H*0.62, s=48;
+  const X=x=>ox+x*s, Y=y=>oy-y*s;
+  const f=x=>0.6*x+1, a=2, L=f(a);
+  function draw(){
+    const eps=parseFloat($('#eps-e').value); $('#eps-ev').textContent=eps.toFixed(2);
+    const delta=eps/0.6;
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#161b22';ctx.lineWidth=1;for(let g=-4;g<=8;g++){ctx.beginPath();ctx.moveTo(X(g),0);ctx.lineTo(X(g),H);ctx.stroke();}for(let g=-2;g<=6;g++){ctx.beginPath();ctx.moveTo(0,Y(g));ctx.lineTo(W,Y(g));ctx.stroke();}
+    ctx.fillStyle='rgba(227,179,65,.14)';ctx.fillRect(0,Y(L+eps),W,Y(L-eps)-Y(L+eps));
+    ctx.strokeStyle='rgba(227,179,65,.6)';ctx.setLineDash([4,3]);[L+eps,L-eps].forEach(v=>{ctx.beginPath();ctx.moveTo(0,Y(v));ctx.lineTo(W,Y(v));ctx.stroke();});ctx.setLineDash([]);
+    ctx.fillStyle='rgba(88,166,255,.12)';ctx.fillRect(X(a-delta),0,X(a+delta)-X(a-delta),H);
+    ctx.strokeStyle='rgba(88,166,255,.6)';ctx.setLineDash([4,3]);[a-delta,a+delta].forEach(v=>{ctx.beginPath();ctx.moveTo(X(v),0);ctx.lineTo(X(v),H);ctx.stroke();});ctx.setLineDash([]);
+    ctx.strokeStyle='#3a4351';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,Y(0));ctx.lineTo(W,Y(0));ctx.stroke();
+    ctx.strokeStyle='#39c5cf';ctx.lineWidth=2.6;ctx.beginPath();
+    for(let px=0;px<=W;px+=3){const x=(px-ox)/s;px===0?ctx.moveTo(px,Y(f(x))):ctx.lineTo(px,Y(f(x)));}ctx.stroke();
+    ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(X(a),Y(L),5,0,7);ctx.fill();
+    ctx.fillStyle='#e3b341';ctx.font='12px sans-serif';ctx.textAlign='left';ctx.fillText('L±ε（黄带）',8,Y(L+eps)-6);
+    ctx.fillStyle='#58a6ff';ctx.fillText('a±δ（蓝带）',X(a-delta)+4,H-8);
+    $('#eps-tip').innerHTML='你把 ε 收到 <b>'+eps.toFixed(2)+'</b>（黄带多窄），我就回一个 δ = <b>'+delta.toFixed(2)+'</b>（蓝带）：只要 x 落在蓝带里，f(x) 必落在黄带里。<b>无论你把 ε 收多小，我都能找到对应的 δ</b>——这就是"极限=L"的精确含义，再没有"无穷小"这种含糊词。';
+  }
+  $('#eps-e').addEventListener('input',draw);draw();
 })();
 
 /* ===== 概率：抛硬币频率收敛 0.5 ===== */

@@ -97,6 +97,8 @@
   .foot{text-align:center; color:var(--tx3); font-size:13px; padding:40px 0}
   .wip{border:1px dashed var(--line); border-radius:12px; padding:20px; margin:24px 0; text-align:center; color:var(--tx3)}
   /* 就地弹窗（回溯证明） */
+  .ctrl button{background:var(--panel2); color:var(--tx); border:1px solid var(--line); padding:7px 14px; border-radius:8px; cursor:pointer; font-size:14px; font-family:inherit}
+  .ctrl button:hover{border-color:var(--acc); color:var(--acc)}
   .proofbtn{display:inline-flex; align-items:center; gap:6px; cursor:pointer; background:rgba(88,166,255,.12); border:1px solid rgba(88,166,255,.45); color:var(--acc); border-radius:8px; padding:7px 13px; font-size:14px; font-family:inherit}
   .proofbtn:hover{background:rgba(88,166,255,.24)}
   .proofbtn::before{content:"🔎"}
@@ -146,7 +148,9 @@
     <a href="#c12"><i>12</i>抛物线（焦点+准线）</a>
     <a href="#c13"><i>13</i>对数（乘→加）</a>
     <a href="#c14"><i>14</i>三角函数（3D/2D图）</a>
-    <a class="todo" href="#wip"><i>…</i>微积分/概率</a>
+    <a href="#c15"><i>15</i>导数（瞬时变化率）</a>
+    <a href="#c16"><i>16</i>积分（面积+基本定理）</a>
+    <a href="#c17"><i>17</i>概率（从赌桌开始）</a>
     <div class="grp">第四篇 · 严格化 19世纪（建设中）</div>
     <a class="todo" href="#wip"><i>四</i>极限·实数·群论·非欧·无穷</a>
     <div class="grp">第五篇 · 现代（建设中）</div>
@@ -637,14 +641,114 @@
   <div class="meta"><div class="t">哪些是约定、哪些是发现</div>选"单位圆、sin=纵坐标、逆时针为正"是<b>约定</b>（换个约定也能自洽）。但一旦定下，很多性质就是<b>被逼出的定理</b>，最重要的一条：<div class="formula" style="margin:8px 0">sin²θ + cos²θ = 1</div>它<b>就是勾股定理</b>——单位圆上点 (cos θ, sin θ) 到圆心距离=1，即 <code>cos²θ+sin²θ=1²</code>。（标注：单位圆定义是【现代整理版】；历史真实路径是"弦表 → 半弦 → 欧拉才正式称它为‘函数’"。）</div>
 </section>
 
+<!-- 15 -->
+<section id="c15">
+  <div class="yr">第三篇 · 1660s–1680s · 牛顿 & 莱布尼茨</div>
+  <h2>第 15 章：导数——"某一瞬间"的变化有多快</h2>
+  <div class="sub">你在旧对话里追问过"瞬时速度怎么可能测出来、求导为什么非要曲线"——这一章正面回答</div>
+
+  <p>牛顿研究天体和落体运动，撞到一个要命的问题：<b>某一瞬间</b>的速度是多少？"一段时间的平均速度" = <code>Δ路程/Δ时间</code> 很好算；可"就这一刹那"，时间没流逝（Δt=0），成了 <code>0/0</code>，算不出来。莱布尼茨从"曲线切线斜率"出发，撞到的是同一堵墙。</p>
+
+  <div class="deriv">
+    <li class="s"><b>先退一步用"平均"：</b>取一小段 Δx，平均变化率 = <code>[f(x+Δx)−f(x)] / Δx</code>。几何上这是过曲线两点的<b>割线斜率</b>。</li>
+    <li class="s"><b>让两点靠近：</b>Δx 越小，两点越近，割线越贴近<b>那一点的切线</b>。</li>
+    <li class="s"><b>缩到"无穷小"：</b>让 Δx → 0，割线斜率逼近<b>切线斜率</b>——这个极限值，就是<b>导数</b>：</li>
+  </div>
+  <div class="formula">f′(x) = lim (Δx→0) [ f(x+Δx) − f(x) ] / Δx</div>
+
+  <p><b>看图最直观：</b>拖 Δx 让它越来越小，看割线（黄）怎么贴成切线、斜率怎么逼近导数。</p>
+  <div class="demo">
+    <div class="hd">交互图 · 割线 → 切线（Δx 越小，斜率越逼近导数）</div>
+    <canvas id="cv-deriv" width="800" height="380"></canvas>
+    <div class="ctrl">
+      <label>取点位置 x <input type="range" id="d-x" min="-3" max="3" step="0.1" value="1.5"><span class="ro" id="d-xv">1.5</span></label>
+      <label>间隔 Δx <input type="range" id="d-dx" min="0.05" max="3" step="0.05" value="2"><span class="ro" id="d-dxv">2.00</span></label>
+    </div>
+    <div class="hint" id="d-tip"></div>
+  </div>
+
+  <div class="fix"><b>回答你旧对话里的三个疑问：</b><br>
+  · <b>"瞬时速度不用一堆数据测，怎么算得出？"</b> → 靠<b>公式 + 极限</b>：只要有 f(x) 的式子，代进定义、让 Δx→0，用代数就能算出瞬时值，不必真去测无穷多次。<br>
+  · <b>"求导是不是必须曲线？直线能求导吗？"</b> → 直线<b>也能</b>求导，导数是个常数（斜率处处一样）；曲线求导才得到"随位置变化的斜率"，才有意思。<br>
+  · <b>"怎么保证无限接近瞬时值？"</b> → 靠"极限"这个概念保证。<span class="key">但"无穷小到底是不是 0"当年并不严谨</span>，贝克莱主教讥讽它是"逝去量的幽灵"——严格地基（ε-δ）要等第四篇。</div>
+
+  <details class="dig"><summary>用定义亲手算一次：f(x)=x² 的导数</summary>
+    <div class="body"><code>[f(x+Δx)−f(x)]/Δx = [(x+Δx)²−x²]/Δx = [2x·Δx+Δx²]/Δx = 2x+Δx</code>。让 Δx→0，得 <b>f′(x)=2x</b>。<br>注意：Δx 先<b>约分掉</b>（不是直接令它=0，否则又成 0/0），约完再让它趋近 0——这就是"极限"的巧妙，也是当年争议的核心。</div>
+  </details>
+
+  <div class="meta"><div class="t">导数是"发明的工具"，也是被"求瞬时变化"逼出的</div>现实里一切"变化快慢"都是导数：速度是路程的导数、加速度是速度的导数、边际成本是成本的导数，<b>AI 里"损失对参数的变化率"（梯度）也是导数</b>。逆向动机：想抓"瞬间"，只能用"越来越短的一段"去逼近——极限是唯一出路。</div>
+</section>
+
+<!-- 16 -->
+<section id="c16">
+  <div class="yr">第三篇 · 微积分另一半</div>
+  <h2>第 16 章：积分——曲线下的面积，和一个"史诗级"的发现</h2>
+  <div class="sub">求了变化率(导数)，反过来求"累积总量"——而这两件事竟然是逆运算</div>
+
+  <p>另一个古老难题：<b>曲线围出来的面积怎么算？</b>（不规则地块、行星扫过的面积、变速运动走的总路程。）规则形状有公式，曲线下的面积没有。</p>
+
+  <div class="deriv">
+    <li class="s"><b>古人的笨办法（穷竭法）：</b>把曲线下的面积，切成许多<b>细长条矩形</b>，每条面积 ≈ 宽×高，全加起来 ≈ 总面积。</li>
+    <li class="s"><b>越切越准：</b>矩形越细，锯齿误差越小；宽度 → 0 时，矩形面积之和 → <b>精确面积</b>。这个"无穷细分再求和"就是 <b>积分</b> <code>∫</code>（∫ 是拉长的 S，代表 Sum 求和）。</li>
+  </div>
+
+  <p><b>看图：</b>拖"矩形数量"，看矩形越多、锯齿越小、面积和越贴近精确值。</p>
+  <div class="demo">
+    <div class="hd">交互图 · 用矩形逼近曲线下面积（矩形越多越精确）</div>
+    <canvas id="cv-integral" width="800" height="360"></canvas>
+    <div class="ctrl">
+      <label>矩形数量 n <input type="range" id="i-n" min="1" max="80" step="1" value="6"><span class="ro" id="i-nv">6</span></label>
+    </div>
+    <div class="hint" id="i-tip"></div>
+  </div>
+
+  <div class="fix"><b>史诗级的发现——微积分基本定理（牛顿-莱布尼茨）：</b><span class="key">"求面积"（积分）和"求变化率"（导数）竟然是一对<b>逆运算</b>！</span>想求 f 曲线下的面积，<b>不用</b>真去无穷求和——只要找一个函数 F 使 <code>F′=f</code>（F 叫 f 的原函数），面积就 = <code>F(b) − F(a)</code>。<b>把"无穷项相加"变成了"找个原函数、代两个数相减"</b>，简化到匪夷所思。这就是牛顿/莱布尼茨封神那一步。</div>
+
+  <div class="meta"><div class="t">为什么导数和积分互逆？（一句话直觉）</div>设 A(x) = 从起点到 x 处、曲线下的面积。当 x 再往前挪一丁点 dx，面积多出来的一条 ≈ <b>当前高度 f(x) × dx</b>。所以面积的<b>变化率</b> A′(x) = f(x)——<b>"面积函数"的导数，正好就是原曲线</b>。于是"求面积"就是"反着求导"。逆向动机纯粹：把难算的"无穷求和"，换成好算的"反求导"。（严格证明同样等到第四篇 ε-δ。）</div>
+
+  <div class="note"><b>现实里到处是它：</b>路程 = 速度的积分、总电量 = 电流的积分、下一章的<b>概率 = 概率密度的积分</b>。导数管"快慢"、积分管"累积"，两者互逆，合起来就是描述"变化的世界"的完整语言。</div>
+</section>
+
+<!-- 17 -->
+<section id="c17">
+  <div class="yr">第三篇 · 1654 · 帕斯卡 & 费马</div>
+  <h2>第 17 章：概率——从赌桌上诞生的"不确定"数学</h2>
+  <div class="sub">你旧对话里问过"概率为什么难、为什么难应用"——这一章讲它怎么来的、难在哪</div>
+
+  <p>1654 年，一个赌徒问帕斯卡：两人赌博没赌完就中断，<b>赌注该怎么分才公平？</b>（"分赌注问题"。）帕斯卡和费马通信解决它，顺手<b>给"不确定"配上了数</b>——概率论诞生。</p>
+
+  <div class="deriv">
+    <li class="s"><b>古典概率：</b>在"每种结果等可能"的假设下，<code>概率 = 有利结果数 / 总结果数</code>（掷骰子出 6 = 1/6）。</li>
+    <li class="s"><b>期望（长期平均）：</b><code>期望 = Σ(每个结果 × 它的概率)</code>——赌很多把，平均每把的收益。这直接回答"分赌注"：按各自的<b>期望收益</b>分。</li>
+    <li class="s"><b>大数定律：</b>单次全凭运气，但<b>重复很多次，频率会稳稳收敛到概率</b>。</li>
+  </div>
+
+  <p><b>看图（用真随机抛硬币）：</b>点"连抛"，看正面频率怎么从乱跳慢慢<b>贴近 0.5</b>——这就是大数定律。</p>
+  <div class="demo">
+    <div class="hd">交互图 · 抛硬币的频率收敛到 0.5（大数定律）</div>
+    <canvas id="cv-coin" width="800" height="300"></canvas>
+    <div class="ctrl">
+      <button id="coin-1">抛 1 次</button>
+      <button id="coin-100">连抛 100 次</button>
+      <button id="coin-reset">重置</button>
+    </div>
+    <div class="hint" id="coin-tip"></div>
+  </div>
+
+  <div class="fix"><b>回答你旧对话"概率为什么又难又‘难应用’"：</b>它的<b>计算</b>公式很简单（就是数数、乘除），可它<b>极其反人类直觉</b>——三门问题、医学误诊率、赌徒谬误，连大数学家第一次都会算错。<span class="key">"难"不在算，在于人脑天生不会处理"不确定"，只会处理"因果"。</span></div>
+
+  <div class="meta"><div class="t">古典概率的"等可能"是约定；严格地基是 20 世纪才补的</div>"每种结果等可能"是一个<b>假设/约定</b>（骰子均匀、硬币公平）。而概率作为一门<b>严密学科</b>的地基——用"测度论"给"事件"严格分配"大小"——要等 <b>柯尔莫哥洛夫（1933）</b>，比微积分晚两百多年（第五篇细讲）。<span class="key">这也印证全课主线：能用（帕斯卡算赌注）远早于能严格证（柯尔莫哥洛夫公理化）。</span>AI 里的极大似然、交叉熵，用的正是这套概率语言。</div>
+
+  <div class="note"><b>🎉 第三篇（17 世纪大综合）到此完成。</b>坐标系把数与形焊在一起，圆锥曲线、对数、三角、微积分、概率全在这个世纪被"数形合一 + 符号"的东风催生。下面进入 <b>第四篇 · 19 世纪严格化</b>：把前面这些"能用但不严谨"的东西（尤其微积分的"无穷小幽灵"），用 ε-δ 彻底重建地基。</div>
+</section>
+
 <!-- 建设中 -->
 <section id="wip">
   <div class="yr">后续</div>
   <h2>第二～五篇 · 建设中</h2>
   <div class="wip">
-    <p>第一、二篇完成；第三篇圆锥曲线代数篇完成（坐标系/椭圆/双曲线/抛物线，全配交互图）。接着继续：</p>
-    <p style="color:var(--tx2)"><b>第三篇 余下</b>：对数 → 三角函数（配 3D+2D 图）→ 微积分(导数/积分) → 概率<br>
-    <b>第四篇 19 世纪严格化</b>：ε-δ 极限 → 实数的构造 → 群论(五次方程) → 非欧几何 → 集合论与无穷<br>
+    <p>第一、二、三篇完成（数系 → 代数 → 17 世纪大综合，全配交互图）。接着继续：</p>
+    <p style="color:var(--tx2)"><b>第四篇 19 世纪严格化</b>：ε-δ 极限 → 实数的构造 → 群论(五次方程) → 非欧几何 → 集合论与无穷<br>
     <b>第五篇 现代</b>：公理化 → 测度论与概率地基 → 拓扑/抽象代数/泛函 → 哥德尔不完备</p>
     <p class="hint">每篇都按"绝境→工具→逐步推导→为什么长这样→挖到底→发现/约定/证明→交互图"来写。看到不懂的，随时截图给我。</p>
   </div>
@@ -1042,6 +1146,76 @@ navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMe
     $('#t-tip').innerHTML='转角 θ = '+deg.toFixed(0)+'°：单位圆上点坐标 = (cos θ, sin θ) = ('+Math.cos(th).toFixed(2)+', '+Math.sin(th).toFixed(2)+')。<b>sin θ 就是点的高度</b>——把这个高度随角度画出来，就是右边那条正弦波。声、电、光、潮汐全长这样。';
   }
   $('#t-ang').addEventListener('input',draw);draw();
+})();
+
+/* ===== 导数：割线→切线 ===== */
+(function(){
+  const cv=$('#cv-deriv'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height, ox=W/2, oy=H*0.70, s=42;
+  const X=x=>ox+x*s, Y=y=>oy-y*s;
+  const f=x=>0.35*x*x, fp=x=>0.7*x;
+  function draw(){
+    const x0=parseFloat($('#d-x').value), dx=parseFloat($('#d-dx').value);
+    $('#d-xv').textContent=x0.toFixed(1);$('#d-dxv').textContent=dx.toFixed(2);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#161b22';ctx.lineWidth=1;for(let g=-8;g<=8;g++){ctx.beginPath();ctx.moveTo(X(g),0);ctx.lineTo(X(g),H);ctx.stroke();}for(let g=-1;g<=9;g++){ctx.beginPath();ctx.moveTo(0,Y(g));ctx.lineTo(W,Y(g));ctx.stroke();}
+    ctx.strokeStyle='#3a4351';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,Y(0));ctx.lineTo(W,Y(0));ctx.stroke();ctx.beginPath();ctx.moveTo(X(0),0);ctx.lineTo(X(0),H);ctx.stroke();
+    ctx.strokeStyle='#39c5cf';ctx.lineWidth=2.4;ctx.beginPath();let ff=true;
+    for(let px=0;px<=W;px+=2){const x=(px-ox)/s,y=f(x),py=Y(y);if(py<-20||py>H+20){ff=true;continue;}ff?ctx.moveTo(px,py):ctx.lineTo(px,py);ff=false;}ctx.stroke();
+    const x1=x0,x2=x0+dx,y1=f(x1),y2=f(x2),k=(y2-y1)/dx;
+    ctx.strokeStyle='#e3b341';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(X(-8),Y(y1+k*(-8-x1)));ctx.lineTo(X(8),Y(y1+k*(8-x1)));ctx.stroke();
+    [[x1,y1],[x2,y2]].forEach(p=>{ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(X(p[0]),Y(p[1]),4.5,0,7);ctx.fill();});
+    $('#d-tip').innerHTML='割线过 x='+x1.toFixed(1)+' 和 x='+x2.toFixed(2)+'，斜率 = Δy/Δx = <b>'+k.toFixed(3)+'</b>。把 Δx 拖到趋近 0，割线越贴近<b>切线</b>，斜率 → 导数 f′('+x0.toFixed(1)+') = <b>'+fp(x0).toFixed(3)+'</b>（此处 f=0.35x²，f′=0.7x）。';
+  }
+  ['d-x','d-dx'].forEach(id=>$('#'+id).addEventListener('input',draw));draw();
+})();
+
+/* ===== 积分：矩形逼近面积 ===== */
+(function(){
+  const cv=$('#cv-integral'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height, ox=80, oy=H-40, s=64;
+  const X=x=>ox+x*s, Y=y=>oy-y*s;
+  const f=x=>0.5*x*x+0.4, a=0, b=5, exact=Math.pow(b,3)/6+0.4*b;
+  function draw(){
+    const n=parseInt($('#i-n').value); $('#i-nv').textContent=n;
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#161b22';ctx.lineWidth=1;for(let g=0;g<=6;g++){ctx.beginPath();ctx.moveTo(X(g),0);ctx.lineTo(X(g),H);ctx.stroke();}
+    ctx.strokeStyle='#3a4351';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,Y(0));ctx.lineTo(W,Y(0));ctx.stroke();ctx.beginPath();ctx.moveTo(X(0),0);ctx.lineTo(X(0),H);ctx.stroke();
+    const dx=(b-a)/n; let sum=0;
+    for(let i=0;i<n;i++){const xl=a+i*dx,xm=xl+dx/2,hgt=f(xm);sum+=hgt*dx;
+      ctx.fillStyle='rgba(88,166,255,.18)';ctx.strokeStyle='rgba(88,166,255,.5)';ctx.lineWidth=1;
+      ctx.fillRect(X(xl),Y(hgt),dx*s,hgt*s);ctx.strokeRect(X(xl),Y(hgt),dx*s,hgt*s);}
+    ctx.strokeStyle='#39c5cf';ctx.lineWidth=2.6;ctx.beginPath();let ff=true;
+    for(let x=a;x<=b+0.001;x+=0.02){const px=X(x),py=Y(f(x));ff?ctx.moveTo(px,py):ctx.lineTo(px,py);ff=false;}ctx.stroke();
+    $('#i-tip').innerHTML='用 <b>'+n+'</b> 个矩形逼近曲线下面积：矩形面积之和 = <b>'+sum.toFixed(3)+'</b>；精确值（积分）= <b>'+exact.toFixed(3)+'</b>。矩形越多误差越小 → 宽度趋近 0 时，和 = 精确面积，这个"无穷细分再求和"就是积分 ∫。';
+  }
+  $('#i-n').addEventListener('input',draw);draw();
+})();
+
+/* ===== 概率：抛硬币频率收敛 0.5 ===== */
+(function(){
+  const cv=$('#cv-coin'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height, x0=52,y0=H-28,pw=W-90,ph=H-58;
+  let data=[], heads=0, tot=0;
+  function flip(n){ for(let i=0;i<n;i++){tot++; if(Math.random()<0.5)heads++; data.push(heads/tot);} if(data.length>3000)data=data.slice(data.length-3000); draw(); }
+  function reset(){ data=[];heads=0;tot=0;draw(); }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#3a4351';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x0,16);ctx.lineTo(x0,y0);ctx.lineTo(x0+pw,y0);ctx.stroke();
+    const y5=y0-0.5*ph;
+    ctx.strokeStyle='rgba(63,185,80,.65)';ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x0,y5);ctx.lineTo(x0+pw,y5);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#3fb950';ctx.font='12px sans-serif';ctx.textAlign='right';ctx.fillText('真实概率 0.5',x0+pw,y5-6);
+    ctx.fillStyle='#9da7b3';ctx.textAlign='right';ctx.fillText('1',x0-6,20);ctx.fillText('0',x0-6,y0);
+    if(data.length>1){ctx.strokeStyle='#58a6ff';ctx.lineWidth=2;ctx.beginPath();
+      data.forEach((f,i)=>{const px=x0+i/(data.length-1)*pw, py=y0-f*ph; i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);});ctx.stroke();}
+    const last=data.length?data[data.length-1]:0;
+    $('#coin-tip').innerHTML='已抛 <b>'+tot+'</b> 次，正面频率 = <b>'+last.toFixed(4)+'</b>。抛得越多，频率越<b>稳稳贴近 0.5</b>——这就是大数定律：单次全凭运气，海量重复却收敛到确定的概率。';
+  }
+  $('#coin-1').onclick=()=>flip(1);
+  $('#coin-100').onclick=()=>flip(100);
+  $('#coin-reset').onclick=reset;
+  reset();
 })();
 </script>
 </body>

@@ -139,8 +139,10 @@
     <a href="#c6"><i>6</i>代数诞生·配方解方程</a>
     <a href="#c7"><i>7</i>符号革命：一行式子</a>
     <a href="#c8"><i>8</i>三次方程逼出虚数</a>
-    <div class="grp">第三篇 · 17世纪大综合（建设中）</div>
-    <a class="todo" href="#wip"><i>三</i>坐标·三角·对数·微积分·概率</a>
+    <div class="grp">第三篇 · 17世纪大综合</div>
+    <a href="#c9"><i>9</i>笛卡尔坐标系·数形焊接</a>
+    <a href="#c10"><i>10</i>★椭圆方程从焦点定义推出</a>
+    <a class="todo" href="#wip"><i>…</i>双曲线/抛物线/对数/三角/微积分/概率</a>
     <div class="grp">第四篇 · 严格化 19世纪（建设中）</div>
     <a class="todo" href="#wip"><i>四</i>极限·实数·群论·非欧·无穷</a>
     <div class="grp">第五篇 · 现代（建设中）</div>
@@ -432,13 +434,82 @@
   </details>
 </section>
 
+<!-- 9 -->
+<section id="c9">
+  <div class="yr">第三篇 · 1637 · 笛卡尔</div>
+  <h2>第 9 章：笛卡尔坐标系——把"图形"和"数"焊在一起</h2>
+  <div class="sub">第 7 章给了操作"数"的符号，这一章给"图"配上数——两者一焊，图形第一次能写成方程</div>
+
+  <p>第二篇末尾我们有了<b>符号</b>（能机械操作数），但它还只能玩"数"，够不着"图"。几何和代数依旧是两个世界。笛卡尔（1637）架起了那座桥：</p>
+
+  <div class="deriv">
+    <li class="s"><b>一个约定：</b>平面上画两条互相垂直的数轴（x 轴、y 轴），交点叫原点。于是<b>每个点 = 唯一一对数 (x, y)</b>（x = 离 y 轴多远，y = 离 x 轴多远）。</li>
+    <li class="s"><b>桥通了：</b>"图形"能翻译成"方程"，"方程"能画成"图形"。这门新学问叫 <b>解析几何</b>。</li>
+    <li class="s"><b>配套的唯一工具——距离公式：</b>两点 (x₁,y₁)、(x₂,y₂) 的距离 = <code>√((x₂−x₁)²+(y₂−y₁)²)</code>。<b>下一章推椭圆方程，全靠它。</b></li>
+  </div>
+
+  <div class="fix"><b>距离公式不是新东西，就是勾股定理穿了坐标的衣服</b>（横差、竖差是直角边，距离是斜边）。点开看完整倒推 + 证明（就地弹窗，不跳转）：
+    <div style="margin-top:8px"><button class="proofbtn" data-src="src-dist" data-title="两点间距离公式 · 倒推 + 证明">两点间距离公式 = 勾股定理</button></div>
+  </div>
+
+  <div class="meta"><div class="t">坐标系是纯"约定/发明"，但它是整个近代数学的枢纽</div>用垂直两轴、用 (x,y) 记点，都是<b>笛卡尔的约定</b>（换斜轴、极坐标也行）。它不需要证明，但没有它，圆、椭圆、乃至后面的微积分全都写不成方程。<span class="key">这一章看着简单，却是"数形合一"的总开关。</span>圆的方程 <code>x²+y²=r²</code> 就是它的第一个成果（试点里已一步步推过）。</div>
+</section>
+
+<!-- 10 -->
+<section id="c10">
+  <div class="yr">第三篇 · 17世纪 · 解析几何</div>
+  <h2>第 10 章：★ 椭圆的方程 x²/a²+y²/b²=1 —— 你从第一天就想要的那一节</h2>
+  <div class="sub">你最初就问"椭圆方程怎么来的、光看文字想不出第一步该怎么写"。现在坐标系有了，这一节一步不跳地把它逼出来</div>
+
+  <p>第 5 章里，椭圆是"斜切圆锥"切出来的（纯几何）。可要用<b>方程</b>描述它，得先有一个<b>不依赖圆锥、只用平面上点</b>的定义。这个定义来自一个<b>现实观察</b>——园丁画椭圆：</p>
+
+  <div class="fix"><b>椭圆的"焦点定义"（先观察现实，再下定义）：</b>拿一根<b>定长的绳子</b>，两端钉在两个点（<b>焦点</b> F₁、F₂）上，用笔把绳子<b>绷直</b>画一圈——画出来的就是椭圆。<span class="key">因为笔尖到两颗钉子的距离之和，永远等于绳长（定值）。</span>于是椭圆 = <b>「到两个定点距离之和 = 定值（记作 2a）」的所有点</b>。这个定义是"观察绳子"观察出来的，不是硬凑的公式。</div>
+
+  <p><b>先玩这个图，把"距离之和不变"看进眼里：</b>拖动点 P 绕椭圆转一圈，看 |PF₁| 和 |PF₂| 各自在变，但<b>它们的和永远 = 2a</b>；再拖焦距看椭圆变胖变瘦。</p>
+
+  <div class="demo">
+    <div class="hd">交互图 · 椭圆的焦点定义（|PF₁|+|PF₂| 恒等于 2a）</div>
+    <canvas id="cv-ellipse" width="800" height="420"></canvas>
+    <div class="ctrl">
+      <label>长半轴 a <input type="range" id="e-a" min="2" max="5" step="0.1" value="4"><span class="ro" id="e-av">4.0</span></label>
+      <label>焦距 c <input type="range" id="e-c" min="0" max="4.5" step="0.1" value="2.5"><span class="ro" id="e-cv">2.5</span></label>
+      <label>点 P <input type="range" id="e-t" min="0" max="360" step="1" value="40"></label>
+    </div>
+    <div class="hint" id="e-tip"></div>
+  </div>
+
+  <p>现在把这个定义<b>翻译成方程</b>。你说"想象不出第一步怎么写"——第一步其实只是<b>把定义照距离公式抄下来</b>：</p>
+
+  <div class="deriv">
+    <li class="s"><b>选个方便的坐标系：</b>让两焦点对称落在 x 轴上，<code>F₁=(−c,0)</code>、<code>F₂=(c,0)</code>。（坐标系随便选，选对称的最省力。）</li>
+    <li class="s"><b>照定义抄下来：</b>设椭圆上任意点 <code>P=(x,y)</code>。"到两焦点距离之和 = 2a"，用<b>距离公式</b>（第 9 章）直接写：<br><code>√((x+c)²+y²) + √((x−c)²+y²) = 2a</code>。<b>第一步就这么简单，剩下全是"消根号"的力气活。</b></li>
+    <li class="s"><b>为消根号，先挪走一个：</b><code>√((x+c)²+y²) = 2a − √((x−c)²+y²)</code>。</li>
+    <li class="s"><b>两边平方（消掉左边根号）：</b><code>(x+c)²+y² = 4a² − 4a·√((x−c)²+y²) + (x−c)²+y²</code>。</li>
+    <li class="s"><b>约简：</b>两边 y² 抵消，且 <code>(x+c)²−(x−c)² = 4cx</code>，得 <code>4cx = 4a² − 4a·√((x−c)²+y²)</code> → 整理成 <code>a·√((x−c)²+y²) = a² − cx</code>。</li>
+    <li class="s"><b>再平方一次（消掉剩下的根号）：</b><code>a²·[(x−c)²+y²] = (a²−cx)²</code>。两边展开：<br>左 = <code>a²x² − 2a²cx + a²c² + a²y²</code>，右 = <code>a⁴ − 2a²cx + c²x²</code>。</li>
+    <li class="s"><b>抵消整理：</b>两边的 <code>−2a²cx</code> 抵消，移项得 <code>(a²−c²)x² + a²y² = a²(a²−c²)</code>。</li>
+    <li class="s"><b>换个名字收尾：</b>因为 a>c（绳长比两钉间距大），<code>a²−c²>0</code>，记 <code>b² = a²−c²</code>，代入并两边除以 <code>a²b²</code>：</li>
+  </div>
+
+  <div class="formula">x²/a² + y²/b² = 1　∎<span class="c">　←椭圆方程，从"绳子画椭圆"一步步逼出来的</span></div>
+
+  <div class="fix"><b>回答你最初的困惑"椭圆方程莫名其妙、想不出第一步"：</b>第一步一点不神秘——就是把"两段距离相加 = 2a"<b>照距离公式抄成两个根号相加</b>；后面全是<b>机械地"平方两次消根号"</b>。<span class="key">没有一步是灵光一现，全被"想消掉根号"这个朴素目标推着走。</span>而 <code>b²=a²−c²</code> 也不是硬凑：a 是长半轴、c 是焦距、b 是短半轴，它们本就构成一个直角三角形——<b>又是勾股定理</b>。</div>
+
+  <div class="meta"><div class="t">这是【现代整理版】标准推导；逆向的心思只有一个——"消灭根号"</div>
+  <b>逆向怎么想到的：</b>目标是把"含两个根号的等式"变成"干净的多项式方程"。根号最讨厌，<b>消根号唯一的办法就是平方</b>；有两个根号，就<b>分两次平方</b>（每次先把一个根号单独留一边）。这就是"移项→平方→再移项→再平方"的全部动机。<br>
+  <b>关于严谨：</b>平方有可能引入增根，但这里 <code>a>c≥0</code>、距离非负，每步都可逆，是<b>等价变形</b>——推完即证完。<br>
+  <b>历史：</b>这是笛卡尔/费马之后解析几何的标准做法；阿波罗尼奥斯当年（第 5 章）没有坐标，只能用纯几何比例，根本写不出这个方程。</div>
+
+  <div class="note"><b>这一节就是你追了整份文档的"缺的一节"。</b>课本直接甩给你 <code>x²/a²+y²/b²=1</code>，把"从绳子定义 → 两次平方消根号"这 8 步全删了，你当然觉得它天降。补上这 8 步，它就成了你能亲手复现的东西。下一章用<b>同一套路</b>（把"和"换成"差"）推双曲线。</div>
+</section>
+
 <!-- 建设中 -->
 <section id="wip">
   <div class="yr">后续</div>
   <h2>第二～五篇 · 建设中</h2>
   <div class="wip">
-    <p>第一篇（古代）、第二篇（代数时代）已成型。接下来按历史顺序继续推进：</p>
-    <p style="color:var(--tx2)"><b>第三篇 17 世纪大综合</b>：笛卡尔坐标系 → 用方程重写圆锥曲线（补上"缺的一节"）→ 对数 → 三角函数 → 微积分(导数/积分) → 概率<br>
+    <p>第一、二篇已成型；第三篇已开写（坐标系、椭圆方程）。接着继续：</p>
+    <p style="color:var(--tx2)"><b>第三篇 余下</b>：双曲线/抛物线方程 → 对数 → 三角函数（配 3D+2D 图）→ 微积分(导数/积分) → 概率<br>
     <b>第四篇 19 世纪严格化</b>：ε-δ 极限 → 实数的构造 → 群论(五次方程) → 非欧几何 → 集合论与无穷<br>
     <b>第五篇 现代</b>：公理化 → 测度论与概率地基 → 拓扑/抽象代数/泛函 → 哥德尔不完备</p>
     <p class="hint">每篇都按"绝境→工具→逐步推导→为什么长这样→挖到底→发现/约定/证明→交互图"来写。看到不懂的，随时截图给我。</p>
@@ -534,6 +605,19 @@
       </ul>
       <p>依据只有两条：<b>"偶=能被 2 整除"的定义</b>（约定）＋ <b>分配律</b>。∎</p>
     </div>
+  </div>
+
+  <div id="src-dist">
+    <p><b>命题：</b>平面上两点 A(x₁,y₁)、B(x₂,y₂) 的距离 = <code>√((x₂−x₁)² + (y₂−y₁)²)</code>。</p>
+    <div class="rev"><div class="t">🔎 逆向倒推</div><p>要"量两点的直线距离"，手上只有勾股定理。于是想办法<b>造一个直角三角形、让这段距离当斜边</b>——从 A 横着走 Δx、再竖着走 Δy 到 B，一横一竖正好垂直，AB 就是斜边。</p></div>
+    <div class="fwd"><div class="t">📐 正向证明</div>
+      <div class="deriv">
+        <li class="s">从 A 横向移到 B 的正上/下方，横边长 <code>|x₂−x₁|</code>。</li>
+        <li class="s">再竖向移到 B，竖边长 <code>|y₂−y₁|</code>。两边垂直，AB 是斜边。</li>
+        <li class="s">勾股定理：<code>AB² = (x₂−x₁)² + (y₂−y₁)²</code> → <code>AB = √((x₂−x₁)²+(y₂−y₁)²)</code>。∎</li>
+      </div>
+    </div>
+    <p class="hint">它就是勾股定理换了坐标的衣服（勾股定理本身的证明见"勾股定理"那个按钮）。</p>
   </div>
 
 </div>
@@ -687,6 +771,40 @@ navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMe
     $('#cone-tip').innerHTML='切面角度 <b>'+phi.toFixed(0)+'°</b> → <b style="color:#39c5cf">'+name+'</b>。'+(name==='圆'?'平面水平切，四周对称。':name==='椭圆'?'平面一斜，圆被拉长成椭圆（越斜越扁）。':name==='抛物线'?'平面正好和母线一样斜，曲线开口不再合拢。':'平面比母线更斜，切穿了上下两个锥面，得到两支。');
   }
   $('#s-cone').addEventListener('input',draw);draw();
+})();
+
+/* ===== 椭圆焦点定义（|PF₁|+|PF₂|=2a 恒定） ===== */
+(function(){
+  const cv=$('#cv-ellipse'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height, ox=W/2, oy=H/2, s=52;
+  const X=x=>ox+x*s, Y=y=>oy-y*s;
+  function draw(){
+    let a=parseFloat($('#e-a').value), c=parseFloat($('#e-c').value), t=parseFloat($('#e-t').value)*Math.PI/180;
+    if(c>a-0.2) c=a-0.2;
+    const b=Math.sqrt(Math.max(0.0001,a*a-c*c));
+    $('#e-av').textContent=a.toFixed(1); $('#e-cv').textContent=c.toFixed(1);
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#161b22';ctx.lineWidth=1;
+    for(let g=-7;g<=7;g++){ctx.beginPath();ctx.moveTo(X(g),0);ctx.lineTo(X(g),H);ctx.stroke();ctx.beginPath();ctx.moveTo(0,Y(g));ctx.lineTo(W,Y(g));ctx.stroke();}
+    ctx.strokeStyle='#3a4351';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(0,Y(0));ctx.lineTo(W,Y(0));ctx.stroke();ctx.beginPath();ctx.moveTo(X(0),0);ctx.lineTo(X(0),H);ctx.stroke();
+    ctx.strokeStyle='#39c5cf';ctx.lineWidth=2.6;ctx.beginPath();
+    for(let k=0;k<=6.3;k+=0.03){const x=a*Math.cos(k),y=b*Math.sin(k); k===0?ctx.moveTo(X(x),Y(y)):ctx.lineTo(X(x),Y(y));}
+    ctx.closePath();ctx.stroke();
+    ctx.font='13px sans-serif';ctx.textAlign='center';
+    [[-c,'F₁'],[c,'F₂']].forEach(f=>{ctx.fillStyle='#e3b341';ctx.beginPath();ctx.arc(X(f[0]),Y(0),5,0,7);ctx.fill();ctx.fillText(f[1],X(f[0]),Y(0)+20);});
+    const px=a*Math.cos(t),py=b*Math.sin(t);
+    ctx.strokeStyle='#bc8cff';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(X(-c),Y(0));ctx.lineTo(X(px),Y(py));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(X(c),Y(0));ctx.lineTo(X(px),Y(py));ctx.stroke();
+    ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(X(px),Y(py),5,0,7);ctx.fill();
+    ctx.textAlign='left';ctx.fillText('P',X(px)+8,Y(py)-6);
+    const d1=Math.hypot(px+c,py), d2=Math.hypot(px-c,py);
+    $('#e-tip').innerHTML='|PF₁| = <span style="color:#bc8cff">'+d1.toFixed(2)+'</span>，|PF₂| = <span style="color:#bc8cff">'+d2.toFixed(2)+
+      '</span>，之和 = <b>'+(d1+d2).toFixed(2)+'</b> = 2a = <b>'+(2*a).toFixed(2)+'</b>。拖 P 转一圈——两段各自在变，<b>和永远=2a 不动</b>，这就是椭圆的定义。'+
+      '　（b²=a²−c²：'+b.toFixed(2)+'² = '+a.toFixed(1)+'² − '+c.toFixed(1)+'²）';
+  }
+  ['e-a','e-c','e-t'].forEach(id=>$('#'+id).addEventListener('input',draw));draw();
 })();
 </script>
 </body>

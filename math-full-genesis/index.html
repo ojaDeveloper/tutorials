@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数学创世记 · 全知识点版（按历史顺序，从数的诞生到现代数学）</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2d333b;
+    --tx:#e6edf3; --tx2:#9da7b3; --tx3:#6e7681;
+    --acc:#58a6ff; --acc2:#bc8cff; --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+    --teal:#39c5cf; --gold:#e3b341;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--tx);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; line-height:1.85; font-size:16px;}
+  .app{display:flex; align-items:flex-start}
+  .sidebar{position:sticky; top:0; height:100vh; flex:0 0 280px; width:280px;
+    border-right:1px solid var(--line); background:var(--panel); overflow-y:auto; padding:18px 0 40px; scrollbar-width:thin;}
+  .sidebar::-webkit-scrollbar{width:8px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px}
+  .brand{padding:4px 20px 16px; border-bottom:1px solid var(--line); margin-bottom:8px}
+  .brand .logo{font-size:16px; font-weight:700}
+  .brand .logo .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .sb{font-size:12px; color:var(--tx3); margin-top:5px}
+  nav.toc{padding:0 10px}
+  .toc .grp{font-size:11px; letter-spacing:1px; color:var(--tx3); padding:16px 12px 6px; font-weight:700}
+  .toc a{display:flex; align-items:center; gap:9px; color:var(--tx2); text-decoration:none; font-size:13px;
+    padding:6px 10px 6px 14px; border-radius:8px; margin:1px 0 1px 8px; border-left:2px solid var(--line); transition:.12s;}
+  .toc a i{flex:0 0 auto; width:20px; height:20px; border-radius:6px; font-style:normal;
+    display:flex; align-items:center; justify-content:center; font-size:11px; background:var(--panel2); color:var(--tx3); border:1px solid var(--line);}
+  .toc a:hover{color:var(--tx); background:var(--panel2)}
+  .toc a.on{color:var(--acc); background:rgba(88,166,255,.1); border-left-color:var(--acc)}
+  .toc a.on i{background:var(--acc); color:#0d1117; border-color:var(--acc); font-weight:700}
+  .toc a.todo{opacity:.5}
+  .main{flex:1 1 auto; min-width:0}
+  .wrap{max-width:840px; margin:0 auto; padding:0 30px 140px}
+  header{padding:56px 30px 42px; text-align:center;
+    background:radial-gradient(900px 400px at 50% -120px,rgba(188,140,255,.20),transparent 70%); border-bottom:1px solid var(--line);}
+  header h1{font-size:30px; margin:0 0 14px}
+  header h1 .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--tx2); max-width:680px; margin:0 auto}
+  .tags{margin-top:18px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+  .tag{display:inline-block;padding:5px 14px;border:1px solid var(--line);border-radius:30px;color:var(--tx2);font-size:13px}
+  .menu-btn{display:none; position:fixed; top:14px; left:14px; z-index:120; width:42px; height:42px; border-radius:10px; font-size:18px; background:var(--panel); border:1px solid var(--line); color:var(--tx);}
+  .scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99}
+  @media(max-width:880px){
+    .sidebar{position:fixed; left:0; top:0; z-index:100; transform:translateX(-100%); transition:.25s}
+    .sidebar.open{transform:none}.scrim.open{display:block}.menu-btn{display:flex; align-items:center; justify-content:center}header{padding-top:64px}
+  }
+  section{padding:44px 0 10px; border-bottom:1px solid var(--line)}
+  .yr{font-size:13px; color:var(--acc2); letter-spacing:1px; font-weight:600}
+  h2{font-size:24px; margin:6px 0 4px}
+  .sub{color:var(--tx3); font-size:14px; margin-bottom:18px}
+  h3{font-size:18px; margin:26px 0 8px}
+  p{margin:12px 0}
+  b,strong{color:#fff}
+  code{background:var(--panel2); padding:2px 6px; border-radius:5px; font-size:14px; color:#ffd9a0; font-family:"Cascadia Code",Consolas,monospace}
+  ul,ol{margin:12px 0; padding-left:22px} li{margin:6px 0}
+  .term{color:var(--acc2); font-weight:600}
+  .en{color:var(--tx3); font-size:.86em; font-family:Consolas,monospace}
+  .key{background:linear-gradient(transparent 62%,rgba(188,140,255,.35) 0); padding:0 2px}
+  .ask{border-left:3px solid var(--gold); background:rgba(227,179,65,.08); padding:10px 16px; border-radius:0 8px 8px 0; margin:18px 0; font-size:15px}
+  .ask b{color:var(--gold)}
+  .pain{border-left:3px solid var(--bad); background:rgba(248,81,73,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .pain b{color:var(--bad)}
+  .fix{border-left:3px solid var(--ok); background:rgba(63,185,80,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .fix b{color:var(--ok)}
+  .note{border-left:3px solid var(--acc); background:rgba(88,166,255,.07); padding:12px 16px; border-radius:0 8px 8px 0; margin:18px 0}
+  .formula{font-family:Consolas,monospace; background:#0b0f14; border:1px solid var(--line); border-radius:10px; padding:13px 15px; margin:14px 0; font-size:16px; overflow-x:auto; color:#cfe3ff; text-align:center}
+  .formula .c{color:var(--tx3); font-size:13px}
+  .deriv{counter-reset:d; margin:16px 0; padding:0}
+  .deriv .s{position:relative; list-style:none; padding:10px 0 10px 46px; border-left:2px solid var(--line); margin-left:16px}
+  .deriv .s::before{counter-increment:d; content:counter(d); position:absolute; left:-15px; top:8px; width:28px; height:28px; border-radius:50%; background:var(--panel2); border:1px solid var(--acc); color:var(--acc); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700}
+  .deriv .s b{color:#fff}
+  .meta{border:1px solid rgba(188,140,255,.4); background:linear-gradient(180deg,rgba(188,140,255,.09),rgba(188,140,255,.02)); border-radius:10px; padding:12px 16px; margin:18px 0}
+  .meta .t{font-size:13px; color:var(--acc2); font-weight:700; margin-bottom:6px}
+  .meta .t::before{content:"🧭 元层 · "}
+  details.dig{margin:14px 0; border:1px solid var(--line); border-radius:10px; background:var(--panel); overflow:hidden}
+  details.dig>summary{cursor:pointer; list-style:none; padding:11px 15px; font-size:14.5px; color:var(--teal); font-weight:600; user-select:none; background:rgba(57,197,207,.06)}
+  details.dig>summary::-webkit-details-marker{display:none}
+  details.dig>summary::before{content:"⛏ 挖到底："; color:var(--teal)}
+  details.dig[open]>summary{border-bottom:1px solid var(--line)}
+  details.dig .body{padding:6px 16px 12px; font-size:14.5px; color:var(--tx2)} details.dig .body b{color:#fff}
+  .demo{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; margin:22px 0}
+  .demo .hd{display:flex; gap:8px; font-size:13px; color:var(--tx2); margin-bottom:14px}
+  .demo .hd::before{content:"▶"; color:var(--acc2); font-size:10px}
+  .ctrl{display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:12px 0 4px}
+  .ctrl label{font-size:13px; color:var(--tx2); display:flex; align-items:center; gap:6px}
+  input[type=range]{accent-color:var(--acc2); width:150px}
+  .ro{font-family:Consolas,monospace; color:var(--gold)}
+  canvas{display:block; max-width:100%; border-radius:10px; background:#0b0f14; margin:0 auto}
+  .hint{color:var(--tx3); font-size:13px; margin-top:10px}
+  .xref{display:inline-block; background:rgba(88,166,255,.12); border:1px solid rgba(88,166,255,.4); color:var(--acc); border-radius:8px; padding:2px 10px; text-decoration:none; font-size:14px}
+  .xref:hover{background:rgba(88,166,255,.22)}
+  .foot{text-align:center; color:var(--tx3); font-size:13px; padding:40px 0}
+  .wip{border:1px dashed var(--line); border-radius:12px; padding:20px; margin:24px 0; text-align:center; color:var(--tx3)}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">数学<span class="g">创世记</span> · 全知识点版</div>
+    <div class="sb">按历史真实顺序 · 每步不跳 · 建设中</div>
+  </div>
+  <nav class="toc" id="nav">
+    <div class="grp">先导</div>
+    <a href="#c0"><i>0</i>三条承诺 + 全景地图</a>
+    <div class="grp">第一篇 · 古代：从数到形</div>
+    <a href="#c1"><i>1</i>数的诞生（0与负数）</a>
+    <a href="#c2"><i>2</i>形的规律：勾股·面积·圆</a>
+    <a href="#c3"><i>3</i>第一次危机：√2 量不尽</a>
+    <a href="#c4"><i>4</i>证明的诞生：欧几里得</a>
+    <a href="#c5"><i>5</i>圆锥曲线登场（纯几何）</a>
+    <div class="grp">第二篇 · 代数时代（建设中）</div>
+    <a class="todo" href="#wip"><i>6</i>解方程 / 符号革命 / 虚数</a>
+    <div class="grp">第三篇 · 17世纪大综合（建设中）</div>
+    <a class="todo" href="#wip"><i>7</i>坐标·三角·对数·微积分·概率</a>
+    <div class="grp">第四篇 · 严格化 19世纪（建设中）</div>
+    <a class="todo" href="#wip"><i>8</i>极限·实数·群论·非欧·无穷</a>
+    <div class="grp">第五篇 · 现代（建设中）</div>
+    <a class="todo" href="#wip"><i>9</i>公理化·测度·拓扑·哥德尔</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+<header>
+  <h1>数学<span class="g">创世记</span>：从"数的诞生"到现代数学</h1>
+  <p>不按课本顺序，<b>按人类真实发现的时间顺序</b>走一遍。每个公式都讲清<b class="key">被什么绝境逼出生、为什么长这样、挖到底是什么、这一步算发现还是约定还是证明</b>。覆盖小学 → 名校数学系研究生的全部知识点。</p>
+  <div class="tags">
+    <span class="tag">🕰 历史真实顺序</span>
+    <span class="tag">🪜 每步不跳</span>
+    <span class="tag">⛏ 挖到基岩</span>
+    <span class="tag">🧭 发现/约定/证明</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- 0 -->
+<section id="c0">
+  <div class="yr">先导</div>
+  <h2>第 0 章：三条承诺 + 这门课的全景地图</h2>
+  <div class="sub">先说清楚这门课怎么带你走，以及为什么按"历史顺序"而不是"课本顺序"</div>
+
+  <p>你在长对话里其实一直在要三样东西，这门课当军令状守：</p>
+  <ol>
+    <li><b>绝不跳步</b>——从简单概念到复杂公式之间"缺的那一节"，全补上。</li>
+    <li><b>挖到基岩</b>——每一步用到的更底层东西都能点开 <span style="color:var(--teal)">⛏ 挖到底</span> 继续挖。</li>
+    <li><b>标清身份</b>——每步标注它是 <b style="color:var(--acc2)">🧭 发现（宇宙逼的）/ 约定（人定的）/ 证明（逻辑推的）</b>。</li>
+  </ol>
+
+  <div class="meta"><div class="t">为什么按"历史顺序"，不按课本顺序？</div>课本按"逻辑最省力"排（先易后难），代价是把动机删了，你才觉得"突然跳一节"。<b>历史顺序 = 人类真实的思考顺序</b>：每个新东西都是被上一个时代的"卡点"逼出来的。顺着它走，你会发现<span class="key">没有一个公式是天降的，全是被某个绝境逼出来的</span>——这正是你要的"知其所以然"。</div>
+
+  <div class="note"><b>全景地图（五篇）：</b>① 古代：从数到形（数系、勾股、圆、无理数、证明、圆锥曲线）→ ② 代数时代：符号与方程、虚数 → ③ 17 世纪大综合：坐标、三角、对数、微积分、概率 → ④ 19 世纪严格化：极限、实数、群论、非欧、无穷 → ⑤ 现代：公理化、测度、拓扑、哥德尔。<br>本页目前完成<b>第一篇·古代</b>，其余各篇陆续补齐（左侧灰色项）。</div>
+</section>
+
+<!-- 1 -->
+<section id="c1">
+  <div class="yr">第一篇 · 古代 · 约公元前 3000 年起</div>
+  <h2>第 1 章：数的诞生——0 和负数为什么来得那么晚</h2>
+  <div class="sub">数不是一开始就有这么多种，每一种都是被一个"算不下去"逼出来的</div>
+
+  <div class="deriv">
+    <li class="s"><b>数 = 数量的标签。</b>最早的需求是"记账"：我有几只羊。人类把"5 只羊"和"5 根手指"里共同的东西抽出来，贴个标签叫 <code>5</code>。<span class="key">数是抽象出来的，先于符号存在。</span></li>
+    <li class="s"><b>加减 = 合并/拿走。</b>自然数（1,2,3…）够记录、够加减——只要不"减过头"。</li>
+    <li class="s"><b>撞墙①：<span style="color:var(--bad)">3 − 5 不够减</span>。</b>自然数里没有答案。但"欠债 2 只""亏 2 块"现实存在，于是被逼出 <b>负数</b>（反方向的数）和 <b>0</b>（"什么都没有"也得有个数表示）。</li>
+  </div>
+
+  <div class="ask"><b>史实印证"被逼"与"抗拒"：</b>中国《九章算术》两千年前就用正负数记盈亏；而欧洲直到 17 世纪还把负数骂作"荒谬的数、虚构的数"，帕斯卡都拒绝承认 <code>0−4</code> 有意义。<span class="key">越是今天看来天经地义的东西，历史上越是挣扎着才被逼出来</span>——这句话贯穿整门课。</div>
+
+  <div class="meta"><div class="t">0 与负数是"约定"，还是"发现"？</div>偏<b>约定</b>：它们是人类为了让"减法永远做得下去"而<b>扩充</b>出来的记号（数系扩张）。但一旦定义好，它们的运算规律（如负负得正）就变成了必须<b>证明</b>的东西——规则是约定的，规则下的结论是推出来的。</div>
+
+  <details class="dig"><summary>"负负得正"凭什么？是硬规定还是能推出来？</summary>
+    <div class="body">能推。要求负数和已有的加法、分配律"和平共处"、不产生矛盾，就<b>只能</b>是负负得正。比如：<code>(−1)×(−1)</code> 必须满足 <code>(−1)×(−1) + (−1)×1 = (−1)×(−1+1) = (−1)×0 = 0</code>，而 <code>(−1)×1=−1</code>，所以 <code>(−1)×(−1)</code> 必须 <code>=+1</code> 才能凑够 0。<b>不是老师硬规定，是"不想自相矛盾"逼出来的唯一选择。</b></div>
+  </details>
+</section>
+
+<!-- 2 -->
+<section id="c2">
+  <div class="yr">第一篇 · 古代 · 公元前</div>
+  <h2>第 2 章：形的规律——勾股定理、面积、圆</h2>
+  <div class="sub">这一章的深讲（逐步推导 + 两个可拖动交互图）已经做成了独立试点，这里给脉络 + 直达链接</div>
+
+  <p>数之外，古人还面对"形"：分田、盖直角、造圆。这里诞生了古代数学最重的一块基石——<b>勾股定理</b>，以及它换身衣服后的<b>圆的方程</b>。因为这一段你最较真、我也讲得最细，已单独做成一页带交互的样章：</p>
+
+  <p style="text-align:center; margin:22px 0"><a class="xref" href="../gougu-yuan/">📐 进入深讲：勾股定理 → 圆的方程（含拼图证明 + 圆=勾股 两个可拖动交互图）→</a></p>
+
+  <div class="fix"><b>这一章你需要带走的三个"顿悟"（细节点上面链接）：</b>
+    <ul>
+      <li><b>平方 = 面积</b>：<code>a²</code> 就是"边长 a 的正方形面积"；勾股定理本质是<b>面积关系</b> <code>a²+b²=c²</code>，所以"刚好用平方"一点不刚好。</li>
+      <li><b>圆的方程 = 勾股定理</b>：<code>x²+y²=r²</code> 就是 <code>a²+b²=c²</code>，因为圆上每点到圆心张出一个直角三角形，半径恒定就锁死了它。</li>
+      <li><b>开根号 = 平方的逆</b>：距离公式里的 √ 不神秘，就是"从面积退回边长"。</li>
+    </ul>
+  </div>
+
+  <div class="note"><b>历史提醒：</b>勾股定理公元前就有（图形+口诀"勾三股四弦五"），但写成公式 <code>a²+b²=c²</code> 是<b>两千年后</b>代数符号发明才有的翻译。圆的<b>方程</b>更要等到 17 世纪笛卡尔坐标系（本课第三篇）才可能出现——所以在古代，圆只有"图"，没有"方程"。</div>
+</section>
+
+<!-- 3 -->
+<section id="c3">
+  <div class="yr">第一篇 · 古代 · 约公元前 5 世纪</div>
+  <h2>第 3 章：第一次数学危机——√2 量不尽</h2>
+  <div class="sub">一个正方形的对角线，差点掀翻整个古希腊数学的信仰</div>
+
+  <p>毕达哥拉斯学派有个信仰：<b>任何长度都能用整数之比（分数）表示</b>——世界是"整数和谐"的。可他们自己的勾股定理，亲手捅破了这个信仰。</p>
+
+  <div class="deriv">
+    <li class="s"><b>造一条"量不尽"的线：</b>边长为 1 的正方形，对角线长是多少？用勾股定理：<code>对角线² = 1² + 1² = 2</code>，所以对角线 = <code>√2</code>。</li>
+    <li class="s"><b>它能写成分数吗？</b>假设能，<code>√2 = p/q</code>（已约到最简，p、q 不同时为偶）。两边平方：<code>2 = p²/q²</code>，即 <code>p² = 2q²</code>。</li>
+    <li class="s"><b>推出矛盾：</b><code>p²</code> 是偶数 → p 是偶数（奇数的平方是奇数）→ 设 <code>p=2k</code> → <code>4k²=2q²</code> → <code>q²=2k²</code> → q 也是偶数。<b>p、q 都是偶数，和"最简"矛盾！</b></li>
+    <li class="s"><b>结论：</b><code>√2</code> <b>写不成任何分数</b>。它是一种全新的数——<b>无理数</b>（不能表示成整数之比）。</li>
+  </div>
+
+  <div class="demo">
+    <div class="hd">交互图 · 用分数去逼 √2，永远差一点点（拖分母，看它怎么都凑不出正好 2）</div>
+    <canvas id="cv-sqrt2" width="800" height="230"></canvas>
+    <div class="ctrl">
+      <label>分母 q <input type="range" id="s2-q" min="1" max="200" step="1" value="5"></label>
+      <span class="hint" id="s2-tip"></span>
+    </div>
+  </div>
+
+  <div class="meta"><div class="t">这是一次"发现"，而且是被"证明"逼出来的</div>无理数不是谁发明的——它是<b>被勾股定理 + 逻辑推理逼出来的发现</b>：你不承认它，就得推翻勾股定理或推翻逻辑。上面那个"假设能写成分数→推出矛盾"的招式，叫 <b>反证法</b>（归谬法），是古希腊人立下的证明范式之一。<span class="key">传说泄露这个秘密的希帕索斯被扔进了海里</span>——可见它当年多"离经叛道"。</div>
+
+  <div class="ask"><b>连回你的追问：</b>"数学公式能不能随便定义？" —— √2 的故事说明<b>不能全随便</b>：一旦你接受了自然数、分数、勾股定理，√2 的存在就是<b>被逼出来的、无法拒绝</b>的。数学是"在约定的规则下，被逻辑逼着往前走"，不是想写什么写什么。</div>
+
+  <details class="dig"><summary>"奇数的平方是奇数、偶数的平方是偶数"凭什么？</summary>
+    <div class="body">偶数 <code>=2m</code>，平方 <code>=4m²=2(2m²)</code> 仍是偶数；奇数 <code>=2m+1</code>，平方 <code>=4m²+4m+1=2(2m²+2m)+1</code> 仍是奇数。<b>纯靠"偶=能被2整除"的定义 + 乘法分配律推出来</b>，不需要更高深的东西。这就是挖到底：底下垫的是"整除的定义"和"分配律"。</div>
+  </details>
+</section>
+
+<!-- 4 -->
+<section id="c4">
+  <div class="yr">第一篇 · 古代 · 约公元前 300 年</div>
+  <h2>第 4 章：证明的诞生——欧几里得把数学变成"讲道理"</h2>
+  <div class="sub">你反复问"谁认可这种证明方式？是不是定了个标准？"——答案就在这一章</div>
+
+  <p>在欧几里得之前，数学是一堆"好用的经验"（埃及人会算面积、巴比伦人会解方程），但<b>没人系统追问"凭什么"</b>。欧几里得（约公元前 300 年）写了《几何原本》，干了一件改变数学命运的事：</p>
+
+  <div class="deriv">
+    <li class="s"><b>先立"不证自明"的起点（公理/公设）。</b>比如"两点之间可连一条直线""所有直角都相等"。这些是<b>约定的地基</b>，不再往下问。</li>
+    <li class="s"><b>再规定"合法的推理步骤"。</b>只允许从公理和已证结论出发，一步步逻辑推导。</li>
+    <li class="s"><b>于是每个结论都能"追责到底"：</b>任何定理，都能一路回溯到那几条公理。<span class="key">数学第一次变成"从公认起点出发、逐步讲道理"的体系</span>，而不是"祖传经验"。</li>
+  </div>
+
+  <div class="meta"><div class="t">"证明"本身是一套"约定的游戏规则"</div>这就是你追问的答案：<b>什么算证明、哪些是起点、什么推理合法——是欧几里得立下、后世数学界共同沿用并不断加严的约定</b>，不是某个自然真理。但在这套规则下推出的结论（如勾股定理）是<b>发现</b>。<span class="key">规则是约定的，规则下的真理是发现的</span>——这句你从第 3 章记到现在，正式坐实。</div>
+
+  <div class="ask"><b>回答"图能不能算证明"：</b>能，但有前提。欧几里得的证明<b>大量用图</b>，但图只能"提示"，真正算数的是"每一步依据哪条公理"。后来数学界发现"看图想当然"会翻车，才越来越倚重代数/形式化证明。所以图形证明<b>合法但需谨慎</b>——用字母做一般论证（像第 2 章拼图）就稳，用具体图形"目测"就危险。</div>
+
+  <details class="dig"><summary>公理能随便定吗？换一条公理会怎样？</summary>
+    <div class="body">公理不能自相矛盾，但<b>确实可以换</b>。欧几里得的"第五公设"（平行公理）两千年里被无数人怀疑，后来有人<b>故意换掉它</b>，竟推出了一套自洽的<b>非欧几何</b>（本课第四篇）——在那里勾股定理都会变样！这说明<span class="key">公理是"选择"，不同选择通向不同的数学宇宙</span>。你当年直觉的"是不是定了个标准约定"，深到了这一层。</div>
+  </details>
+</section>
+
+<!-- 5 -->
+<section id="c5">
+  <div class="yr">第一篇 · 古代 · 约公元前 200 年</div>
+  <h2>第 5 章：圆锥曲线登场——椭圆/双曲线的"纯几何"前世</h2>
+  <div class="sub">你最初就问"圆锥曲线为什么难"，这一章讲它古代的样子：难，是因为那时还没有坐标</div>
+
+  <p>阿波罗尼奥斯（约公元前 200 年）写了《圆锥曲线论》。他研究一个纯几何对象：<b>拿一个平面去切圆锥</b>，切出来的边缘线。</p>
+
+  <div class="deriv">
+    <li class="s"><b>横着切</b>（平面垂直于轴）→ 得到<b>圆</b>。</li>
+    <li class="s"><b>斜着切</b>（比母线缓）→ 切出一个封闭的椭圆 → <b>椭圆</b>。</li>
+    <li class="s"><b>切得跟母线一样斜</b> → 曲线不再封闭 → <b>抛物线</b>。</li>
+    <li class="s"><b>切得更陡</b>（穿过两个锥面）→ 得到两支 → <b>双曲线</b>。</li>
+  </div>
+
+  <div class="fix"><b>这就是"圆锥曲线"这个名字的由来：它们全是"切圆锥"切出来的</b>。圆、椭圆、抛物线、双曲线是<b>同一个家族</b>，只是切的角度不同——这是阿波罗尼奥斯的伟大洞察。</div>
+
+  <div class="ask"><b>正面回答你最初的问题"圆锥曲线为什么是高考难题"：</b>因为它站在两套体系的<b>交叉口</b>。古代它是<b>纯几何</b>（切圆锥，极其繁琐，阿波罗尼奥斯用了几百页）；高中学的却是它的<b>代数方程</b>版（<code>x²/a²+y²/b²=1</code> 之类）。<span class="key">课本直接甩给你方程，却把"从几何定义怎么翻译成这个方程"那一大段删了</span>——于是你觉得方程"莫名其妙"。这中间"缺的一节"，要等第三篇笛卡尔坐标系出场，才能补上。</div>
+
+  <div class="meta"><div class="t">古代圆锥曲线：纯"发现"，靠几何"证明"，但没有"方程"</div>阿波罗尼奥斯全靠图形和比例做论证，没有一个代数方程——因为代数符号和坐标系都还没发明。<span class="key">"难"的根源就在这：用没有坐标的纯几何去驾驭这些曲线，比后来的代数方法难上十倍。</span>这也是为什么这门课要按历史顺序走——你会亲眼看到同一个东西，在"有没有坐标"前后难度天差地别。</div>
+</section>
+
+<!-- 建设中 -->
+<section id="wip">
+  <div class="yr">后续</div>
+  <h2>第二～五篇 · 建设中</h2>
+  <div class="wip">
+    <p>第一篇（古代）已成型。接下来按历史顺序继续推进：</p>
+    <p style="color:var(--tx2)"><b>第二篇 代数时代</b>：花拉子米解方程 → 韦达/笛卡尔的符号革命 → 三次方程逼出"虚数"<br>
+    <b>第三篇 17 世纪大综合</b>：笛卡尔坐标系 → 用方程重写圆锥曲线 → 对数 → 三角函数 → 微积分(导数/积分) → 概率<br>
+    <b>第四篇 19 世纪严格化</b>：ε-δ 极限 → 实数的构造 → 群论(五次方程) → 非欧几何 → 集合论与无穷<br>
+    <b>第五篇 现代</b>：公理化 → 测度论与概率地基 → 拓扑/抽象代数/泛函 → 哥德尔不完备</p>
+    <p class="hint">每篇都按"绝境→工具→逐步推导→为什么长这样→挖到底→发现/约定/证明→交互图"来写。看到不懂的，随时截图给我。</p>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<div class="foot">
+  数学创世记 · 全知识点版（按历史顺序）· 建设中<br>
+  <span style="color:var(--tx3)">没有一个公式是天降的，全是被某个绝境逼出来的</span>
+</div>
+
+</main>
+</div><!-- /app -->
+
+<script>
+const $ = s => document.querySelector(s);
+const navLinks=[...document.querySelectorAll('#nav a')];
+const secs=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+function syncNav(){
+  let i=secs.findIndex((s,k)=>{
+    const r=s.getBoundingClientRect();
+    return r.top<=140 && (k===secs.length-1 || (secs[k+1]&&secs[k+1].getBoundingClientRect().top>140));
+  });
+  if(i<0)i=0;
+  navLinks.forEach((a,k)=>a.classList.toggle('on',k===i));
+}
+addEventListener('scroll',syncNav,{passive:true}); syncNav();
+const sidebar=$('#sidebar'), scrim=$('#scrim');
+function closeMenu(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+$('#menuBtn').onclick=()=>{ sidebar.classList.toggle('open'); scrim.classList.toggle('open'); };
+scrim.onclick=closeMenu;
+navLinks.forEach(a=>a.addEventListener('click',()=>{ if(innerWidth<=880) closeMenu(); }));
+
+/* ===== √2 量不尽 ===== */
+(function(){
+  const cv=$('#cv-sqrt2'); if(!cv)return; const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const SQ2=Math.sqrt(2);
+  function draw(){
+    const q=parseInt($('#s2-q').value);
+    const p=Math.round(q*SQ2);
+    const frac=p/q, sq=frac*frac, diff=Math.abs(sq-2);
+    ctx.clearRect(0,0,W,H);
+    // 左：单位正方形 + 对角线
+    const s=120, ox=60, oy=H/2-s/2;
+    ctx.strokeStyle='#3a4351'; ctx.lineWidth=2; ctx.strokeRect(ox,oy,s,s);
+    ctx.strokeStyle='#bc8cff'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(ox,oy+s); ctx.lineTo(ox+s,oy); ctx.stroke();
+    ctx.fillStyle='#9da7b3'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('1', ox+s/2, oy+s+18); ctx.textAlign='right'; ctx.fillText('1 ', ox-4, oy+s/2);
+    ctx.fillStyle='#bc8cff'; ctx.save(); ctx.translate(ox+s/2-6,oy+s/2-6); ctx.rotate(-Math.PI/4); ctx.textAlign='center'; ctx.fillText('√2', 0,-6); ctx.restore();
+    // 右：数值对比条
+    const bx=280, bw=460, by=70;
+    ctx.fillStyle='#e6edf3'; ctx.font='15px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('用分数 p/q 去逼 √2 ≈ 1.41421356…', bx, by-24);
+    ctx.font='14px Consolas,monospace'; ctx.fillStyle='#e3b341';
+    ctx.fillText('最接近的分数: '+p+' / '+q+' = '+frac.toFixed(6), bx, by+6);
+    ctx.fillStyle='#cfe3ff';
+    ctx.fillText('它的平方 = '+sq.toFixed(6)+'   （目标是正好 2）', bx, by+34);
+    // 误差条
+    ctx.fillStyle='#6e7681'; ctx.fillText('离 2 还差:', bx, by+70);
+    const barw=340, full=0.5;
+    ctx.strokeStyle='#2d333b'; ctx.strokeRect(bx+80,by+58,barw,16);
+    ctx.fillStyle= diff<1e-4 ? '#3fb950' : '#f85149';
+    ctx.fillRect(bx+80,by+58, Math.min(barw, diff/full*barw), 16);
+    ctx.fillStyle='#e6edf3'; ctx.fillText(diff.toExponential(2), bx+80+barw+6, by+71);
+    $('#s2-tip').innerHTML='分母越大，能逼得越近，但平方<b>永远不等于正好 2</b>——因为 √2 根本不是任何分数。这就是"量不尽"。';
+  }
+  $('#s2-q').addEventListener('input',draw); draw();
+})();
+</script>
+</body>
+</html>
